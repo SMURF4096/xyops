@@ -129,7 +129,130 @@ Page.WebHooks = class WebHooks extends Page.PageUtils {
 	edit_web_hook(idx) {
 		// jump to edit sub
 		if (idx > -1) Nav.go( '#WebHooks?sub=edit&id=' + this.web_hooks[idx].id );
+		else if (app.isAdmin()) this.showNewWebHookDialog();
 		else Nav.go( '#WebHooks?sub=new' );
+	}
+	
+	showNewWebHookDialog() {
+		// show dialog with template selector
+		// Note: for admins only, as this creates a secret vault too
+		var self = this;
+		var title = 'New Web Hook';
+		var btn = ['plus-circle', "Create Web Hook"];
+		var html = '';
+		
+		html += '<div class="dialog_box_content scroll maximize">';
+		
+		html += this.getFormRow({
+			label: 'Web Hook Template:',
+			content: this.getFormMenuSingle({
+				id: 'fe_nwh_template',
+				title: 'Select Web Hook Template',
+				options: config.ui.new_hook_templates,
+				value: ''
+			}),
+			caption: 'Select a template to create your web hook.'
+		});
+		
+		// description
+		html += this.getFormRow({
+			label: 'Description:',
+			content: '<div id="s_nwh_desc" class="markdown-body"></div>'
+		});
+		
+		// event params
+		html += this.getFormRow({
+			id: 'd_nwh_params',
+			label: 'Secret Variables:',
+			content: '<div id="d_nwh_param_editor" class="plugin_param_editor_cont"></div>',
+			caption: 'Enter values for a new secret vault which will be created and linked to the web hook.'
+		});
+		
+		html += '</div>';
+		Dialog.confirm( title, html, btn, function(result) {
+			if (!result) return;
+			
+			var template_id = $('#fe_nwh_template').val();
+			var template = find_object( config.ui.new_hook_templates, { id: template_id } );
+			
+			var params = self.getParamValues(template.fields);
+			if (!params) return; // validation error
+			
+			Dialog.hide();
+			
+			if (!template_id) {
+				// no template selected, so create hook from scratch
+				Nav.go( '#WebHooks?sub=new' );
+				return;
+			}
+			
+			// first create the web hook, so we can get the ID
+			var web_hook = deep_copy_object(template);
+			delete web_hook.fields;
+			delete web_hook.id;
+			
+			// look for dupe title, uniqueify if required
+			if (find_object(app.web_hooks, { title: web_hook.title } )) {
+				var num = 2;
+				while (find_object(app.web_hooks, { title: web_hook.title + ' ' + num })) { num++; }
+				web_hook.title += ' ' + num;
+			}
+			
+			Dialog.showProgress( 1.0, "Creating Web Hook..." );
+			
+			app.api.post( 'app/create_web_hook', web_hook, function(resp) {
+				var hook_id = resp.web_hook.id;
+				
+				// update client copy if ws hasn't sent the update yet (race cond)
+				if (!find_object(app.web_hooks, { id: hook_id })) {
+					app.web_hooks.push( resp.web_hook );
+				}
+				
+				// now create the secret vault
+				var secret = {
+					title: web_hook.title + " Credentials",
+					enabled: true,
+					icon: '',
+					notes: "Auto-generated for the " + web_hook.title + " web hook.",
+					events: [],
+					categories: [],
+					plugins: [],
+					web_hooks: [ hook_id ], // link to our new web hook
+					fields: Object.keys(params).map( function(key) { return { name: key, value: '' + params[key] }; } )
+				};
+				
+				app.api.post( 'app/create_secret', secret, function(resp) {
+					// all done
+					app.cacheBust = hires_time_now();
+					Dialog.hideProgress();
+					app.showMessage('success', "The new web hook was created successfully.");
+					Nav.go( '#WebHooks?sub=edit&id=' + hook_id );
+				} ); // app/create_secret
+			} ); // app/create_web_hook
+		}); // Dialog.confirm
+		
+		SingleSelect.init( $('#fe_nwh_template') );
+		
+		var change_template = function() {
+			var template_id = $('#fe_nwh_template').val();
+			var template = find_object( config.ui.new_hook_templates, { id: template_id } );
+			
+			$('#s_nwh_desc').html( marked.parse(template.notes, config.ui.marked_config) );
+			
+			if (!template_id) {
+				$('#d_nwh_params').hide();
+				// $('#btn_dialog_confirm').html(``);
+				Dialog.autoResize();
+				return;
+			}
+			
+			$('#d_nwh_param_editor').html( self.getParamEditor(template.fields, {}) ).buttonize();
+			$('#d_nwh_params').show();
+			Dialog.autoResize();
+		};
+		
+		$('#fe_nwh_template').on('change', change_template);
+		change_template();
 	}
 	
 	delete_web_hook(idx) {
@@ -497,13 +620,13 @@ Page.WebHooks = class WebHooks extends Page.PageUtils {
 			label: 'URL:',
 			content: this.getFormText({
 				id: 'fe_ewh_url',
-				type: 'url',
+				type: 'text',
 				spellcheck: 'false',
 				autocomplete: 'off',
 				placeholder: 'https://',
 				value: web_hook.url
 			}),
-			caption: 'Enter the fully-qualified URL for the web hook request.'
+			caption: 'Enter the fully-qualified URL or template expression for the web hook request.'
 		});
 		
 		// method
@@ -762,8 +885,8 @@ Page.WebHooks = class WebHooks extends Page.PageUtils {
 		if (!web_hook.title.length) {
 			return app.badField('#fe_ewh_title', "Please enter a title for the web hook.");
 		}
-		if (!web_hook.url.match(/^https?:\/\/\S+$/i)) {
-			return app.badField('#fe_ewh_url', "Please enter a fully-qualified URL for the web hook.");
+		if (!web_hook.url.match(/^(?:https?:\/\/\S+$|\{\{)/i)) {
+			return app.badField('#fe_ewh_url', "Please enter a fully-qualified URL or template expression for the web hook.");
 		}
 		
 		return web_hook;

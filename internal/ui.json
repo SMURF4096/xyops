@@ -1269,6 +1269,396 @@
 		"delete": "deleted comment."
 	},
 	
+	"new_hook_templates": [
+		{
+			"id": "",
+			"title": "Blank",
+			"icon": "note-outline",
+			"notes": "Create a web hook manually from scratch.",
+			"fields": []
+		},
+		{
+			"id": "pushover",
+			"title": "Pushover",
+			"icon": "cellphone-sound",
+			"enabled": true,
+			"url": "https://api.pushover.net/1/messages.json",
+			"method": "POST",
+			"headers": [
+				{ "name": "Content-Type", "value": "application/x-www-form-urlencoded" },
+				{ "name": "User-Agent", "value": "xyOps/WebHook" }
+			],
+			"body": "token={{ encode(secrets.PUSHOVER_API_TOKEN) }}&user={{ encode(secrets.PUSHOVER_USER_KEY) }}&message={{ encode(text) }}",
+			"timeout": 30,
+			"retries": 3,
+			"follow": false,
+			"ssl_cert_bypass": false,
+			"max_per_day": 0,
+			"notes": "Send web hooks using the Pushover mobile notification service.  Learn more at [Pushover.net](https://pushover.net).",
+			"fields": [
+				{
+					"id": "PUSHOVER_USER_KEY",
+					"title": "Pushover User Key",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter your Pushover User Key, which is alphanumeric and 30 characters in length."
+				},
+				{
+					"id": "PUSHOVER_API_TOKEN",
+					"title": "Pushover API Token",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter your Pushover App API Token, which is alphanumeric and 30 characters in length."
+				}
+			]
+		},
+		{
+			"id": "slack",
+			"title": "Slack",
+			"icon": "slack",
+			"enabled": true,
+			"url": "{{ secrets.SLACK_WEBHOOK_URL }}",
+			"method": "POST",
+			"headers": [
+				{ "name": "Content-Type", "value": "application/json" },
+				{ "name": "User-Agent", "value": "xyOps/WebHook" }
+			],
+			"body": "{\n\t\"text\": {{ stringify(text) }}\n}",
+			"timeout": 30,
+			"retries": 3,
+			"follow": false,
+			"ssl_cert_bypass": false,
+			"max_per_day": 0,
+			"notes": "Send web hooks to a Slack channel using an Incoming Webhook URL.  Learn more at [Slack Incoming Webhooks](https://api.slack.com/messaging/webhooks).",
+			"fields": [
+				{
+					"id": "SLACK_WEBHOOK_URL",
+					"title": "Slack Web Hook URL",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter the full Slack Incoming Webhook URL copied from Slack."
+				}
+			]
+		},
+		{
+			"id": "discord",
+			"title": "Discord",
+			"icon": "message-badge-outline",
+			"enabled": true,
+			"url": "{{ secrets.DISCORD_WEBHOOK_URL }}",
+			"method": "POST",
+			"headers": [
+				{ "name": "Content-Type", "value": "application/json" },
+				{ "name": "User-Agent", "value": "xyOps/WebHook" }
+			],
+			"body": "{\n\t\"content\": {{ stringify(text) }}\n}",
+			"timeout": 30,
+			"retries": 3,
+			"follow": false,
+			"ssl_cert_bypass": false,
+			"max_per_day": 0,
+			"notes": "Send web hooks to a Discord channel using a Discord Incoming Webhook URL.  Learn more at [Discord Webhooks](https://docs.discord.com/developers/resources/webhook).",
+			"fields": [
+				{
+					"id": "DISCORD_WEBHOOK_URL",
+					"title": "Discord Web Hook URL",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter the full Discord webhook URL copied from Discord."
+				}
+			]
+		},
+		{
+			"id": "ntfy",
+			"title": "ntfy",
+			"icon": "bell-ring-outline",
+			"enabled": true,
+			"url": "https://ntfy.sh/{{ encode(secrets.NTFY_TOPIC) }}",
+			"method": "POST",
+			"headers": [
+				{ "name": "Content-Type", "value": "text/plain; charset=utf-8" },
+				{ "name": "Title", "value": "xyOps" },
+				{ "name": "Priority", "value": "high" },
+				{ "name": "Tags", "value": "warning" },
+				{ "name": "Authorization", "value": "Bearer {{ secrets.NTFY_TOKEN }}" },
+				{ "name": "User-Agent", "value": "xyOps/WebHook" }
+			],
+			"body": "{{ text }}",
+			"timeout": 30,
+			"retries": 3,
+			"follow": false,
+			"ssl_cert_bypass": false,
+			"max_per_day": 0,
+			"notes": "Send web hooks as push notifications through ntfy.  If your topic allows anonymous publishes, remove the Authorization header.  For self-hosted ntfy, replace `https://ntfy.sh` with your own server URL.  Learn more at [ntfy.sh](https://docs.ntfy.sh/publish/).",
+			"fields": [
+				{
+					"id": "NTFY_TOPIC",
+					"title": "ntfy Topic",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter your private ntfy topic name.  Treat this like a password if anonymous publishing is enabled."
+				},
+				{
+					"id": "NTFY_TOKEN",
+					"title": "ntfy Token",
+					"type": "text",
+					"value": "",
+					"required": false,
+					"caption": "Optional: Enter an ntfy access token for protected topics.  Remove the Authorization header if you do not use one."
+				}
+			]
+		},
+		{
+			"id": "echobell",
+			"title": "EchoBell",
+			"icon": "cellphone-message",
+			"enabled": true,
+			"url": "https://hook.echobell.one/t/{{ encode(secrets.ECHOBELL_CHANNEL_TOKEN) }}",
+			"method": "POST",
+			"headers": [
+				{ "name": "Content-Type", "value": "application/json" },
+				{ "name": "User-Agent", "value": "xyOps/WebHook" }
+			],
+			"body": "{\n\t\"source\": \"xyOps\",\n\t\"message\": {{ stringify(text) }}\n}",
+			"timeout": 30,
+			"retries": 3,
+			"follow": false,
+			"ssl_cert_bypass": false,
+			"max_per_day": 0,
+			"notes": "Send web hooks to EchoBell for mobile push notifications and call alerts.  Learn more at [EchoBell Webhooks](https://echobell.one/docs/webhook).",
+			"fields": [
+				{
+					"id": "ECHOBELL_CHANNEL_TOKEN",
+					"title": "EchoBell Channel Token",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter the EchoBell channel token from your webhook URL, after `https://hook.echobell.one/t/`."
+				}
+			]
+		},
+		{
+			"id": "google_chat",
+			"title": "Google Chat",
+			"icon": "google",
+			"enabled": true,
+			"url": "https://chat.googleapis.com/v1/spaces/{{ encode(secrets.GOOGLE_CHAT_SPACE_ID) }}/messages?key={{ encode(secrets.GOOGLE_CHAT_KEY) }}&token={{ encode(secrets.GOOGLE_CHAT_TOKEN) }}",
+			"method": "POST",
+			"headers": [
+				{ "name": "Content-Type", "value": "application/json; charset=UTF-8" },
+				{ "name": "User-Agent", "value": "xyOps/WebHook" }
+			],
+			"body": "{\n\t\"text\": {{ stringify(text) }}\n}",
+			"timeout": 30,
+			"retries": 3,
+			"follow": false,
+			"ssl_cert_bypass": false,
+			"max_per_day": 0,
+			"notes": "Send web hooks to a Google Chat space using an incoming webhook.  Learn more at [Google Chat Incoming Webhooks](https://developers.google.com/workspace/chat/quickstart/webhooks).",
+			"fields": [
+				{
+					"id": "GOOGLE_CHAT_SPACE_ID",
+					"title": "Google Chat Space ID",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter the Google Chat space ID from your webhook URL, after `/v1/spaces/` and before `/messages`."
+				},
+				{
+					"id": "GOOGLE_CHAT_KEY",
+					"title": "Google Chat Key",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter the key query parameter from your Google Chat webhook URL."
+				},
+				{
+					"id": "GOOGLE_CHAT_TOKEN",
+					"title": "Google Chat Token",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter the token query parameter from your Google Chat webhook URL."
+				}
+			]
+		},
+		{
+			"id": "telegram",
+			"title": "Telegram",
+			"icon": "send",
+			"enabled": true,
+			"url": "https://api.telegram.org/bot{{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage",
+			"method": "POST",
+			"headers": [
+				{ "name": "Content-Type", "value": "application/x-www-form-urlencoded" },
+				{ "name": "User-Agent", "value": "xyOps/WebHook" }
+			],
+			"body": "chat_id={{ encode(secrets.TELEGRAM_CHAT_ID) }}&text={{ encode(text) }}",
+			"timeout": 30,
+			"retries": 3,
+			"follow": false,
+			"ssl_cert_bypass": false,
+			"max_per_day": 0,
+			"notes": "Send web hooks as Telegram bot messages using sendMessage.  Learn more at [Telegram Bot API](https://core.telegram.org/bots/api#sendmessage).",
+			"fields": [
+				{
+					"id": "TELEGRAM_BOT_TOKEN",
+					"title": "Telegram Bot Token",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter your Telegram bot token from BotFather."
+				},
+				{
+					"id": "TELEGRAM_CHAT_ID",
+					"title": "Telegram Chat ID",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter the destination chat ID, group ID, or channel username."
+				}
+			]
+		},
+		{
+			"id": "mattermost",
+			"title": "Mattermost",
+			"icon": "chat-processing-outline",
+			"enabled": true,
+			"url": "https://{{ secrets.MATTERMOST_HOST }}/hooks/{{ encode(secrets.MATTERMOST_WEBHOOK_KEY) }}",
+			"method": "POST",
+			"headers": [
+				{ "name": "Content-Type", "value": "application/json" },
+				{ "name": "User-Agent", "value": "xyOps/WebHook" }
+			],
+			"body": "{\n\t\"text\": {{ stringify(text) }}\n}",
+			"timeout": 30,
+			"retries": 3,
+			"follow": false,
+			"ssl_cert_bypass": false,
+			"max_per_day": 0,
+			"notes": "Send web hooks to a Mattermost channel using an incoming webhook.  Learn more at [Mattermost Incoming Webhooks](https://docs.mattermost.com/integrations-guide/incoming-webhooks.html).",
+			"fields": [
+				{
+					"id": "MATTERMOST_HOST",
+					"title": "Mattermost Host",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter your Mattermost hostname, without the `https://` prefix."
+				},
+				{
+					"id": "MATTERMOST_WEBHOOK_KEY",
+					"title": "Mattermost Web Hook Key",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter the generated key from the Mattermost incoming webhook URL, after `/hooks/`."
+				}
+			]
+		},
+		{
+			"id": "gotify",
+			"title": "Gotify",
+			"icon": "message-alert-outline",
+			"enabled": true,
+			"url": "https://{{ secrets.GOTIFY_HOST }}/message?token={{ encode(secrets.GOTIFY_APP_TOKEN) }}",
+			"method": "POST",
+			"headers": [
+				{ "name": "Content-Type", "value": "application/json" },
+				{ "name": "User-Agent", "value": "xyOps/WebHook" }
+			],
+			"body": "{\n\t\"title\": \"xyOps\",\n\t\"message\": {{ stringify(text) }},\n\t\"priority\": 5\n}",
+			"timeout": 30,
+			"retries": 3,
+			"follow": false,
+			"ssl_cert_bypass": false,
+			"max_per_day": 0,
+			"notes": "Send web hooks as self-hosted push notifications through Gotify.  Learn more at [Gotify](https://gotify.net/docs/).",
+			"fields": [
+				{
+					"id": "GOTIFY_HOST",
+					"title": "Gotify Host",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter your Gotify hostname, without the `https://` prefix."
+				},
+				{
+					"id": "GOTIFY_APP_TOKEN",
+					"title": "Gotify App Token",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter the Gotify application token allowed to create messages."
+				}
+			]
+		},
+		{
+			"id": "pagerduty",
+			"title": "PagerDuty",
+			"icon": "alert-octagon-outline",
+			"enabled": true,
+			"url": "https://events.pagerduty.com/v2/enqueue",
+			"method": "POST",
+			"headers": [
+				{ "name": "Content-Type", "value": "application/json" },
+				{ "name": "User-Agent", "value": "xyOps/WebHook" }
+			],
+			"body": "{\n\t\"routing_key\": \"{{ secrets.PAGERDUTY_ROUTING_KEY }}\",\n\t\"event_action\": \"trigger\",\n\t\"payload\": {\n\t\t\"summary\": {{ stringify(text) }},\n\t\t\"source\": \"xyOps\",\n\t\t\"severity\": \"error\"\n\t}\n}",
+			"timeout": 30,
+			"retries": 3,
+			"follow": false,
+			"ssl_cert_bypass": false,
+			"max_per_day": 0,
+			"notes": "Trigger PagerDuty incidents using Events API v2.  This is best for actionable on-call alerts, not routine notifications.  Learn more at [PagerDuty Services and Integrations](https://support.pagerduty.com/main/docs/services-and-integrations).",
+			"fields": [
+				{
+					"id": "PAGERDUTY_ROUTING_KEY",
+					"title": "PagerDuty Routing Key",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter your PagerDuty Events API v2 integration key, also called the routing key."
+				}
+			]
+		},
+		{
+			"id": "opsgenie",
+			"title": "Opsgenie",
+			"icon": "alert-decagram-outline",
+			"enabled": true,
+			"url": "https://api.opsgenie.com/v2/alerts",
+			"method": "POST",
+			"headers": [
+				{ "name": "Content-Type", "value": "application/json" },
+				{ "name": "Authorization", "value": "GenieKey {{ secrets.OPSGENIE_API_KEY }}" },
+				{ "name": "User-Agent", "value": "xyOps/WebHook" }
+			],
+			"body": "{\n\t\"message\": \"xyOps Alert\",\n\t\"description\": {{ stringify(text) }},\n\t\"source\": \"xyOps\",\n\t\"priority\": \"P3\"\n}",
+			"timeout": 30,
+			"retries": 3,
+			"follow": false,
+			"ssl_cert_bypass": false,
+			"max_per_day": 0,
+			"notes": "Create Opsgenie alerts using the Alert API.  If you use the EU instance, replace the host with `https://api.eu.opsgenie.com`.  Learn more at [Opsgenie Alert API](https://docs.opsgenie.com/docs/alert-api).",
+			"fields": [
+				{
+					"id": "OPSGENIE_API_KEY",
+					"title": "Opsgenie API Key",
+					"type": "text",
+					"value": "",
+					"required": true,
+					"caption": "Enter an Opsgenie API integration key that is allowed to create alerts."
+				}
+			]
+		}
+	],
+
 	"db_export_columns": {
 		"jobs": [
 			{ "id": "id", "title": "Job ID" },
