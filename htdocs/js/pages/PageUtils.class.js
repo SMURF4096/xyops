@@ -4044,12 +4044,13 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		var params = node.data.params;
 		var default_icon = (event.type == 'workflow') ? 'clipboard-flow-outline' : config.ui.data_types.event.icon;
 		var icon = event.icon || default_icon;
-		var pill = node.data.replay ? `<div class="wf_event_title_pill replay"><i class="mdi mdi-replay"></i>Replay</div>` : '';
+		var replay = node.data.replay ? `<i class="mdi mdi-replay replay" title="Replay"></i>` : '';
+		var toggle = (this.ID == 'Workflows') ? `<i class="mdi mdi-unfold-more-horizontal toggle_compact clicky" title="Toggle Compact"></i>` : '';
 		
 		html += `<div id="d_wfn_${node.id}" class="${classes.join(' ')}" style="left:${pos.x}px; top:${pos.y}px;" aria-label="${encode_attrib_entities(event.title)}">
 			<div class="wf_event_title">
 				<div class="wf_event_title_text"><i class="mdi mdi-drag"></i><i class="mdi mdi-${icon}"></i>${event.title}</div>
-				${pill}
+				<div class="wf_event_title_widget">${replay}${toggle}</div>
 			</div>
 			<div class="wf_body">
 				<div class="wf_fallback_icon"><i class="mdi mdi-${icon}"></i></div>
@@ -4083,15 +4084,17 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		
 		html += '</div>'; // summary_grid
 		
-		if (event.fields && event.fields.filter( function(param) { return param.type != 'hidden'; } ).length) {
-			html += `<div class="info_group"><span>User Parameters:</span></div>`;
-			html += '<div class="summary_grid single">';
-			html += this.getWFParamPreviewHTML(event.fields, params);
-			html += '</div>'; // summary_grid
+		if (!node.compact) {
+			if (event.fields && event.fields.filter( function(param) { return param.type != 'hidden'; } ).length) {
+				html += `<div class="info_group"><span>User Parameters:</span></div>`;
+				html += '<div class="summary_grid single">';
+				html += this.getWFParamPreviewHTML(event.fields, params);
+				html += '</div>'; // summary_grid
+			}
+			
+			html += this.getWFEventActionPreviewHTML(event);
+			html += this.getWFEventLimitPreviewHTML(event);
 		}
-		
-		html += this.getWFEventActionPreviewHTML(event);
-		html += this.getWFEventLimitPreviewHTML(event);
 		
 		html += '</div>'; // wf_body
 		
@@ -4120,12 +4123,13 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		var params = node.data.params;
 		var title = node.data.label || plugin.title;
 		var icon = plugin.icon || config.ui.data_types.plugin.icon;
-		var pill = node.data.replay ? `<div class="wf_event_title_pill replay"><i class="mdi mdi-replay"></i>Replay</div>` : '';
+		var replay = node.data.replay ? `<i class="mdi mdi-replay replay" title="Replay"></i>` : '';
+		var toggle = (this.ID == 'Workflows') ? `<i class="mdi mdi-unfold-more-horizontal toggle_compact clicky" title="Toggle Compact"></i>` : '';
 		
 		html += `<div id="d_wfn_${node.id}" class="${classes.join(' ')}" style="left:${pos.x}px; top:${pos.y}px;" aria-label="${encode_attrib_entities(title)}">
 			<div class="wf_event_title">
 				<div class="wf_event_title_text"><i class="mdi mdi-drag"></i><i class="mdi mdi-${icon}"></i>${title}</div>
-				${pill}
+				<div class="wf_event_title_widget">${replay}${toggle}</div>
 			</div>
 			<div class="wf_body">
 				<div class="wf_fallback_icon"><i class="mdi mdi-${icon}"></i></div>
@@ -4158,15 +4162,17 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		
 		html += '</div>'; // summary_grid
 		
-		if (plugin.params && plugin.params.filter( function(param) { return param.type != 'hidden'; } ).length) {
-			html += `<div class="info_group"><span>Plugin Parameters:</span></div>`;
-			html += '<div class="summary_grid single">';
-			html += this.getWFParamPreviewHTML(plugin.params, params);
-			html += '</div>'; // summary_grid
+		if (!node.compact) {
+			if (plugin.params && plugin.params.filter( function(param) { return param.type != 'hidden'; } ).length) {
+				html += `<div class="info_group"><span>Plugin Parameters:</span></div>`;
+				html += '<div class="summary_grid single">';
+				html += this.getWFParamPreviewHTML(plugin.params, params);
+				html += '</div>'; // summary_grid
+			}
+			
+			html += this.getWFEventActionPreviewHTML(node.data);
+			html += this.getWFEventLimitPreviewHTML(node.data);
 		}
-		
-		html += this.getWFEventActionPreviewHTML(node.data);
-		html += this.getWFEventLimitPreviewHTML(node.data);
 		
 		html += '</div>'; // wf_body
 		

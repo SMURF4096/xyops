@@ -524,6 +524,11 @@ Page.Workflows = class Workflows extends Page.Events {
 				return;
 			} // shiftKey
 			
+			if ($(event.target).hasClass('toggle_compact')) {
+				self.toggleCompactNode(id);
+				return;
+			}
+			
 			if (!self.wfSelection[id]) {
 				// node is not yet selected, so deselect all and then select it
 				self.wfSelection = {};
@@ -568,6 +573,19 @@ Page.Workflows = class Workflows extends Page.Events {
 		
 		// update selection after all full draws
 		this.updateSelection();
+	}
+	
+	toggleCompactNode(id) {
+		// toggle node compact mode and redraw
+		var workflow = this.workflow;
+		var node = find_object( workflow.nodes, { id: id } );
+		if (!node) return; // sanity
+		
+		node.compact = !node.compact;
+		
+		this.drawWorkflow(true);
+		this.afterDraw();
+		this.addState();
 	}
 	
 	quickEditCondition($trig, id) {

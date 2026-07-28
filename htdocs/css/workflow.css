@@ -166,6 +166,24 @@ body.dark .wf_event_title {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
+
+.wf_event_title_widget {
+	display: inline-flex;
+	align-items: center;
+	white-space: nowrap;
+}
+.wf_event_title_widget .clicky {
+	padding-right: 2px !important;
+	margin-left: 3px;
+	cursor: pointer;
+}
+.wf_event_title_widget .clicky:hover {
+	color: var(--theme-color-highlight);
+}
+.wf_event_title_widget .replay {
+	color: var(--cyan);
+}
+
 .wf_event_title_pill {
 	display: inline-flex;
 	align-items: center;
