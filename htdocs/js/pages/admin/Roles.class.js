@@ -271,6 +271,7 @@ Page.Roles = class Roles extends Page.PageUtils {
 		SingleSelect.init( this.div.find('#fe_ur_icon') );
 		this.setupBoxButtonFloater();
 		this.setupEditTriggers();
+		this.checkUserEditWarning('user role');
 	}
 	
 	do_export() {

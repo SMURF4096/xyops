@@ -414,6 +414,7 @@ Page.Monitors = class Monitors extends Page.PageUtils {
 		MultiSelect.init( this.div.find('select[multiple]') );
 		this.setupBoxButtonFloater();
 		this.setupEditTriggers();
+		this.checkUserEditWarning('monitor');
 	}
 	
 	do_clone() {

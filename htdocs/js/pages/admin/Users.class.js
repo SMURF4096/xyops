@@ -335,6 +335,7 @@ Page.Users = class Users extends Page.PageUtils {
 		$('#fe_eu_username').attr('disabled', true);
 		this.setupBoxButtonFloater();
 		this.setupEditTriggers();
+		this.checkUserEditWarning('user');
 	}
 	
 	go_edit_history() {

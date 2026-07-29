@@ -306,6 +306,7 @@ Page.Buckets = class Buckets extends Page.PageUtils {
 		this.setupBoxButtonFloater();
 		this.setupUploader();
 		this.setupEditTriggers();
+		this.checkUserEditWarning('bucket');
 	}
 	
 	do_export() {

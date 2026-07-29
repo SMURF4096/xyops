@@ -304,6 +304,7 @@ Page.Channels = class Channels extends Page.PageUtils {
 		this.updateAddRemoveMe('#fe_ech_email');
 		this.setupBoxButtonFloater();
 		this.setupEditTriggers();
+		this.checkUserEditWarning('channel');
 	}
 	
 	do_test() {

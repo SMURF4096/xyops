@@ -440,6 +440,7 @@ Page.Categories = class Categories extends Page.PageUtils {
 		SingleSelect.init( this.div.find('#fe_ec_color, #fe_ec_icon') );
 		this.setupBoxButtonFloater();
 		this.setupEditTriggers();
+		this.checkUserEditWarning('category');
 	}
 	
 	do_export() {

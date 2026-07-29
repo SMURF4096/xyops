@@ -6541,4 +6541,49 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		Dialog.autoResize();
 	}
 	
+	compLoc(sock_loc, crit_loc) {
+		// compare location and query string using criteria object
+		if (sock_loc.id != crit_loc.id) return false;
+		
+		var num_crit = num_keys(crit_loc.query);
+		var num_matched = 0;
+		
+		for (var key in crit_loc.query) {
+			if (sock_loc.query[key] == crit_loc.query[key]) num_matched++;
+		}
+		
+		return (num_matched == num_crit);
+	}
+	
+	checkUserEditWarning(thing) {
+		// see if any other users are on the same page and sub-page, and display a warning
+		var self = this;
+		if (!app.socketNav) return; // sanity
+		
+		var loc = {
+			id: this.ID,
+			loc: Nav.currentAnchor,
+			query: this.args
+		};
+		var users = {};
+		
+		Object.values(app.socketNav).forEach( function(socket) {
+			if ((socket.username != app.username) && self.compLoc(socket.loc, loc)) users[ socket.username ] = 1;
+		} );
+		
+		var user_list = Object.keys(users);
+		var name_list = user_list.map( username => {
+			var user = find_object( app.users, { username } );
+			return user ? user.full_name : username;
+		} );
+		
+		if (user_list.length) {
+			var msg = '';
+			if (user_list.length > 1) msg = `Multiple users are currently editing this ${thing}: ` + name_list.join(', ');
+			else msg = name_list[0] + ` is currently editing this ${thing}`;
+			msg += `.  Please proceed with caution, as your edits may collide.`;
+			app.showMessage('warning', msg, 0);
+		}
+	}
+	
 };

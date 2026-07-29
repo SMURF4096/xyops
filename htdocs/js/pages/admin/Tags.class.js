@@ -258,6 +258,7 @@ Page.Tags = class Tags extends Page.PageUtils {
 		SingleSelect.init( this.div.find('#fe_et_icon') );
 		this.setupBoxButtonFloater();
 		this.setupEditTriggers();
+		this.checkUserEditWarning('tag');
 	}
 	
 	do_export() {

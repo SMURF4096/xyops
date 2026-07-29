@@ -438,6 +438,7 @@ Page.Groups = class Groups extends Page.ServerUtils {
 		SingleSelect.init( this.div.find('#fe_eg_icon, #fe_eg_web_hook') );
 		this.setupBoxButtonFloater();
 		this.setupEditTriggers();
+		this.checkUserEditWarning('group');
 	}
 	
 	do_export() {

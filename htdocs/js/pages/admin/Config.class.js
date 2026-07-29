@@ -150,6 +150,7 @@ Page.Config = class Config extends Page.PageUtils {
 		this.setupEditTriggers( this.div.find('.box_content') );
 		this.applyFilters();
 		this.setupBoxButtonFloater();
+		this.checkUserEditWarning('configuration');
 		
 		setTimeout( function() {
 			$('#fe_cfgh_search').keypress( function(event) {

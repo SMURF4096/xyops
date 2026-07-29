@@ -318,6 +318,7 @@ Page.AlertSetup = class AlertSetup extends Page.PageUtils {
 		this.setupBoxButtonFloater();
 		this.setupEditor('text/plain');
 		this.setupEditTriggers();
+		this.checkUserEditWarning('alert');
 	}
 	
 	do_clone() {

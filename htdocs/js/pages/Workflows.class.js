@@ -269,6 +269,7 @@ Page.Workflows = class Workflows extends Page.Events {
 		this.setupBoxButtonFloater();
 		this.setupWorkflowEditor();
 		this.setupEditTriggers();
+		this.checkUserEditWarning('workflow');
 		
 		if (this.args.scroll == 'bottom') app.scrollToBottom();
 	}

@@ -2071,6 +2071,7 @@ Page.Events = class Events extends Page.PageUtils {
 		// this.updateAddRemoveMe('#fe_ee_email');
 		this.setupBoxButtonFloater();
 		this.setupEditTriggers();
+		this.checkUserEditWarning('event');
 	}
 	
 	cancel_event_edit() {

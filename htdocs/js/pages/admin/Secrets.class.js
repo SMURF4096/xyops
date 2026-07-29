@@ -307,6 +307,7 @@ Page.Secrets = class Secrets extends Page.PageUtils {
 		this.setupBoxButtonFloater();
 		// this.setupUploader();
 		this.setupEditTriggers();
+		this.checkUserEditWarning('secret vault');
 	}
 	
 	go_edit_history() {

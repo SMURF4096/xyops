@@ -400,6 +400,7 @@ Page.Plugins = class Plugins extends Page.PageUtils {
 		this.renderParamEditor();
 		this.setupBoxButtonFloater();
 		this.setupEditTriggers();
+		this.checkUserEditWarning('plugin');
 		
 		if (this.plugin.marketplace) {
 			this.div.find('#d_ep_uid, #d_ep_gid').hide();

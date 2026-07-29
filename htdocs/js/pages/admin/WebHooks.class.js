@@ -449,6 +449,7 @@ Page.WebHooks = class WebHooks extends Page.PageUtils {
 		this.setupBoxButtonFloater();
 		this.setupEditor();
 		this.setupEditTriggers();
+		this.checkUserEditWarning('web hook');
 	}
 	
 	do_clone() {

@@ -341,6 +341,7 @@ Page.APIKeys = class APIKeys extends Page.PageUtils {
 		MultiSelect.init( this.div.find('select[multiple]') );
 		this.setupBoxButtonFloater();
 		this.setupEditTriggers();
+		this.checkUserEditWarning('API key');
 	}
 	
 	do_clone() {
