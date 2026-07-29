@@ -6712,8 +6712,10 @@ For a GET request, pass parameters in the query string.  For a POST request, sen
 | Property Name | Type | Description |
 |---------------|------|-------------|
 | `lists` | Array or String | **(Required)** A list of data set names to fetch.  This may be a JSON array, a comma-separated string, or the string `all`. |
-| `jobs` | Boolean | Optional.  Include the current non-queued, visible active jobs, keyed by Job ID. |
+| `jobs` | Boolean | Optional.  Include current job data in the `activeJobs` and `internalJobs` response properties.  Active jobs exclude queued jobs and verbose internal properties. |
+| `alerts` | Boolean | Optional.  Include current active alerts in the `activeAlerts` response property, keyed by global Alert ID. |
 | `state` | Boolean | Optional.  Include the current global application state. |
+| `stats` | Boolean | Optional.  Include the current conductor statistics, including resource usage and current time-period counters. |
 | `servers` | Boolean | Optional.  Include the current online servers, keyed by Server ID. |
 | `serverCache` | Boolean | Optional.  Include cached information for recently disconnected servers, keyed by Server ID. |
 
@@ -6743,7 +6745,9 @@ Example request:
 {
 	"lists": ["events", "categories", "plugins"],
 	"jobs": true,
+	"alerts": true,
 	"state": true,
+	"stats": true,
 	"servers": true
 }
 ```
@@ -6754,13 +6758,14 @@ Example GET request using a comma-separated list:
 GET /api/app/get_multiple/v1?lists=events,categories,plugins&jobs=1
 ```
 
-In addition to the [Standard Response Format](#standard-response-format), the response contains one property for each requested list and optional live data set.  List properties contain arrays.  The `jobs`, `servers`, and `serverCache` properties contain objects keyed by their respective IDs.
+In addition to the [Standard Response Format](#standard-response-format), the response always contains an `epoch` property with the current Unix timestamp in seconds.  It also contains one property for each requested list and optional live data set.  List properties contain arrays.  The `activeJobs`, `internalJobs`, `activeAlerts`, `servers`, and `serverCache` properties contain objects keyed by their respective IDs.
 
 Example response (abbreviated):
 
 ```json
 {
 	"code": 0,
+	"epoch": 1785275100,
 	"events": [
 		{
 			"id": "nightly_backup",
@@ -6774,16 +6779,25 @@ Example response (abbreviated):
 		}
 	],
 	"plugins": [],
-	"jobs": {
+	"activeJobs": {
 		"j1234567890": {
 			"id": "j1234567890",
 			"event": "nightly_backup"
 		}
 	},
+	"internalJobs": {},
+	"activeAlerts": {},
 	"state": {
 		"scheduler": {
 			"enabled": true
 		}
+	},
+	"stats": {
+		"mem": 148897792,
+		"cpu": 1.25,
+		"currentMinute": {},
+		"lastMinute": {},
+		"currentDay": {}
 	},
 	"servers": {
 		"s1234567890": {
