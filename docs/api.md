@@ -5667,6 +5667,40 @@ Example response:
 { "code": 0 }
 ```
 
+### admin_broadcast_message
+
+```
+POST /api/app/admin_broadcast_message/v1
+```
+
+Send a custom notification to all currently connected users.  Admin only.  The request must be sent as an HTTP POST with a JSON body, and must be directed to the primary conductor.
+
+Parameters:
+
+| Property Name | Type | Description |
+|---------------|------|-------------|
+| `type` | String | **(Required)** Notification style.  Must be one of: `info`, `warning`, `error`, or `critical`. |
+| `message` | String | **(Required)** Message text to display.  Must contain at least one non-whitespace character. |
+| `sound` | String | Optional sound filename to play with the notification, such as `attention-1.mp3`.  Omit this property or pass an empty string for no sound. |
+
+Example request:
+
+```json
+{
+	"type": "warning",
+	"message": "The system will enter maintenance mode in 10 minutes.",
+	"sound": "attention-1.mp3"
+}
+```
+
+Example response:
+
+```json
+{ "code": 0 }
+```
+
+The notification is delivered immediately over the live WebSocket connection to each authenticated user.  It is not queued for users who are offline.  Sound playback also depends on the user's volume setting and browser audio permissions.
+
 ### get_transfer_token
 
 ```
@@ -6807,4 +6841,3 @@ Example response (abbreviated):
 	}
 }
 ```
-

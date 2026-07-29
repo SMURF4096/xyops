@@ -146,6 +146,12 @@ Page.System = class System extends Page.PageUtils {
 			html += '<div class="caption">Generate a markdown-formatted diagnostic report, for copying &amp; pasting into an issue tracker.</div>';
 		html += '</div>';
 		
+		// broadcast message
+		html += '<div class="maint_unit">';
+			html += '<div class="button secondary" onClick="$P().do_broadcast_message()"><i class="mdi mdi-bullhorn">&nbsp;</i>Broadcast Message...</div>';
+			html += '<div class="caption">Send a custom message to all connected users, with optional sound effect.</div>';
+		html += '</div>';
+		
 		html += '</div>'; // maint_grid
 		
 		this.div.html( html ).buttonize();
@@ -1141,6 +1147,94 @@ Page.System = class System extends Page.PageUtils {
 			
 			self.viewMarkdownAuto('View Report', md);
 		} ); // api.get
+	}
+	
+	getNiceSounds() {
+		// get nice list of sounds suitable for menu
+		return app.sounds.map( function(filename) {
+			return { id: filename, title: toTitleCase( filename.replace(/\.\w+$/, '').replace(/-/g, ' ') ) };
+		} );
+	}
+	
+	playCurrentSound() {
+		// play current sound if one is selected
+		var sound = $('#fe_bm_sound').val();
+		if (sound) app.playSound(sound);
+	}
+	
+	do_broadcast_message() {
+		// prompt user for custom message and sound effect
+		var self = this;
+		var html = '';
+		
+		html += `<div class="dialog_intro">Send a custom notification message to all connected users, with optional sound effect.</div>`;
+		html += '<div class="dialog_box_content maximize scroll">';
+		
+		// type
+		html += this.getFormRow({
+			label: 'Notification Style:',
+			content: this.getFormMenuSingle({
+				id: 'fe_bm_type',
+				title: 'Select Style',
+				options: [
+					{ id: 'info', title: "Information", icon: 'information-outline', class: 'clr_blue' },
+					{ id: 'warning', title: "Warning", icon: 'alert-rhombus', class: 'clr_yellow' },
+					{ id: 'error', title: "Error", icon: 'alert-decagram', class: 'clr_red' },
+					{ id: 'critical', title: "Critical", icon: 'fire-alert', class: 'clr_purple' }
+				],
+				value: '',
+				default_icon: '',
+			}),
+			caption: 'Select the style of notification to send.'
+		});
+		
+		// message
+		html += this.getFormRow({
+			label: 'Message Content:',
+			content: this.getFormTextarea({
+				id: 'fe_bm_message',
+				rows: 5,
+				value: ''
+			}),
+			caption: 'Enter your custom message text here.  Plain text only.'
+		});
+		
+		// play sound
+		html += this.getFormRow({
+			label: 'Play Sound:',
+			content: this.getFormMenuSingle({
+				id: 'fe_bm_sound',
+				title: 'Select Sound',
+				options: [ ['', "(None)"] ].concat( this.getNiceSounds() ),
+				value: '',
+				default_icon: 'volume-high',
+				onChange: '$P().playCurrentSound()'
+			}),
+			suffix: '<div class="form_suffix_icon mdi mdi-play-circle-outline" title="Preview Sound..." onClick="$P().playCurrentSound()" onMouseDown="event.preventDefault();"></div>',
+			caption: 'Optionally select a sound effect to play with your mesage.'
+		});
+		
+		html += '</div>';
+		Dialog.confirm( "Broadcast Message", html, ['bullhorn', "Send Now"], function(result) {
+			if (!result) return;
+			app.clearError();
+			
+			var type = $('#fe_bm_type').val();
+			var sound = $('#fe_bm_sound').val();
+			var message = strip_html( $('#fe_bm_message').val().trim() );
+			if (!message.length) return app.badField('#fe_bm_message', "Please enter text for your custom message.");
+			
+			Dialog.hide();
+			Dialog.showProgress( 1.0, "Broadcasting message..." );
+			
+			// send it
+			app.api.post( 'app/admin_broadcast_message', { type, message, sound }, function(resp) {
+				Dialog.hide();
+			}); // api.post
+		}); // confirm
+		
+		SingleSelect.init( $('#fe_bm_type, #fe_bm_sound') );
+		Dialog.autoResize();
 	}
 	
 	do_master_cmd(cmds) {
