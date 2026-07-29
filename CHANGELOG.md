@@ -1,5 +1,21 @@
 # xyOps Changelog
 
+## Version v1.0.86
+
+> July 29, 2026
+
+- [`101b42c0`](https://github.com/pixlcore/xyops/commit/101b42c06a6bba1624465687bee643373b00e5de): Version 1.0.86
+- [`b400f439`](https://github.com/pixlcore/xyops/commit/b400f4392358f97b66d0bfc60a657d9c8330270e): Feature: Administrator broadcast custom message to all connected users (access from System page).
+- [`ba58be25`](https://github.com/pixlcore/xyops/commit/ba58be25ed6061e75f21e9f1bf0b449be31f5f9c): Feature: Visually show users editing events on event list status column (hover to see who it is).  Fixes #376.
+- [`9321c05c`](https://github.com/pixlcore/xyops/commit/9321c05c06dd7f6a135bd2c8b4f7f264b144d27d): Feature: Show warning notification if trying to edit anything while another user is already editing it.  Ref #376.
+- [`f39592f4`](https://github.com/pixlcore/xyops/commit/f39592f40dc2d87e33d6cbe4d7e28a7e24d3f1e7): Bug Fix: Race condition in UI can cause JS errors when switching between group view and group edit pages.
+- [`9f34c4a8`](https://github.com/pixlcore/xyops/commit/9f34c4a8d77eeba11a32aebf2b0b358af3c19ccf): Bug FIx: Servers that are not a member of any groups fail to submit monitoring metrics.  Fixes #391
+- [`99b11af7`](https://github.com/pixlcore/xyops/commit/99b11af784dca23d872fa186747133a26a8b4aa7): Feature: Enhance get_multiple API response to include epoch timestamp, active jobs, alerts, and stats
+- [`e2d6a953`](https://github.com/pixlcore/xyops/commit/e2d6a9532aeeb088ba1a4e0897fbcc4b00e13b1e): Feature: In debug mode, show toast notifications for all global javascript errors in UI.
+- [`463ff0a3`](https://github.com/pixlcore/xyops/commit/463ff0a3563448a87a7b4959820769db18b33ad0): Feature: Show all workflow controller nodes in jobs table, with elapsed time and progress bars.  Fixes #386.
+- [`bfb2c052`](https://github.com/pixlcore/xyops/commit/bfb2c0527e0e7002342febb3c7da5aa185f2ea0d): Feature: Allow workflow event / job nodes to be togged between compact and expanded modes.  Ref #387
+- [`8216e365`](https://github.com/pixlcore/xyops/commit/8216e36537d8bc550a7b264f84af74fca7b6b621): Bug Fix: Rare race condition could cause crash when processing server monitoring data.  Fixes #385
+
 ## Version v1.0.85
 
 > July 22, 2026
