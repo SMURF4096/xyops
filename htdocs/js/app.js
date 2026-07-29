@@ -104,6 +104,11 @@ app.extend({
 		if (config.debug) {
 			Debug.enable( this.debug_cats );
 			Debug.trace('system', "xyOps Client Starting Up");
+			
+			window.addEventListener('error', function(event) { 
+				const msg = event.error?.message || String(event.error || event.message || 'Unknown JavaScript Error');
+				app.showMessage( 'critical', "JavaScript Error: " + msg, 0 ); 
+			} );
 		}
 		
 		// setup theme (light / dark)
