@@ -1034,17 +1034,32 @@ Page.Job = class Job extends Page.PageUtils {
 		var html = '';
 		var num_sus = 0;
 		var $cont = this.wfGetContainer();
+		var completed_stubs = [];
 		
-		// active jobs on top, sorted
+		// active jobs on top
 		var rows = Object.values(app.activeJobs).filter( function(job) {
 			return job.workflow && (job.workflow.job == self.job.id);
-		} ).sort( function(a, b) {
+		} );
+		
+		// add active controllers
+		find_objects( workflow.nodes, { type: 'controller' } ).forEach( function(node) {
+			var state = workflow.state[ node.id ];
+			if (state && state.started) {
+				var stub = { type: 'controller', node, state };
+				if (state.active) rows.push(stub);
+				else if (state.completed) {
+					stub.completed = state.started; // for table sorting
+					completed_stubs.push(stub);
+				}
+			}
+		} );
+		
+		// sort by start date descending
+		rows.sort( function(a, b) {
 			return (a.started < b.started) ? 1 : -1;
 		} );
 		
 		// completed jobs on bottom, sorted
-		var completed_stubs = [];
-		
 		for (var node_id in workflow.jobs) {
 			var node = find_object( workflow.nodes, { id: node_id } );
 			if (!node) continue; // sanity
@@ -1069,6 +1084,7 @@ Page.Job = class Job extends Page.PageUtils {
 			} );
 		} // foreach node
 		
+		// sort by completed, ascending
 		sort_by( completed_stubs, 'completed', { dir: 1, type: 'number' } );
 		
 		// all together now
@@ -1079,7 +1095,7 @@ Page.Job = class Job extends Page.PageUtils {
 		
 		var grid_args = {
 			rows: rows,
-			cols: ['Job ID', 'Event/Plugin', 'Category', 'Server', 'State', 'Elapsed', 'Progress/Result', 'Actions'],
+			cols: ['Job/Node ID', 'Event/Plugin', 'Category', 'Server', 'State', 'Elapsed', 'Progress/Result', 'Actions'],
 			data_type: 'job',
 			class: 'data_grid wf_active_grid',
 			empty_msg: 'No workflow jobs found.'
@@ -1101,7 +1117,11 @@ Page.Job = class Job extends Page.PageUtils {
 				if (category && category.color) tds.className = 'clr_' + category.color;
 			}
 			
-			if (!job.final) {
+			if (job.type == 'controller') {
+				// special row for controllers
+				return self.getWorkflowControllerJobRow(job);
+			}
+			else if (!job.final) {
 				// job in progress
 				if (app.hasPrivilege('abort_jobs')) {
 					actions.push('<button class="link danger" onClick="$P().doAbortJob(\'' + job.id + '\')"><b>Abort Job</b></button>');
@@ -1180,6 +1200,55 @@ Page.Job = class Job extends Page.PageUtils {
 			this.lastSuspendedCount = num_sus;
 			if (!$('div.toast.suspended').length) app.showMessage('suspended', `One or more workflow jobs have been suspended, and require manual user intervention.`);
 		}
+	}
+	
+	getNiceNodeElapsedTime(state, abbrev, no_secondary) {
+		// render nice elapsed time display
+		var now = Math.floor( state.completed || app.epoch );
+		var elapsed = Math.max( 0, now - Math.floor(state.started) ) || 0;
+		var icon = state.completed ? 'clock-check-outline' : 'progress-clock';
+		return '<i class="mdi mdi-' + icon + '">&nbsp;</i>' + get_text_from_seconds( elapsed, abbrev, no_secondary );
+	}
+	
+	getControllerProgress(stub) {
+		// calculate progress of controller node
+		var { node, state } = stub;
+		var amount = 0;
+		
+		switch (node.data.controller) {
+			case 'wait':
+				amount = Math.min(1, Math.max(0, (app.epoch - state.started) / (node.data.wait || 1) ) );
+			break;
+			
+			default:
+				amount = (state.count || 0) / (state.max || 1);
+			break;
+		}
+		
+		return amount;
+	}
+	
+	getWorkflowControllerJobRow(stub) {
+		// get job-compatible table row for controller node
+		// 'Job/Node ID', 'Event/Plugin', 'Category', 'Server', 'State', 'Elapsed', 'Progress/Result', 'Actions'
+		var { node, state } = stub;
+		var def = find_object( config.ui.workflow_controller_type_menu, { id: node.data.controller } );
+		
+		var nice_progress = '';
+		if (state.active) nice_progress = '<div id="d_wf_jt_progress_' + node.id + '">' + this.getNiceProgressBar(this.getControllerProgress(stub), '', true) + '</div>';
+		else if (state.error) nice_progress = '<span class="color_label red nowrap"><i class="mdi mdi-alert-decagram"></i>Error</span>';
+		else nice_progress = '<span class="color_label blue nowrap"><i class="mdi mdi-check-circle"></i>Complete</span>';
+		
+		return [
+			`<span class="nowrap"><i class="mdi mdi-cube-outline"></i><b>${node.id}</b></span>`,
+			`<span class="nowrap"><i class="mdi mdi-${def.icon}"></i>${def.title}</span>`,
+			'(Controller)',
+			'-',
+			state.active ? `<span class="nowrap"><i class="mdi mdi-motion-play-outline"></i>Active</span>` : `<span class="nowrap"><i class="mdi mdi-check-circle-outline"></i>Complete</span>`,
+			'<div id="d_wf_jt_elapsed_' + node.id + '">' + this.getNiceNodeElapsedTime(state, false) + '</div>',
+			nice_progress,
+			'-'
+		];
 	}
 	
 	doAbortJob(id) {
@@ -1298,13 +1367,13 @@ Page.Job = class Job extends Page.PageUtils {
 					}
 					else {
 						// deselect all event elems
-						$cont.find('div.wf_node.wf_event.selected').removeClass('selected');
+						$cont.find('div.wf_node.selected').removeClass('selected');
 						
 						// flash all related jobs in job table
 						var first_row = -1;
 						self.wfJobRows.forEach( function(row, idx) {
 							// if (!row.workflow || !row.workflow.node || (row.workflow.node != node.id)) return;
-							var is_ours = (row.workflow && row.workflow.node && (row.workflow.node == node.id));
+							var is_ours = !!(row.workflow && row.workflow.node && (row.workflow.node == node.id));
 							if (is_ours) first_row = idx;
 							$grid_rows.eq(idx).toggleClass( 'highlight', is_ours );
 						} );
@@ -1326,6 +1395,49 @@ Page.Job = class Job extends Page.PageUtils {
 				}); // dblclick (nodes)
 				
 			} // event or job
+			
+			if (node.type == 'controller') {
+				$elem.attr({ role: 'group', tabindex: '0' }).off('pointerdown keypress').on( 'pointerdown keypress', function(event) {
+					var native = event.originalEvent;
+					if ('button' in native) {
+						// pointer event
+						if (native.button !== 0) return; // only capture left-clicks
+					}
+					else {
+						// keypress event
+						if ((native.key !== 'Enter') && (native.key !== ' ')) return; // only capture enter/space
+					}
+					
+					event.stopPropagation();
+					event.preventDefault();
+					
+					var $grid_rows = self.div.find('#d_job_wf_jobs > .box_content .data_grid > ul.grid_row');
+					
+					if ($elem.hasClass('selected')) {
+						// de-highlight all rows
+						$grid_rows.removeClass('highlight');
+						$elem.removeClass('selected');
+					}
+					else {
+						// deselect all event elems
+						$cont.find('div.wf_node.selected').removeClass('selected');
+						
+						// flash all related items in job table
+						var first_row = -1;
+						self.wfJobRows.forEach( function(row, idx) {
+							var is_ours = !!(row.node && (row.node.id == node.id));
+							if (is_ours) first_row = idx;
+							$grid_rows.eq(idx).toggleClass( 'highlight', is_ours );
+						} );
+						$elem.addClass('selected');
+						
+						// scroll first highlighted row into view
+						if (first_row > -1) try {
+							$grid_rows.eq(first_row).find('div')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+						} catch(e) {;}
+					}
+				}); // pointerdown
+			} // controller
 		} ); // foreach node
 		
 		workflow.connections.forEach( function(conn) {
@@ -1339,7 +1451,7 @@ Page.Job = class Job extends Page.PageUtils {
 	deselectAll() {
 		// deselect all wf event nodes, called on background click
 		var $cont = this.wfGetContainer();
-		$cont.find('div.wf_node.wf_event.selected').removeClass('selected');
+		$cont.find('div.wf_node.selected').removeClass('selected');
 		this.div.find('#d_job_wf_jobs > .box_content .data_grid > ul.grid_row').removeClass('highlight');
 	}
 	
@@ -1395,6 +1507,15 @@ Page.Job = class Job extends Page.PageUtils {
 			// update progress bar without redrawing it (so animation doesn't jitter)
 			self.updateJobProgressBar(job, '#d_wf_jt_progress_' + job.id + ' > div.progress_bar_container');
 		} ); // foreach job
+		
+		// now handle active controller nodes
+		find_objects( workflow.nodes, { type: 'controller' } ).forEach( function(node) {
+			var state = workflow.state[ node.id ];
+			if (state && state.started) {
+				div.find('#d_wf_jt_elapsed_' + node.id).html( self.getNiceNodeElapsedTime(state, false) );
+				self.updateProgressBar(self.getControllerProgress({ node, state }), '#d_wf_jt_progress_' + node.id + ' > div.progress_bar_container');
+			}
+		} );
 		
 		// we need to decorate every tick, because sub-job state changes can alter things!
 		this.decorateWorkflowNodes();

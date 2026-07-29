@@ -371,6 +371,11 @@ body.dark .wf_event_title {
 .wf_entity.selected > div {
 	outline: 2px dashed var(--theme-color);
 }
+.wf_container.job_preview .wf_entity.selected > div {
+	outline: 2px dashed var(--theme-color-highlight);
+	outline-offset: 4px;
+}
+
 .wf_entity.disabled > div {
 	color: var(--icon-color) !important;
 }
@@ -480,7 +485,7 @@ body.dark .wf_event_title {
 	transform: rotate(-45deg) scale(1.25);
 }
 
-.wf_container.job_preview .wf_entity, .wf_container.job_preview .wf_condition, .wf_container.job_preview .wf_note {
+.wf_container.job_preview .wf_condition, .wf_container.job_preview .wf_note {
 	pointer-events: none;
 }
 
