@@ -1682,6 +1682,29 @@ Page.Base = class Base extends Page {
 			'<i class="mdi mdi-' + args.icon + '"></i>' + args.text + '</span>';
 	}
 	
+	getUsersEditingEvent(event) {
+		// locate all users editing event (besides us)
+		if (!app.socketNav) return [];
+		var users = {};
+		var found = 0;
+		
+		Object.values(app.socketNav).forEach( function(socket) {
+			if (!socket.loc || !socket.loc.query) return; // sanity
+			if ((socket.username != app.username) && (socket.loc.query.sub == 'edit') && (socket.loc.query.id == event.id)) {
+				users[ socket.username ] = 1;
+				found++;
+			}
+		} );
+		if (!found) return [];
+		
+		var user_list = Object.keys(users).map( username => {
+			var user = find_object( app.users, { username } );
+			return user ? user : { username: username, full_name: username };
+		} );
+		
+		return user_list;
+	}
+	
 	getNiceEventStatus(event) {
 		// get pretty event status (active jobs or last result)
 		var num_jobs = 0;
@@ -1693,7 +1716,12 @@ Page.Base = class Base extends Page {
 		var nice_status = 'Idle';
 		var event_state = get_path( app.state, 'events/' + event.id );
 		
-		if (num_jobs) {
+		var users = this.getUsersEditingEvent(event);
+		if (users.length) {
+			var tooltip = 'Being edited by: ' + users.map( user => user.full_name ).join(', ');
+			nice_status = '<span class="color_label cyan nowrap" title="' + encode_attrib_entities(tooltip) + '"><i class="mdi mdi-account-edit"></i>Editing...</span>';
+		}
+		else if (num_jobs) {
 			var url = (num_jobs > 1) ? ('#Events?sub=view&id=' + event.id) : ('#Job?id=' + last_job_id);
 			nice_status = '<span class="color_label blue nowrap linky" onClick="Nav.go(\'' + url + '\')"><i class="mdi mdi-autorenew mdi-spin"></i>' + num_jobs + ' Active</span>';
 		}

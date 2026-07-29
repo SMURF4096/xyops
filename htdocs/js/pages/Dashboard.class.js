@@ -581,6 +581,13 @@ Page.Dashboard = class Dashboard extends Page.PageUtils {
 		// update internal jobs (heavy or light)
 		if (data.internalJobsChanged) this.renderInternalJobs();
 		else this.updateInternalJobs();
+		
+		// update fav events if nav changed
+		if (data.navChanged) {
+			(this.favoriteEvents || []).forEach( function(item, idx) {
+				self.div.find('#d_el_jt_status_' + item.id).html( self.getNiceEventStatus(item) );
+			} );
+		}
 	}
 	
 	jobActiveNav(offset) {

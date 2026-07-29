@@ -261,6 +261,7 @@ app.comm = {
 		// delete jobsChanged flag from app
 		delete app.jobsChanged;
 		delete app.internalJobsChanged;
+		delete app.navChanged;
 		
 		// prune jobs that user doesn't need to see
 		if (data.activeJobs) app.pruneActiveJobs();

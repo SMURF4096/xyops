@@ -417,7 +417,7 @@ Page.Events = class Events extends Page.PageUtils {
 		var self = this;
 		
 		// only redraw status fields if jobs changed
-		if (!data.jobsChanged) return;
+		if (!data.jobsChanged && !data.navChanged) return;
 		
 		this.events.forEach( function(item, idx) {
 			self.div.find('#d_el_jt_status_' + item.id).html( self.getNiceEventStatus(item) );
