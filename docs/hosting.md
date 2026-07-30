@@ -4,9 +4,92 @@
 
 This guide covers self-hosting xyOps on your own infrastructure.  However, please note that for live production installs, it is dangerous to go alone.  While we provide all necessary documentation here, we strongly recommend our [Enterprise Plan](https://xyops.io/pricing). This gives you access to our white-glove onboarding service, where our team will guide you through every step, validate your configuration, and ensure your integration is both secure and reliable.  This also gets you priority ticket support, and live chat support from a xyOps engineer.
 
-## Prerequisites
+## Before You Install
 
-It is really important to understand that wherever you decide to run xyOps, that server (or container) needs to be **addressable on your network by its hostname**.  This is how your worker servers will connect to xyOps, so they need a fixed hostname that will resolve to an IP that they can reach from wherever they are.  With Docker you should set the **container hostname** to something that resolves and can be reached on your network.
+Before installing xyOps, it is important to decide how browsers, worker servers, and conductor servers will reach each other.  Most installation problems come from using a hostname that only works inside Docker, or from confusing the human-facing xyOps URL with the address used by xySat.
+
+### Conductor Hostname
+
+Every xyOps conductor has a hostname which acts as its permanent identity in the cluster.  By default, xyOps uses the hostname reported by the operating system.  In Docker, this is the **container hostname**, not the Docker container name and not necessarily the hostname of the Docker host.
+
+The conductor hostname must be stable, resolve to an IP address, and be reachable from every worker server and every other conductor.  You can set it in either of these ways:
+
+- With Docker, use `--hostname` or the Compose `hostname` property.
+- On any installation, set the `XYOPS_hostname` environment variable to override the detected hostname.
+
+For a single-conductor installation, set `XYOPS_masters` to this exact same hostname.  For multiple conductors, list every conductor hostname in `XYOPS_masters`, separated by commas.
+
+> [!IMPORTANT]
+> Do not use a sample hostname such as `xyops01.internal.mycompany.com` unless you have configured it in DNS, Tailscale, `/etc/hosts`, or another name service used by all of your workers.  A Docker network alias which only resolves from neighboring containers is not sufficient for workers elsewhere on your network.
+
+Conductor hostnames should be treated as permanent infrastructure names.  Changing one later requires updating the conductor cluster and may require updating worker configuration.
+
+### The Important URLs and Settings
+
+xyOps has several settings which contain similar words such as "host", "URL", and "base".  They serve different purposes and should not be made identical unless that matches your network design.
+
+| Name | Used By | Purpose |
+|------|---------|---------|
+| Conductor hostname | Conductors and xySat | The permanent network identity of one conductor, such as `xyops01.internal.mycompany.com`.  By default, xySat connects directly to this hostname. |
+| [`base_app_url`](config.md#base_app_url) | People and notifications | The URL people should open, such as `https://xyops.mycompany.com`.  It is used to create links in emails, alerts, tickets, and web hooks.  It does **not** control where xySat connects. |
+| [`WebServer.port`](config.md#webserver-port) | Browsers, APIs, and xySat | The built-in HTTP and `ws://` listener.  The default is `5522`. |
+| [`WebServer.https_port`](config.md#webserver-https_port) | Browsers, APIs, and xySat | The built-in HTTPS and `wss://` listener.  The default is `5523`. |
+| [`satellite.config`](config.md#satellite-config) | xySat | The connection and runtime settings distributed to workers, including `host` or `hosts`, `port`, and `secure`. |
+| [`satellite.base_url`](config.md#satellite-base_url) | The conductor | The upstream software release location from which the conductor downloads xySat packages.  Despite its name, this is not the xyOps application URL and is not the address workers connect to. |
+
+For example, it is perfectly valid to use all of the following at the same time:
+
+- **Conductor hostname:** `xyops01.internal.mycompany.com`
+- **Human-facing URL:** `https://xyops.mycompany.com`
+- **xySat connection:** `ws://xyops01.internal.mycompany.com:5522`
+
+In this example, browsers use the public URL through a reverse proxy, while xySat connects directly to the internal conductor hostname.
+
+### Ports 5522 and 5523
+
+The default ports are shared listeners, not dedicated xySat ports:
+
+| Port | Protocols | What It Serves |
+|------|-----------|----------------|
+| `5522` | HTTP and `ws://` | Web interface, HTTP API, xySat bootstrap downloads, and WebSocket connections. |
+| `5523` | HTTPS and `wss://` | The same services over TLS. |
+
+For the default non-TLS xySat configuration, workers use port `5522` with `secure` set to `false`.  To connect xySat directly to the built-in TLS listener, set the satellite port to `5523` and `secure` to `true`.
+
+Because ordinary HTTP and WebSocket traffic share each listener, opening port `5522` to a worker network does not expose a WebSocket-only service.  Clients on that network can also reach the web interface and HTTP API on that port.  If you require application-level separation, use a reverse proxy or another application-aware network control.  See [Reverse Proxies and Worker Connections](#reverse-proxies-and-worker-connections).
+
+### Network Traffic Direction
+
+xySat initiates its connection to xyOps.  The conductor does not open outbound connection to worker servers.
+
+Plan firewall rules for these traffic paths:
+
+- **Browsers to xyOps:** Browsers connect to `base_app_url`, often through a reverse proxy on port `443`.
+- **Workers to conductors:** Each worker makes outbound HTTP or HTTPS requests during installation, then opens a persistent outbound WebSocket connection.  Allow the worker to reach the configured conductor hostname and port.
+- **Conductors to conductors:** Every conductor must reach every other conductor hostname and configured port.
+- **Conductor to release services:** Unless you use [Air-Gapped Mode](#air-gapped-mode), the conductor downloads and caches xySat release packages from `satellite.base_url`.
+
+### Common Network Layouts
+
+| Layout | `base_app_url` | xySat Connection | Worker Firewall Requirement |
+|--------|----------------|------------------|-----------------------------|
+| Direct, without TLS | `http://xyops01.internal.mycompany.com:5522` | `ws://xyops01.internal.mycompany.com:5522` | TCP `5522` to each conductor. |
+| Direct, with built-in TLS | `https://xyops01.internal.mycompany.com:5523` | `wss://xyops01.internal.mycompany.com:5523` | TCP `5523` to each conductor. |
+| Proxy for people only | `https://xyops.mycompany.com` | Directly to each conductor on port `5522` or `5523` | The direct conductor port.  Workers do not need the public UI port. |
+| Proxy for people and workers | `https://xyops.mycompany.com` | A dedicated worker-facing proxy hostname, usually on port `443` | TCP `443` to the proxy.  The proxy must support WebSockets and xySat HTTP traffic. |
+
+The simplest and most scalable production layout is usually a public reverse proxy for people, plus direct connections from workers to the individual conductor hostnames.  A worker-facing proxy is useful when direct routing is impossible, but requires additional care.
+
+### Test From a Worker First
+
+Before installing xySat, log into one of the intended worker servers and verify the exact hostname and port it will use.  For a default non-TLS setup:
+
+```sh
+getent hosts xyops01.internal.mycompany.com
+curl -fsS http://xyops01.internal.mycompany.com:5522/api/app/ping
+```
+
+The first command must resolve the conductor hostname, and the second must receive a successful response.  On systems without `getent`, use the local DNS lookup tool provided by the operating system.  If either test fails, fix DNS, routing, or firewall access before generating an xySat installer.
 
 ## Quick-Start
 
@@ -19,6 +102,7 @@ docker run \
 	--name "xyops-conductor-1" \
 	--hostname "xyops01.internal.mycompany.com" \
 	-e XYOPS_masters="xyops01.internal.mycompany.com" \
+	-e XYOPS_base_app_url="http://xyops01.internal.mycompany.com:5522" \
 	-e XYOPS_xysat_local="true" \
 	-e TZ="America/Los_Angeles" \
 	-v xy-data:/opt/xyops/data \
@@ -46,6 +130,7 @@ services:
     environment:
       XYOPS_xysat_local: "true"
       XYOPS_masters: "xyops01.internal.mycompany.com"
+      XYOPS_base_app_url: "http://xyops01.internal.mycompany.com:5522"
       TZ: America/Los_Angeles
 
     volumes:
@@ -64,19 +149,23 @@ volumes:
 
 Please change `./xyops01-conf` and `./xyops01-logs` to suitable locations for the xyOps configuration and logs directories to live on the host machine.
 
-Then hit http://localhost:5522/ in your browser (see [TLS](#tls) below for HTTPS setup).  A default administrator account will be created with username `admin` and password `admin`.  This will create a Docker volume (`xy-data`) to persist the xyOps database, which by default is a hybrid of a SQLite DB and the filesystem itself for file storage.
+Once the hostname resolves on your network, open `http://xyops01.internal.mycompany.com:5522/` in your browser (see [TLS](#tls) below for HTTPS setup).  You can use `http://localhost:5522/` as a local smoke test from the Docker host, but do not use `localhost` as the permanent `base_app_url`, because links containing `localhost` will point each user back to their own computer.
+
+A default administrator account will be created with username `admin` and password `admin`.  This will create a Docker volume (`xy-data`) to persist the xyOps database, which by default is a hybrid of a SQLite DB and the filesystem itself for file storage.
 
 A few notes:
 
 - **Important:** Please change the sample `xyops01.internal.mycompany.com` hostname to something that actually resolves and is addressable on your network.  **Without this, many features will not work properly.**
 	- Also, you must change the `XYOPS_masters` environment variable to match this, as this defines your conductor "cluster" (in this case a cluster of one).
+	- Change `XYOPS_base_app_url` to the URL that people will actually use to open xyOps.  For this direct quick-start layout, it uses the same conductor hostname and port.  If you later add a reverse proxy, change it to the proxy URL instead.
+- The Docker `--hostname` setting establishes the conductor hostname.  As an alternative, you can override the detected hostname with `XYOPS_hostname`.  You normally only need one of these mechanisms.
 - Change the `TZ` environment variable to your local timezone, for proper midnight log rotation and daily stat resets.
 - The `XYOPS_xysat_local` environment variable causes xyOps to launch [xySat](#satellite) in the background, in the same container.  This is so you can start running jobs right away -- it is great for testing and home labs, but *not recommended for production*.
 - The `XYOPS_masters` environment variable is how you define a cluster of multiple conductor servers (comma-separated hostnames).  In this case just set it to the hostname of the primary.
 - If you plan on using the container long term, please make sure to [rotate the secret key](#secret-key-rotation) regularly (e.g. every few months).
 - The `/var/run/docker.sock` bind is optional, and allows xyOps to launch its own containers (i.e. for the [Docker Plugin](plugins.md#docker-plugin), and the [Plugin Marketplace](marketplace.md)).
 
-Note that in order to add worker servers, the container needs to be *addressable on your network* by its hostname.  Typically this is done by adding the hostname to your local DNS, Tailscale, or using a `/etc/hosts` file.  See [Adding Servers](servers.md#adding-servers) for more details.
+Before adding worker servers, run the checks in [Test From a Worker First](#test-from-a-worker-first).  See [Adding Servers](servers.md#adding-servers) for installation options and automated provisioning.
 
 ### Main Configuration
 
@@ -190,7 +279,12 @@ For overriding configuration properties by environment variable, you can specify
 | `XYOPS_foreground` | `true` | Run xyOps in the foreground (no background daemon fork). |
 | `XYOPS_echo` | `true` | Echo the event log to the console (STDOUT), use in conjunction with `XYOPS_foreground`. |
 | `XYOPS_color` | `true` | Echo the event log with color-coded columns, use in conjunction with `XYOPS_echo`. |
+| `XYOPS_hostname` | `xyops01.internal.mycompany.com` | Override the conductor hostname detected from the operating system or container. |
+| `XYOPS_masters` | `xyops01.internal.mycompany.com` | Define the conductor hostnames in the cluster as a comma-separated list. |
 | `XYOPS_base_app_url` | `http://xyops.mycompany.com` | Override the [base_app_url](config.md#base_app_url) configuration property. |
+| `XYOPS_satellite__config__host` | `xyops-workers.mycompany.com` | Override the static hostname used by all xySat workers.  Omit this to use the normal conductor list. |
+| `XYOPS_satellite__config__port` | `443` | Set the port used for xySat HTTP and WebSocket traffic. |
+| `XYOPS_satellite__config__secure` | `true` | Use HTTPS and `wss://` for xySat traffic. |
 | `XYOPS_email_from` | `xyops@mycompany.com` | Override the [email_from](config.md#email_from) configuration property. |
 | `XYOPS_WebServer__port` | `80` | Override the `port` property *inside* the [WebServer](config.md#webserver) object. |
 | `XYOPS_WebServer__https_port` | `443` | Override the `https_port` property *inside* the [WebServer](config.md#webserver) object. |
@@ -248,11 +342,70 @@ Note that SQLite only stores data, not "files", under the default hybrid SQLite 
 
 ## TLS
 
-The xyOps built-in web server ([pixl-server-web](https://github.com/jhuckaby/pixl-server-web)) supports TLS, but you will need a valid certificate for all features to work correctly.  Please read the following guide for setup instructions:
+The xyOps built-in web server ([pixl-server-web](https://github.com/jhuckaby/pixl-server-web)) supports TLS, but you will need a valid certificate whose hostname is trusted by browsers and workers.  Please read the following guide for setup instructions:
 
 [Let's Encrypt / ACME TLS Certificates](https://github.com/jhuckaby/pixl-server-web#lets-encrypt--acme-tls-certificates)
 
-Alternatively, you can setup a proxy to sit in front of xyOps and handle TLS for you (see next section).
+When xySat connects directly to the built-in TLS listener, configure both of these [satellite.config](config.md#satellite-config) properties:
+
+```json
+"port": 5523,
+"secure": true
+```
+
+Also set `base_app_url` to the HTTPS URL that people should use.  Changing `base_app_url` does not change the xySat connection settings.
+
+Alternatively, you can set up a reverse proxy in front of xyOps and terminate TLS there.  The next section explains how this affects workers.
+
+## Reverse Proxies and Worker Connections
+
+A reverse proxy can be used in two different ways:
+
+1. **Proxy browsers only:** People use a public URL such as `https://xyops.mycompany.com`, while xySat connects directly to each internal conductor hostname.  This is the recommended layout when workers can route to the conductors.
+2. **Proxy browsers and xySat:** Workers also connect through a proxy because they cannot route directly to the conductors.  This requires a worker-facing hostname and full support for both HTTP and WebSocket traffic.
+
+### Proxying Browsers Only
+
+Set `base_app_url` to the public proxy URL:
+
+```sh
+XYOPS_base_app_url="https://xyops.mycompany.com"
+```
+
+Keep the conductor hostname set to its stable internal name, such as `xyops01.internal.mycompany.com`.  Unless you override it, generated xySat installers will use the conductor hostname and the port and protocol from `satellite.config`.  Workers do not need access to the public UI port when they connect directly to the conductor.
+
+For example:
+
+- **Browser:** `https://xyops.mycompany.com`
+- **xySat:** `ws://xyops01.internal.mycompany.com:5522`
+
+This separation is intentional.  `base_app_url` is for human-facing links, while the conductor hostname is the default worker connection address.
+
+### Proxying xySat
+
+If workers must enter through a proxy, set the optional `host` property inside [satellite.config](config.md#satellite-config).  This static host overrides the normal conductor `hosts` array for every worker managed by the conductor.
+
+For example, these Docker environment variables direct all workers through `xyops-workers.mycompany.com` on port `443`:
+
+```sh
+-e XYOPS_satellite__config__host="xyops-workers.mycompany.com" \
+-e XYOPS_satellite__config__port="443" \
+-e XYOPS_satellite__config__secure="true"
+```
+
+The proxy must:
+
+- Accept HTTP or HTTPS requests used for xySat installation, configuration, upgrades, package downloads, and job-related file transfers.
+- Accept persistent WebSocket upgrades on the same worker-facing hostname and port.
+- Preserve the worker-facing hostname in the `Host` header rather than replacing it with the internal backend hostname.  On standard ports, do not append an internal port such as `5522` or `5523`.
+- Forward the original protocol, typically using `X-Forwarded-Proto` when TLS terminates at the proxy.
+- Use timeouts long enough for persistent WebSockets and large transfers.
+- Route workers to the current primary conductor when multiple conductors are present.
+
+Do not configure a worker-facing proxy to allow only the initial installer URL.  The first installation may succeed while upgrades, file transfers, or job features fail later.
+
+> [!IMPORTANT]
+> A `host` value inside `satellite.config` takes precedence over the conductor-generated `hosts` array.  In a multi-conductor cluster, only use this setting when the static hostname points to a proxy or load balancer which can route workers to the current primary.  Otherwise, the normal `hosts` array provides direct conductor discovery and failover.
 
 ## Multi-Conductor with Nginx
 
@@ -283,7 +436,7 @@ Here is a docker command for running Nginx:
 
 ```sh
 docker run \
-	--detach
+	--detach \
 	--init \
 	--name xyops-nginx \
 	-e XYOPS_masters="xyops01.internal.mycompany.com,xyops02.internal.mycompany.com" \
@@ -325,6 +478,7 @@ docker run \
 	--name xyops-conductor-1 \
 	--hostname xyops01.internal.mycompany.com \
 	-e XYOPS_masters="xyops01.internal.mycompany.com,xyops02.internal.mycompany.com" \
+	-e XYOPS_base_app_url="https://xyops.mycompany.com" \
 	-e TZ="America/Los_Angeles" \
 	-v "./xyops01-conf:/opt/xyops/conf" \
 	-v "./xyops01-logs:/opt/xyops/logs" \
@@ -346,6 +500,7 @@ services:
     init: true
     environment:
       XYOPS_masters: xyops01.internal.mycompany.com,xyops02.internal.mycompany.com
+      XYOPS_base_app_url: https://xyops.mycompany.com
       TZ: America/Los_Angeles
     volumes:
       - "./xyops01-conf:/opt/xyops/conf"
@@ -363,6 +518,7 @@ A few things to note here:
 - We're using our official xyOps Docker image, but you can always [build your own from source](https://github.com/pixlcore/xyops/blob/main/Dockerfile).
 - All conductor server hostnames need to be listed in the `XYOPS_masters` environment variable, comma-separated.
 - All conductor servers need to be able to route to each other via their hostnames, so they can self-negotiate and hold elections.
+- `XYOPS_base_app_url` should be set to the public Nginx URL, so links generated for users point to the proxy rather than an individual conductor.
 - The timezone (`TZ`) should be set to your company's main timezone, so things like midnight log rotation and daily stat resets work as expected.
 - The `/var/run/docker.sock` bind allows xyOps to launch its own containers (i.e. for the [Plugin Marketplace](marketplace.md)).
 - The `./xyops01-conf` path should be changed to a location on the host where you want to store the xyOps configuration directory.
@@ -383,9 +539,28 @@ For more details, see the [Storage Setup Guide](storage.md).
 
 For instructions on how to install xySat, see [Adding Servers](servers.md#adding-servers).
 
+### What The Installer Does
+
+The one-line command generated by **Add Server** is a bootstrap process, not just a package download.  The worker uses the generated conductor URL to:
+
+1. Download a small shell or PowerShell installer.
+2. Test that it can reach the conductor.
+3. Download the correct xySat package for its operating system and CPU architecture.
+4. Download a generated `config.json` containing its server ID, authentication token, conductor connection information, and any initial server options.
+5. Install and start xySat as a system service.
+6. Open a persistent outbound WebSocket connection to xyOps.
+
+When you run the command exactly as generated, the bootstrap downloads and the resulting WebSocket connection use the host, port, and security settings selected for xySat.  With the default configuration, this is the conductor hostname on port `5522`.  Manually changing the installer URL can send the bootstrap downloads through a different route, even though the generated worker configuration still contains the centrally managed xySat connection settings.
+
+The generated `t=` bootstrap token authenticates the installation requests and expires after 24 hours.  Treat the entire installer URL as sensitive, do not post it publicly, and generate a new one if it has been exposed.
+
 ### Satellite Configuration
 
-xySat is configured automatically via the xyOps conductor server.  The [satellite.config](config.md#satellite-config) object is automatically sent to each server after it connects and authenticates, so you can keep a conductor version of the xySat configuration which is auto-synced to all servers.  Here is the default config:
+xySat is configured automatically by the xyOps conductor.  The [satellite.config](config.md#satellite-config) object is sent to each worker after it connects and authenticates, allowing you to centrally manage xySat settings across the fleet.
+
+During the initial installation, xyOps adds a `hosts` array containing the current conductor hostname.  After xySat connects, the current primary sends the complete conductor list.  xySat can then discover the primary and fail over when a conductor becomes unavailable.
+
+Here is the default centrally managed configuration.  The generated `hosts`, `server_id`, and `auth_token` properties are added separately for each worker:
 
 ```json
 { 
@@ -411,8 +586,10 @@ Here are descriptions of the configuration properties:
 
 | Property Name | Type | Description |
 |---------------|------|-------------|
-| `port` | Number | Specifies which port the xyOps conductor server will be listening on (default is `5522` for ws:// and `5523` for wss://). |
-| `secure` | Boolean | Set to `true` to use secure WebSocket (wss://) and HTTPS connections. |
+| `hosts` | Array | The conductor hostnames xySat can connect to.  This is generated and maintained automatically by xyOps. |
+| `host` | String | Optional static connection hostname.  When set, this overrides the entire `hosts` array. |
+| `port` | Number | The conductor or proxy port used for xySat HTTP and WebSocket traffic.  The default is `5522`.  Set this to `5523` when connecting directly to the default built-in TLS listener. |
+| `secure` | Boolean | Set to `false` for HTTP and `ws://`, or `true` for HTTPS and `wss://`.  The default is `false`. |
 | `socket_opts` | Object | Options to pass to the WebSocket connection (see [WebSocket](https://github.com/websockets/ws/blob/master/doc/ws.md#class-websocket)). |
 | `pid_file` | String | Location of the PID file to ensure two satellites don't run simultaneously. |
 | `log_dir` | String | Location of the log directory, relative to the xySat base dir (`/opt/xyops/satellite`). |
@@ -429,19 +606,33 @@ Here are descriptions of the configuration properties:
 
 ### Overriding The Connect URL
 
-When xySat is first installed, it is provided an array of hosts to connect to, which becomes a `hosts` array in the xySat config file on each server.  When xySat starts up, it connects to a *random host* from this array, and figures out which conductor is primary, and reconnects to that host.  If the conductor cluster changes, a new `hosts` array is automatically distributed to all servers by the current conductor.
+Normally, xySat selects a conductor from its automatically managed `hosts` array.  It connects to one of those hosts, discovers which conductor is primary, and reconnects to the primary when necessary.  If the cluster changes, the primary distributes an updated `hosts` array to all workers.
 
-In certain situations you may need to have xySat connect to a specific conductor host, instead of the default conductor list.  For e.g. you may have servers "out in the wild" and they need to connect through a proxy, or some other kind of complex network topology.  Either way, you can override the usual array of hosts that xySat connects to, and specify a static value instead.
+In some network layouts, workers must connect to a static proxy or load balancer instead of directly to the conductor hostnames.  Add a `host` property to override the normal conductor list.  When both `hosts` and `host` exist, `host` always takes precedence.
 
-To do this, add a `host` property into the xySat config as a top-level JSON property, on each server that requires it.  The xySat config file is located at:
+To override the connection for **all workers**, add `host` to the conductor's existing [satellite.config](config.md#satellite-config) object.  Merge the properties shown below into your existing configuration rather than removing the other satellite settings:
+
+```json
+"satellite": {
+	"config": {
+		"host": "xyops-workers.mycompany.com",
+		"port": 443,
+		"secure": true
+	}
+}
+```
+
+This is a fleet-wide static override.  In a multi-conductor installation, the hostname should point to a proxy which always routes workers to the current primary.
+
+To override the connection for **one worker**, add a top-level `host` property to that worker's local xySat configuration file:
 
 ```
 /opt/xyops/satellite/config.json
 ```
 
-Note that you should **not** add a `host` property into the [satellite.config](config.md#satellite-config) object on the conductor server, unless you want **all** of your servers to connect to the static host.
+For a per-worker override, also configure `managed_keys` so the conductor does not overwrite the local `host` value during the next configuration sync.  See [Customizing Managed Keys](#customizing-managed-keys).
 
-When both `hosts` and `host` exist in the config file, `host` takes precedence.
+For more reverse proxy requirements and examples, see [Reverse Proxies and Worker Connections](#reverse-proxies-and-worker-connections).
 
 ### Customizing Managed Keys
 
@@ -455,7 +646,34 @@ However, if you have a custom setup where you want some of your servers to have 
 
 This would only allow xyOps to overwrite the `server_id`, `auth_token` and `hosts` configuration keys when the server connects.  All the other configuration properties may vary, and will not be touched.  Note that it is important to always allow the `auth_token` property to be overwritten, so you can [rotate the secret key](#secret-key-rotation) from the conductor (rotating the secret key requires all server auth tokens to be regenerated).
 
+This minimal example also preserves a per-worker static `host` override because `host` is not included in `managed_keys`.  However, it also prevents the conductor from updating every other omitted setting.  If you only want `host` to remain local, include `server_id`, `auth_token`, `hosts`, and every other setting you want centrally managed, while deliberately omitting only `host`.
+
+### Troubleshooting xySat Installation
+
+Start troubleshooting from the worker server, because that is where DNS, firewall, proxy, and certificate behavior must all work.
+
+| Symptom | Likely Cause | What To Check |
+|---------|--------------|---------------|
+| The generated installer uses port `5522`, but people open xyOps on port `80` or `443`. | This is often correct.  The public `base_app_url` and the direct xySat connection are separate. | Confirm whether workers are intended to connect directly to the conductor.  If so, allow the worker to reach the conductor hostname on `5522`; it does not need the public UI port. |
+| The generated installer contains the wrong hostname. | The conductor hostname is incorrect, or a fleet-wide `satellite.config.host` override is set. | Check the container `hostname`, `XYOPS_hostname`, `XYOPS_masters`, and `XYOPS_satellite__config__host`. |
+| The installer reports that it cannot reach `BASE_URL`. | DNS, routing, firewall access, proxy routing, or the URL embedded in the bootstrap script is incorrect. | Run the tests in [Test From a Worker First](#test-from-a-worker-first), then inspect the generated `BASE_URL` as shown in [The Bootstrap BASE_URL](#the-bootstrap-base_url). |
+| The installer downloads successfully, but the server remains offline. | The HTTP bootstrap route worked, but the ongoing WebSocket route did not. | Inspect the worker's `host` or `hosts`, `port`, and `secure` settings.  Verify that the proxy allows WebSocket upgrades and does not close persistent connections. |
+| A direct TLS connection fails with a certificate error. | The certificate is not trusted, does not cover the conductor hostname, or xySat is using the wrong port and security mode. | Use a trusted certificate for the exact hostname, and pair `secure: true` with the TLS listener port, normally `5523`. |
+| Package download fails after the worker reaches the conductor. | The conductor cannot fetch the xySat release package, or an air-gapped package is missing. | Check conductor Internet access, outbound proxy settings, `satellite.base_url`, or the configured [Air-Gapped Satellite](#air-gapped-satellite-installs) bucket. |
+
+On Linux and macOS, the generated worker configuration is stored at:
+
+```text
+/opt/xyops/satellite/config.json
+```
+
+Check this file to confirm the final `host` or `hosts`, `port`, `secure`, and `server_id` values.  Do not share the `auth_token` value.
+
 ## Proxy Servers
+
+### Outbound Forward Proxies
+
+This section covers **forward proxies used for outbound requests** made by xyOps and job code.  This is different from placing a reverse proxy in front of the xyOps web server.  For inbound browser or xySat connections, see [Reverse Proxies and Worker Connections](#reverse-proxies-and-worker-connections).
 
 To send all outbound requests through a proxy (for e.g. web hooks), simply set one or more of the [de-facto standard environment variables](https://curl.se/docs/manpage.html#ENVIRONMENT) used for this purpose:
 
@@ -712,9 +930,9 @@ The three properties are:
 
 | Property | Description |
 |----------|-------------|
-| [`multi.preferred_conductors`](config.md#multipreferred_conductors) | An array of exact conductor hostnames, ordered from highest to lowest priority. |
-| [`multi.relinquish_min_age`](config.md#multirelinquish_min_age) | The minimum peer connection age, in seconds, required before the primary will relinquish command.  The default is `60`. |
-| [`multi.relinquish_wait_jobs`](config.md#multirelinquish_wait_jobs) | When `true`, wait for active jobs to complete before relinquishing command.  The default is `false`. |
+| [`multi.preferred_conductors`](config.md#multi-preferred_conductors) | An array of exact conductor hostnames, ordered from highest to lowest priority. |
+| [`multi.relinquish_min_age`](config.md#multi-relinquish_min_age) | The minimum peer connection age, in seconds, required before the primary will relinquish command.  The default is `60`. |
+| [`multi.relinquish_wait_jobs`](config.md#multi-relinquish_wait_jobs) | When `true`, wait for active jobs to complete before relinquishing command.  The default is `false`. |
 
 > [!IMPORTANT]
 > All conductor servers **must agree** on the same Preferred Conductors list and relinquish settings.  Changes made on the **Server Configuration** page are automatically synchronized across all conductor servers.  If you edit the raw `config.json` file instead, you must apply the same list, in the same order, and the same relinquish settings to every conductor server yourself.
