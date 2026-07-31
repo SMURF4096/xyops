@@ -4,7 +4,7 @@
 
 This document explains the main user interface settings in xyOps, which live under the `client` object in your configuration file.
 
-The main configuration file is typically located at `/opt/xyops/conf/config.json`.  If you edit settings in the Admin UI, xyOps writes the changes to `/opt/xyops/conf/overrides.json` instead.  See [Configuration](config.md) and [Self-Hosting](hosting.md#configuration) for more details.
+The main configuration file is typically located at `/opt/xyops/conf/config.json`.  If you edit settings in the Admin UI, xyOps writes the changes to `/opt/xyops/conf/overrides.json` instead.  See [Configuration](config.md) and [Self-Hosting](hosting.md#main-configuration) for more details.
 
 ## Whitelabeling
 
