@@ -1,6 +1,27 @@
 const assert = require('node:assert/strict');
 const Tools = require('pixl-tools');
 
+// helper: sleep while waiting for an asynchronously launched job
+async function sleep(ms) {
+	await new Promise(res => setTimeout(res, ms));
+}
+
+// helper: poll active jobs until the specified job has completed
+async function waitForJob(ctx, job_id, opts = {}) {
+	const timeout = opts.timeout || 20000;
+	const interval = opts.interval || 250;
+	const start = performance.now();
+	
+	while (performance.now() - start < timeout) {
+		let { data } = await ctx.request.json(ctx.api_url + '/app/get_active_jobs/v1', {});
+		if (data.code !== 0) throw new Error('get_active_jobs failed');
+		if (!data.rows.find(row => row.id === job_id)) return;
+		await sleep(interval);
+	}
+	
+	throw new Error('Timed out waiting for job to finish');
+}
+
 exports.tests = [
 
 	async function test_api_get_events(test) {
@@ -217,9 +238,104 @@ exports.tests = [
 		assert.ok( data.list && (data.list.length >= 1), "expected at least one history record" );
 	},
 
-	async function test_api_run_event_stub(test) {
-		// per request: do not exercise run_event here
-		assert.ok(true, 'run_event test intentionally skipped (stub/no-op)');
+	async function test_api_run_workflow_preserves_locked_event_script(test) {
+		// Reproduce issue #397: A workflow Event Node inherits its locked Shell
+		// script from the linked Event, rather than storing it as a node override.
+		const category_id = this.category_final_id || 'general';
+		const trigger_node_id = 'nlockedtrigger';
+		const event_node_id = 'nlockedevent';
+		const original_script = "#!/bin/bash\necho hello\n";
+		const hostile_script = "#!/bin/bash\necho pwned\n";
+		const plugin_default_script = "#!/bin/sh\n\n# Enter your shell script code here";
+		
+		let created_workflow = await this.request.json( this.api_url + '/app/create_event/v1', {
+			title: 'Locked Script Workflow Test',
+			enabled: true,
+			category: category_id,
+			type: 'workflow',
+			params: {},
+			fields: [],
+			limits: [],
+			actions: [],
+			triggers: [ { id: trigger_node_id, type: 'manual', enabled: true } ],
+			workflow: {
+				nodes: [
+					{ id: trigger_node_id, type: 'trigger', x: 100, y: 100 },
+					{
+						id: event_node_id,
+						type: 'event',
+						data: {
+							event: this.event_id,
+							params: {},
+							targets: [],
+							algo: '',
+							tags: []
+						},
+						x: 300,
+						y: 100
+					}
+				],
+				connections: [
+					{ id: 'clockedscript', source: trigger_node_id, dest: event_node_id }
+				]
+			}
+		});
+		assert.ok( created_workflow.data.code === 0, "successful workflow creation" );
+		assert.ok( created_workflow.data.event && created_workflow.data.event.id, "expected workflow in response" );
+		
+		let workflow = created_workflow.data.event;
+		let workflow_id = workflow.id;
+		let created_key = await this.request.json( this.api_url + '/app/create_api_key/v1', {
+			title: 'Unit Test Workflow Run API Key',
+			description: 'Created by event unit tests',
+			active: 1,
+			privileges: { run_jobs: 1 }
+		});
+		assert.ok( created_key.data.code === 0, "successful api key creation" );
+		assert.ok( created_key.data.api_key && created_key.data.api_key.id, "expected api key in response" );
+		assert.ok( created_key.data.plain_key, "expected plain api key" );
+		
+		let api_key_id = created_key.data.api_key.id;
+		let plain_key = created_key.data.plain_key;
+		
+		try {
+			// Match the browser's manual-run behavior by posting a full copy of the
+			// workflow.  Also inject a hostile locked override to verify that the
+			// server restores the original node state, which here means inheritance.
+			let run_payload = Tools.copyHash(workflow, true);
+			let event_node = Tools.findObject(run_payload.workflow.nodes, { id: event_node_id });
+			event_node.data.params.script = hostile_script;
+			
+			let { data } = await this.request.json( this.api_url + '/app/run_event/v1', run_payload, {
+				headers: {
+					'X-Session-ID': '',
+					'X-API-Key': plain_key
+				}
+			});
+			assert.ok( data.code === 0, "successful non-admin workflow run" );
+			assert.ok( data.id, "expected workflow job id in response" );
+			
+			// Wait for both the parent workflow and its child Event job to finish,
+			// then inspect the exact params delivered to the child job.
+			await waitForJob(this, data.id);
+			let { data:parent_data } = await this.request.json( this.api_url + '/app/get_job', { id: data.id } );
+			assert.ok( parent_data.code === 0 && parent_data.job, "expected completed workflow job" );
+			assert.ok( parent_data.job.code === 0, "workflow completed successfully" );
+			assert.ok( parent_data.job.workflow.jobs[event_node_id], "expected child job for Event Node" );
+			assert.ok( parent_data.job.workflow.jobs[event_node_id].length === 1, "expected exactly one child job" );
+			
+			let child_job_id = parent_data.job.workflow.jobs[event_node_id][0].id;
+			let { data:child_data } = await this.request.json( this.api_url + '/app/get_job', { id: child_job_id } );
+			assert.ok( child_data.code === 0 && child_data.job, "expected completed child job" );
+			assert.ok( child_data.job.params.script === original_script, "child job inherited the linked Event script" );
+			assert.ok( child_data.job.params.script !== hostile_script, "locked runtime script override was rejected" );
+			assert.ok( child_data.job.params.script !== plugin_default_script, "linked Event script was not replaced by Plugin default" );
+		}
+		finally {
+			// Clean up temporary definitions even if one of the regression assertions fails.
+			await this.request.json( this.api_url + '/app/delete_api_key/v1', { id: api_key_id } );
+			await this.request.json( this.api_url + '/app/delete_event/v1', { id: workflow_id } );
+		}
 	},
 
 	async function test_api_delete_event_missing_id(test) {
