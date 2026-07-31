@@ -1842,6 +1842,8 @@ Page.Events = class Events extends Page.PageUtils {
 		CodeEditor.hide();
 		Dialog.hide();
 		
+		delete item.event.revision;
+		
 		if (item.event.workflow) {
 			$P('Workflows').rollbackData = item.event;
 			Nav.go('Workflows?sub=edit&id=' + this.event.id + '&rollback=1');
@@ -1873,10 +1875,12 @@ Page.Events = class Events extends Page.PageUtils {
 		]);
 		app.setWindowTitle( "Event Revision History" );
 		
+		var event = find_object( app.events, { id: this.args.id } ) || {};
+		
 		this.goRevisionHistory({
 			activityType: 'events',
 			itemKey: 'event',
-			editPageID: 'Events',
+			editPageID: event.workflow ? 'Workflows' : 'Events',
 			itemMenu: {
 				label: '<i class="icon mdi mdi-calendar-clock">&nbsp;</i>Event:',
 				title: 'Select Event',
