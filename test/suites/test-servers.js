@@ -83,6 +83,49 @@ exports.tests = [
 			assert.ok( data.server.groups.includes(this.group_final_id), 'expected server to include final group' );
 		}
 	},
+	
+	async function test_api_update_server_destination_groups(test) {
+		// A group-limited user may update a server only while both its current
+		// and proposed group lists remain visible under the any-match policy.
+		let created = await this.request.json( this.api_url + '/app/create_api_key/v1', {
+			title: 'Unit Test Restricted Server API Key',
+			description: 'Created by server unit tests',
+			active: 1,
+			privileges: { update_servers: 1 },
+			groups: [this.group_final_id]
+		});
+		assert.ok( created.data.code === 0, 'successful restricted api key creation' );
+		
+		var key_id = created.data.api_key.id;
+		var key_opts = {
+			headers: { 'X-Session-ID': '', 'X-API-Key': created.data.plain_key }
+		};
+		
+		try {
+			let replaced = await this.request.json( this.api_url + '/app/update_server/v1', {
+				id: 'satunit1', autoGroup: false, groups: ['forbidden_group']
+			}, key_opts );
+			assert.ok( replaced.data.code === 'access', 'replacing with a forbidden group is rejected' );
+			
+			let cleared = await this.request.json( this.api_url + '/app/update_server/v1', {
+				id: 'satunit1', autoGroup: false, groups: []
+			}, key_opts );
+			assert.ok( cleared.data.code === 'access', 'clearing all server groups is rejected' );
+			
+			let mixed = await this.request.json( this.api_url + '/app/update_server/v1', {
+				id: 'satunit1', autoGroup: false, groups: [this.group_final_id, 'forbidden_group']
+			}, key_opts );
+			assert.ok( mixed.data.code === 0, 'one matching destination group grants access' );
+			
+			let restored = await this.request.json( this.api_url + '/app/update_server/v1', {
+				id: 'satunit1', groups: [this.group_final_id]
+			}, key_opts );
+			assert.ok( restored.data.code === 0, 'server groups restored after destination test' );
+		}
+		finally {
+			await this.request.json( this.api_url + '/app/delete_api_key/v1', { id: key_id } );
+		}
+	},
 
 	async function test_api_update_server_revert(test) {
 		// revert autoGroup and clear title/icon
@@ -199,4 +242,3 @@ exports.tests = [
 	},
 
 ];
-

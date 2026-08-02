@@ -452,22 +452,25 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 		html += '</div>'; // box_content
 		
 		// buttons
-		html += '<div class="box_buttons">';
-			html += '<div class="button secondary mobile_collapse" onClick="$P().do_bulk_export()"><i class="mdi mdi-cloud-download-outline">&nbsp;</i><span>Export All...</span></div>';
-			
-			if (this.tickets.length && app.hasPrivilege('delete_tickets')) {
-				html += '<div class="button danger mobile_collapse" onClick="$P().do_bulk_delete()"><i class="mdi mdi-trash-can-outline">&nbsp;</i><span>Delete All...</span></div>';
-			}
-			if (app.hasPrivilege('create_tickets')) {
-				html += '<div class="button default" id="btn_new" onClick="$P().do_new_ticket_from_list()"><i class="mdi mdi-plus-circle-outline">&nbsp;</i><span>New Ticket...</span></div>';
-			}
-		html += '</div>'; // box_buttons
+		if (!app.isUserLimited() || (this.tickets.length && app.hasPrivilege('delete_tickets')) || app.hasPrivilege('create_tickets')) {
+			html += '<div class="box_buttons">';
+				if (!app.isUserLimited()) {
+					html += '<div class="button secondary mobile_collapse" onClick="$P().do_bulk_export()"><i class="mdi mdi-cloud-download-outline">&nbsp;</i><span>Export All...</span></div>';
+				}
+				if (this.tickets.length && app.hasPrivilege('delete_tickets')) {
+					html += '<div class="button danger mobile_collapse" onClick="$P().do_bulk_delete()"><i class="mdi mdi-trash-can-outline">&nbsp;</i><span>Delete All...</span></div>';
+				}
+				if (app.hasPrivilege('create_tickets')) {
+					html += '<div class="button default" id="btn_new" onClick="$P().do_new_ticket_from_list()"><i class="mdi mdi-plus-circle-outline">&nbsp;</i><span>New Ticket...</span></div>';
+				}
+			html += '</div>'; // box_buttons
+		}
 		
 		html += '</div>'; // box
 		
 		$results.html( html ).buttonize();
 		
-		this.setupBoxButtonFloater();
+		// this.setupBoxButtonFloater();
 	}
 	
 	do_new_ticket_from_list() {
@@ -825,7 +828,7 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 			id: 'd_nt_category',
 			content: this.getFormMenuSingle({
 				id: 'fe_nt_category',
-				options: [['', '(None)']].concat( app.categories ),
+				options: app.isCategoryLimited() ? this.getCategoriesForMenu() : [['', '(None)']].concat( this.getCategoriesForMenu() ),
 				value: ticket.category || '',
 				default_icon: 'folder-open-outline',
 				// 'data-shrinkwrap': 1
@@ -1099,7 +1102,7 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 				id: 'fe_et_category',
 				title: 'Select category for ticket',
 				placeholder: 'Select category for ticket...',
-				options: [['', '(None)']].concat( app.categories ),
+				options: app.isCategoryLimited() ? this.getCategoriesForMenu() : [['', '(None)']].concat( this.getCategoriesForMenu() ),
 				value: ticket.category,
 				default_icon: 'folder-open-outline',
 				'data-shrinkwrap': 1

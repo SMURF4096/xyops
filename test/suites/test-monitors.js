@@ -184,6 +184,65 @@ exports.tests = [
 		assert.ok( Array.isArray(data.rows), 'expected rows array' );
 		assert.ok( data.rows.length >= 1, 'expected at least one historical row' );
 	},
+	
+	async function test_monitor_data_group_restrictions(test) {
+		// Concrete monitoring data is server-scoped even though monitor
+		// definitions themselves remain visible to all authenticated users.
+		let created = await this.request.json( this.api_url + '/app/create_api_key/v1', {
+			title: 'Unit Test Restricted Monitor API Key',
+			description: 'Created by monitor unit tests',
+			active: 1,
+			privileges: {},
+			groups: ['forbidden_group']
+		});
+		assert.ok( created.data.code === 0, 'successful restricted api key creation' );
+		
+		var key_id = created.data.api_key.id;
+		var plain_key = created.data.plain_key;
+		var key_opts = {
+			headers: { 'X-Session-ID': '', 'X-API-Key': plain_key }
+		};
+		
+		try {
+			let all = await this.request.json( this.api_url + '/app/get_quickmon_data/v1', {}, key_opts );
+			assert.ok( all.data.code === 0, 'restricted quickmon list succeeds' );
+			assert.ok( !all.data.servers.satunit1, 'forbidden server omitted from quickmon list' );
+			
+			let single = await this.request.json( this.api_url + '/app/get_quickmon_data/v1', { server: 'satunit1' }, key_opts );
+			assert.ok( single.data.code === 'access', 'forbidden quickmon server is rejected' );
+			
+			let group = await this.request.json( this.api_url + '/app/get_quickmon_data/v1', { group: this.group_final_id }, key_opts );
+			assert.ok( group.data.code === 'access', 'forbidden quickmon group is rejected' );
+			
+			let latest = await this.request.json( this.api_url + '/app/get_latest_monitor_data/v1', {
+				server: 'satunit1', sys: 'hourly', limit: 3
+			}, key_opts );
+			assert.ok( latest.data.code === 'access', 'forbidden latest monitor data is rejected' );
+			
+			let historical = await this.request.json( this.api_url + '/app/get_historical_monitor_data/v1', {
+				server: 'satunit1', sys: 'hourly', date: Tools.timeNow(true), limit: 3
+			}, key_opts );
+			assert.ok( historical.data.code === 'access', 'forbidden historical monitor data is rejected' );
+			
+			// Confirm this is resource filtering, not a blanket API-key ban.
+			let updated = await this.request.json( this.api_url + '/app/update_api_key/v1', {
+				id: key_id,
+				groups: [this.group_final_id]
+			});
+			assert.ok( updated.data.code === 0, 'api key updated to allowed group' );
+			
+			single = await this.request.json( this.api_url + '/app/get_quickmon_data/v1', { server: 'satunit1' }, key_opts );
+			assert.ok( single.data.code === 0 && single.data.servers.satunit1, 'allowed quickmon server is returned' );
+			
+			latest = await this.request.json( this.api_url + '/app/get_latest_monitor_data/v1', {
+				server: 'satunit1', sys: 'hourly', limit: 3
+			}, key_opts );
+			assert.ok( latest.data.code === 0 && latest.data.data, 'allowed latest monitor data is returned' );
+		}
+		finally {
+			await this.request.json( this.api_url + '/app/delete_api_key/v1', { id: key_id } );
+		}
+	},
 
 	async function test_api_delete_monitor_missing_id(test) {
 		// delete without id should error
@@ -216,4 +275,3 @@ exports.tests = [
 	}
 
 ];
-

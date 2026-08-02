@@ -71,6 +71,16 @@ Typical scenarios:
 - Department scoping: Assign users to roles that permit only the "Dev" or "Ops" categories.
 - Environment separation: Restrict specific users to the "Staging" group but not "Production".
 
+### Legacy Group Limits and Workflows
+
+Server group limits are a legacy compatibility feature inherited from Cronicle. Workflows are newer and may contain nested sub-workflows, so they use a deliberately simpler read policy:
+
+- Workflow reads: Group-limited users may view workflow definitions and parent workflow jobs. Category-limited users may view them only when the workflow's top-level category is in scope. Categories and groups used by nested nodes do not affect read visibility.
+- Workflow writes and manual runs: Creating, updating, or manually running a workflow recursively checks every reachable Event Node and Job Node, including nodes in nested sub-workflows. The user must have access to the referenced categories, saved event targets, and any node-level target overrides.
+- Cyclic references: Recursive validation safely detects already visited sub-workflows, so cyclic workflow references do not cause an infinite loop.
+
+This keeps workflow lists and live workflow pages practical on installations with thousands of events, while still preventing limited users from creating, modifying, or manually launching work outside their assigned scope.
+
 ## Sessions and Authentication
 
 xyOps handles account creation, login, session management, and password reset, and also adds activity logging and related features.

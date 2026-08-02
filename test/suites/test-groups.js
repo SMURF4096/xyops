@@ -10,6 +10,113 @@ exports.tests = [
 		assert.ok( Array.isArray(data.rows), "expected rows array" );
 		assert.ok( data.list && (data.list.length >= 0), "expected list metadata" );
 	},
+	
+	async function test_group_limited_resource_helpers(test) {
+		// group restrictions use any-match semantics, so one shared group grants
+		// access even when the resource also belongs to other groups
+		var cuser = {
+			privileges: {},
+			categories: [],
+			groups: ['allowed']
+		};
+		
+		var events = [
+			{ id: 'workflow', type: 'workflow', category: 'general', targets: [] },
+			{ id: 'empty', type: 'normal', category: 'general', targets: [] },
+			{ id: 'servers_only', type: 'normal', category: 'general', targets: ['server123'] },
+			{ id: 'shared', type: 'normal', category: 'general', targets: ['allowed', 'forbidden', 'server123'] },
+			{ id: 'forbidden', type: 'normal', category: 'general', targets: ['forbidden', 'server123'] }
+		];
+		var event_ids = this.xy.getUserLimitedEvents(cuser, events).map( event => event.id );
+		assert.deepEqual( event_ids, ['workflow', 'shared'], "event filtering uses any-match and explicitly allows workflows" );
+		
+		var jobs = [
+			{ id: 'workflow', type: 'workflow', category: 'general', targets: [] },
+			{ id: 'empty', type: 'normal', category: 'general', targets: [] },
+			{ id: 'shared', type: 'normal', category: 'general', targets: ['allowed', 'forbidden'] },
+			{ id: 'forbidden', type: 'normal', category: 'general', targets: ['forbidden'] }
+		];
+		var job_ids = this.xy.getUserLimitedJobs(cuser, jobs).map( job => job.id );
+		assert.deepEqual( job_ids, ['workflow', 'shared'], "job filtering uses any-match and explicitly allows workflows" );
+		
+		// Empty group lists on concrete resources are not the workflow special case,
+		// so they remain outside every group-limited user's scope.
+		var servers = [
+			{ id: 'empty', groups: [] },
+			{ id: 'shared', groups: ['allowed', 'forbidden'] },
+			{ id: 'forbidden', groups: ['forbidden'] }
+		];
+		var server_ids = this.xy.getUserLimitedServers(cuser, servers).map( server => server.id );
+		assert.deepEqual( server_ids, ['shared'], "server filtering uses any-match and rejects empty groups" );
+		
+		var alerts = [
+			{ id: 'empty', groups: [] },
+			{ id: 'shared', groups: ['allowed', 'forbidden'] },
+			{ id: 'forbidden', groups: ['forbidden'] }
+		];
+		var alert_ids = this.xy.getUserLimitedAlerts(cuser, alerts).map( alert => alert.id );
+		assert.deepEqual( alert_ids, ['shared'], "alert filtering uses any-match and rejects empty groups" );
+		
+		var user = { privileges: {}, roles: [], groups: ['allowed'] };
+		assert.ok( !this.xy.checkTargetPrivilege(user, ['server123']), "individual server targets alone deny access" );
+		assert.ok( !this.xy.checkTargetPrivilege(user, ['forbidden', 'server123']), "disallowed groups and servers deny access" );
+		assert.ok( this.xy.checkTargetPrivilege(user, ['allowed', 'forbidden', 'server123']), "one matching group grants access regardless of other targets" );
+		assert.ok( this.xy.checkTargetPrivilege(user, []), "empty workflow targets retain their existing access behavior" );
+		
+		// Empty target arrays are only valid for workflows.  This preserves the
+		// invariant used by checkTargetPrivilege() to recognize workflow targets.
+		var validation_error = null;
+		var valid = this.xy.requireValidEventData({ type: 'normal', targets: [] }, function(data) { validation_error = data; });
+		assert.ok( !valid && validation_error, "ordinary events cannot have empty target arrays" );
+		assert.ok( this.xy.requireValidEventData({
+			type: 'workflow',
+			targets: [],
+			workflow: { nodes: [], connections: [] }
+		}, function() {}), "workflows retain empty target arrays" );
+	},
+	
+	async function test_recursive_workflow_privilege_helper(test) {
+		// Workflow reads use only the top-level category, but create, update and
+		// manual run operations must validate every reachable nested node.
+		var user = { privileges: {}, roles: [], categories: ['allowed_cat'], groups: ['allowed_group'] };
+		var eventNode = function(id, targets) {
+			return { type: 'event', data: { event: id, targets: targets || [] } };
+		};
+		var workflow = function(id, nodes) {
+			return { id: id, type: 'workflow', category: 'allowed_cat', targets: [], workflow: { nodes: nodes } };
+		};
+		var original_events = this.xy.events;
+		this.xy.events = original_events.concat([
+			{ id: 'allowed_event', type: 'normal', category: 'allowed_cat', targets: ['allowed_group'] },
+			workflow('nested_workflow', [eventNode('allowed_event'), eventNode('cyclic_workflow')]),
+			workflow('cyclic_workflow', [eventNode('nested_workflow')]),
+			workflow('forbidden_workflow', [
+				{ type: 'job', data: { category: 'forbidden_cat', targets: ['allowed_group'] } }
+			])
+		]);
+		
+		try {
+			var allowed = this.xy.requireWorkflowPrivileges(user, {
+				nodes: [eventNode('nested_workflow')]
+			}, function() {});
+			assert.ok( allowed, "recursive allowed workflow passes, including a safe cycle" );
+			
+			var error = null;
+			var denied = this.xy.requireWorkflowPrivileges(user, {
+				nodes: [eventNode('allowed_event', ['forbidden_group'])]
+			}, function(data) { error = data; });
+			assert.ok( !denied && error, "forbidden Event Node target override is rejected" );
+			
+			error = null;
+			denied = this.xy.requireWorkflowPrivileges(user, {
+				nodes: [eventNode('forbidden_workflow')]
+			}, function(data) { error = data; });
+			assert.ok( !denied && error, "forbidden Job Node category in a nested workflow is rejected" );
+		}
+		finally {
+			this.xy.events = original_events;
+		}
+	},
 
 	async function test_api_get_group_missing_param(test) {
 		// missing id param

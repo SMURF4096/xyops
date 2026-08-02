@@ -263,6 +263,42 @@ exports.tests = [
 		job_ids.forEach( function(job_id, idx) {
 			assert.ok( !!Tools.findObject(data.jobs, { id: job_id }), "found job idx " + idx );
 		} );
+		
+		// Save one general-category job for the positional authorization test.
+		this.simple_job_id = job_ids[0];
+	},
+	
+	async function test_get_jobs_preserves_forbidden_positions(test) {
+		// A category-limited caller should receive one response position for
+		// every requested ID, with forbidden jobs represented like missing jobs.
+		let created = await this.request.json( this.api_url + '/app/create_api_key/v1', {
+			title: 'Unit Test Restricted Job API Key',
+			description: 'Created by job unit tests',
+			active: 1,
+			privileges: {},
+			categories: [this.category_id]
+		});
+		assert.ok( created.data.code === 0, "successful restricted api key creation" );
+		
+		var key_id = created.data.api_key.id;
+		var key_opts = {
+			headers: { 'X-Session-ID': '', 'X-API-Key': created.data.plain_key }
+		};
+		
+		try {
+			let { data } = await this.request.json( this.api_url + '/app/get_jobs/v1', {
+				ids: [this.job_id, this.simple_job_id, this.job_id]
+			}, key_opts );
+			assert.ok( data.code === 0, "restricted multi-job request succeeds" );
+			assert.ok( data.jobs.length === 3, "job response positions are preserved" );
+			assert.ok( data.jobs[0].id === this.job_id, "first allowed job retains its position" );
+			assert.ok( data.jobs[1].err && !data.jobs[1].id, "forbidden job uses a not-found placeholder" );
+			assert.ok( data.jobs[2].id === this.job_id, "duplicate allowed job retains its position" );
+		}
+		finally {
+			await this.request.json( this.api_url + '/app/delete_api_key/v1', { id: key_id } );
+			delete this.simple_job_id;
+		}
 	},
 	
 	async function test_update_simple_event_queue(test) {

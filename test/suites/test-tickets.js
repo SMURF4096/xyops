@@ -243,6 +243,48 @@ exports.tests = [
         assert.ok( data.tickets[1] && data.tickets[1].err, 'second entry should contain err' );
     },
 
+	async function test_api_get_tickets_preserves_forbidden_positions(test) {
+		// Create an allowed ticket so a category-limited request can mix allowed
+		// and forbidden records while verifying exact positional behavior.
+		let allowed = await this.request.json( this.api_url + '/app/create_ticket/v1', {
+			subject: 'Unit Test Allowed Multi-Get Ticket',
+			type: 'issue',
+			status: 'open',
+			category: 'general'
+		});
+		assert.ok( allowed.data.code === 0, 'successful allowed ticket creation' );
+		
+		let created = await this.request.json( this.api_url + '/app/create_api_key/v1', {
+			title: 'Unit Test Restricted Ticket API Key',
+			description: 'Created by ticket unit tests',
+			active: 1,
+			privileges: {},
+			categories: ['general']
+		});
+		assert.ok( created.data.code === 0, 'successful restricted api key creation' );
+		
+		var allowed_id = allowed.data.ticket.id;
+		var key_id = created.data.api_key.id;
+		var key_opts = {
+			headers: { 'X-Session-ID': '', 'X-API-Key': created.data.plain_key }
+		};
+		
+		try {
+			let { data } = await this.request.json( this.api_url + '/app/get_tickets/v1', {
+				ids: [allowed_id, this.ticket_id, allowed_id]
+			}, key_opts );
+			assert.ok( data.code === 0, 'restricted multi-ticket request succeeds' );
+			assert.ok( data.tickets.length === 3, 'ticket response positions are preserved' );
+			assert.ok( data.tickets[0].id === allowed_id, 'first allowed ticket retains its position' );
+			assert.ok( data.tickets[1].err && !data.tickets[1].id, 'forbidden ticket uses a not-found placeholder' );
+			assert.ok( data.tickets[2].id === allowed_id, 'duplicate allowed ticket retains its position' );
+		}
+		finally {
+			await this.request.json( this.api_url + '/app/delete_api_key/v1', { id: key_id } );
+			await this.request.json( this.api_url + '/app/delete_ticket/v1', { id: allowed_id } );
+		}
+	},
+
     async function test_api_delete_ticket_missing_id(test) {
         // delete without id should error
         let { data } = await this.request.json( this.api_url + '/app/delete_ticket/v1', {} );

@@ -304,10 +304,10 @@ Page.Snapshots = class Snapshots extends Page.ServerUtils {
 			];
 		} );
 		
-		if (this.snapshots.length) {
+		if (this.snapshots.length && (app.hasPrivilege('admin') || !app.isUserLimited())) {
 			html += '<div style="margin-top: 30px;">';
 			if (app.hasPrivilege('admin')) html += '<div class="button right danger" style="margin-left:15px;" onClick="$P().do_bulk_delete()"><i class="mdi mdi-trash-can-outline">&nbsp;</i>Delete All...</div>';
-			html += '<div class="button right secondary" onClick="$P().do_bulk_export()"><i class="mdi mdi-cloud-download-outline">&nbsp;</i>Export All...</div>';
+			if (!app.isUserLimited()) html += '<div class="button right secondary" onClick="$P().do_bulk_export()"><i class="mdi mdi-cloud-download-outline">&nbsp;</i>Export All...</div>';
 			html += '<div class="clear"></div>';
 			html += '</div>';
 		}

@@ -267,6 +267,56 @@ exports.tests = [
 		
 		// "message": "Server has non-zero total memory: 906.2 MB",
 		assert.ok( !!db_alert.message.match(/total\s+memory\:\s+(\d+)/), "expected message pattern in alert" );
+		
+		this.alert_invocation_id = db_alert.id;
+		this.alert_invocation_groups = db_alert.groups;
+	},
+	
+	async function test_alert_invocation_group_restrictions(test) {
+		// Alert definitions remain global, but concrete invocations are filtered
+		// using the server groups captured on each invocation record.
+		assert.ok( this.alert_invocation_id, "expected alert invocation fixture" );
+		assert.ok( this.alert_invocation_groups && this.alert_invocation_groups.length, "expected invocation groups" );
+		
+		let created = await this.request.json( this.api_url + '/app/create_api_key/v1', {
+			title: 'Unit Test Restricted Alert API Key',
+			description: 'Created by alert unit tests',
+			active: 1,
+			privileges: {},
+			groups: ['forbidden_group']
+		});
+		assert.ok( created.data.code === 0, "successful restricted api key creation" );
+		
+		var key_id = created.data.api_key.id;
+		var key_opts = {
+			headers: { 'X-Session-ID': '', 'X-API-Key': created.data.plain_key }
+		};
+		
+		try {
+			let denied = await this.request.json( this.api_url + '/app/get_alert_invocations/v1', {
+				ids: [this.alert_invocation_id]
+			}, key_opts );
+			assert.ok( denied.data.code === 0, "restricted invocation request succeeds" );
+			assert.ok( denied.data.alerts.length === 1, "invocation response position is preserved" );
+			assert.ok( denied.data.alerts[0].err && !denied.data.alerts[0].id, "forbidden invocation uses not-found placeholder" );
+			
+			let updated = await this.request.json( this.api_url + '/app/update_api_key/v1', {
+				id: key_id,
+				groups: [this.alert_invocation_groups[0]]
+			});
+			assert.ok( updated.data.code === 0, "api key updated to allowed group" );
+			
+			let allowed = await this.request.json( this.api_url + '/app/get_alert_invocations/v1', {
+				ids: [this.alert_invocation_id]
+			}, key_opts );
+			assert.ok( allowed.data.code === 0, "allowed invocation request succeeds" );
+			assert.ok( allowed.data.alerts[0].id === this.alert_invocation_id, "allowed invocation is returned" );
+		}
+		finally {
+			await this.request.json( this.api_url + '/app/delete_api_key/v1', { id: key_id } );
+			delete this.alert_invocation_id;
+			delete this.alert_invocation_groups;
+		}
 	}
 	
 ];
