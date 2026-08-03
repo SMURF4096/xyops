@@ -1,5 +1,18 @@
 # xyOps Changelog
 
+## Version v1.0.87
+
+> August 3, 2026
+
+- [`132ee752`](https://github.com/pixlcore/xyops/commit/132ee752c99d0fab24a0d1e871e7d01ac7d5963a): Version 1.0.87
+- [`6237fb09`](https://github.com/pixlcore/xyops/commit/6237fb095293dd99b50d2ff24cfab671d8038336): Bug Fix: API: Preserve external ports in xySat install and upgrade URLs.  Ref #392.
+- [`e9352757`](https://github.com/pixlcore/xyops/commit/e93527571054fe8621b79156efacf72c54fe562f): Feature: Complete overhaul of user category / group restriction system.
+- [`c4152ed3`](https://github.com/pixlcore/xyops/commit/c4152ed31f3af937c9e2910f19ad25c82b0b8734): Bug FIx: Secrets assigned to the category of a workflow event are not propagated down into it for sub-jobs assigned to differrent categories.  Fixes #398.
+- [`77533746`](https://github.com/pixlcore/xyops/commit/77533746e68088829ee287b212b33535bbb34db5): Docs: Rewrote hosting doc from scratch, for clarity and ease of use.
+- [`261d4035`](https://github.com/pixlcore/xyops/commit/261d4035b72642d573ebb80a4d10d9b31e2c809a): Bug Fix: Non-admins running workflows with admin-locked event plugin params revert to defaults.  Fixes #397.
+- [`c27a747c`](https://github.com/pixlcore/xyops/commit/c27a747cc96ff633f89fe2da52097687128ab1f4): Bug Fix: Workflow revision history rollback not working properly.  Fixes #394.
+- [`8c9a2e97`](https://github.com/pixlcore/xyops/commit/8c9a2e9724377028ecb6af98a71f5a4b08ab705f): Docs: Hosting: Add a new "Before You Install" section, plus a number of clarifications and corrections.
+
 ## Version v1.0.86
 
 > July 29, 2026
