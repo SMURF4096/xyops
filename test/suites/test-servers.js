@@ -30,6 +30,43 @@ exports.tests = [
 		assert.ok( data.code === 0, 'successful api response' );
 		assert.ok( data.server && data.server.id === 'satunit1', 'unexpected server id' );
 	},
+	
+	async function test_satellite_install_preserves_external_port(test) {
+		// Generate a normal temporary installer token through the same API used by
+		// the Add Server dialog.
+		let { data: token_data } = await this.request.json( this.api_url + '/app/get_satellite_token/v1', {} );
+		assert.ok( token_data.code === 0, 'successful satellite token response' );
+		assert.ok( !!token_data.token, 'expected satellite installer token' );
+		
+		// Simulate Docker forwarding external port 7552 to the test server's
+		// internal port.  The generated script must retain the external port.
+		let install_url = this.api_url + '/app/satellite/install?t=' + token_data.token;
+		let { resp, data: script } = await this.request.get( install_url, {
+			headers: { Host: 'workers.example.test:7552' }
+		} );
+		
+		assert.ok( resp.statusCode === 200, 'successful satellite installer response' );
+		assert.match( script.toString(), /^BASE_URL="http:\/\/workers\.example\.test:7552"$/m );
+	},
+	
+	async function test_satellite_upgrade_preserves_external_https_port(test) {
+		// xySat authenticates upgrade requests using its server ID and auth token.
+		var server_id = 'satunit1';
+		var auth_token = Tools.digestHex( server_id + this.server.config.get('secret_key'), 'sha256' );
+		var upgrade_url = this.api_url + '/app/satellite/upgrade?s=' + server_id + '&t=' + auth_token;
+		
+		// Simulate a TLS-terminating proxy on a nonstandard public port.  The web
+		// server detects HTTPS from this forwarded header.
+		let { resp, data: script } = await this.request.get( upgrade_url, {
+			headers: {
+				Host: 'workers.example.test:8443',
+				'X-Forwarded-Proto': 'https'
+			}
+		} );
+		
+		assert.ok( resp.statusCode === 200, 'successful satellite upgrade response' );
+		assert.match( script.toString(), /^BASE_URL="https:\/\/workers\.example\.test:8443"$/m );
+	},
 
 	async function test_api_get_server_missing_param(test) {
 		// fetch server with missing id
