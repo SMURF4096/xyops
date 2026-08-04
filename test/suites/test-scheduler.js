@@ -324,6 +324,57 @@ exports.tests = [
 		assert.ok( jobs[2].now == epoch, "expected job idx 2 to have now set to epoch" );
 	},
 	
+	async function test_scheduler_single_shot_catch_up(test) {
+		// A missed Single Shot must match its historical cursor minute, not the current tick.
+		let epoch = 1766111340;
+		let single_epoch = epoch - 120;
+		let triggers = [
+			{
+				"enabled": true,
+				"type": "single",
+				"epoch": single_epoch
+			},
+			{
+				"enabled": true,
+				"type": "catchup"
+			}
+		];
+		
+		// The stored cursor is the last processed minute, so replay starts one minute later.
+		this.xy.putState( 'events/' + this.schedule_event_id + '/cursor', epoch - 180 );
+		
+		let jobs = await testTriggers(this, triggers, epoch);
+		assert.equal( jobs.length, 1, "expected the missed Single Shot to launch once" );
+		assert.equal( jobs[0].now, single_epoch, "expected the Single Shot to retain its scheduled minute" );
+	},
+	
+	async function test_scheduler_interval_catch_up(test) {
+		// A 90-second interval shifts between :00 and :30, making cursor mistakes visible.
+		let epoch = 1766111340;
+		let triggers = [
+			{
+				"enabled": true,
+				"type": "interval",
+				"duration": 90,
+				"start": epoch - 270
+			},
+			{
+				"enabled": true,
+				"type": "catchup"
+			}
+		];
+		
+		this.xy.putState( 'events/' + this.schedule_event_id + '/cursor', epoch - 240 );
+		
+		let jobs = await testTriggers(this, triggers, epoch);
+		assert.equal( jobs.length, 3, "expected each missed interval hit to launch exactly once" );
+		assert.deepEqual(
+			jobs.map( function(job) { return job.now; } ),
+			[ epoch - 180, epoch - 90, epoch ],
+			"expected interval hits to be calculated from each historical cursor minute"
+		);
+	},
+	
 	async function test_scheduler_range_in(test) {
 		// test epoch = 1766111340 (2025/12/18 18:29:00 Pacific)
 		let epoch = 1766111340;

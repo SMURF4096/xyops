@@ -286,7 +286,7 @@ Parameters: None
 
 Notes:
 
-- Applies to schedule/interval triggers on the same event.
+- Applies to schedule, interval, and single triggers on the same event.
 - On each scheduler tick, the event's cursor advances one minute at a time, evaluating schedules for each minute until present time.
 - Long outages can produce a backlog of late jobs; ensure your event and infrastructure can handle catch-up bursts.
 - Time Machine: In the UI you can set a custom cursor timestamp to re-run a historical window (set cursor in the past) or skip a backlog (set cursor near "now").
