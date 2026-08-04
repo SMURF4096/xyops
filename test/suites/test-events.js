@@ -91,6 +91,11 @@ exports.tests = [
 	async function test_api_create_event(test) {
 		// create new event (non-workflow)
 		const category_id = this.category_final_id || 'general';
+		const single_epoch = 2000000037;
+		const range_start = 2000000098;
+		const range_end = 2000003729;
+		const blackout_start = 2000000159;
+		const blackout_end = 2000007359;
 		let { data } = await this.request.json( this.api_url + '/app/create_event/v1', {
 			"title": "Unit Test Event",
 			"enabled": true,
@@ -101,11 +106,26 @@ exports.tests = [
 			"params": { "script": "#!/bin/bash\necho hello\n", "annotate": false, "json": false },
 			"limits": [ { enabled: true, type: 'time', duration: 60 } ],
 			"actions": [ { enabled: true, condition: 'error', type: 'email', users: ['admin'] } ],
-			"triggers": [ { "type": "manual", "enabled": true } ],
+			"triggers": [
+				{ "type": "manual", "enabled": true },
+				{ "type": "single", "enabled": true, "epoch": single_epoch },
+				{ "type": "range", "enabled": true, "start": range_start, "end": range_end },
+				{ "type": "blackout", "enabled": true, "start": blackout_start, "end": blackout_end }
+			],
 			"notes": "Created by unit tests"
 		});
 		assert.ok( data.code === 0, "successful api response" );
 		assert.ok( data.event && data.event.id, "expected event in response" );
+		
+		// Calendar boundary epochs should be floored to whole minutes on create.
+		let single = Tools.findObject( data.event.triggers, { type: 'single' } );
+		let range = Tools.findObject( data.event.triggers, { type: 'range' } );
+		let blackout = Tools.findObject( data.event.triggers, { type: 'blackout' } );
+		assert.equal( single.epoch, Math.floor(single_epoch / 60) * 60, "single shot epoch should be minute-aligned" );
+		assert.equal( range.start, Math.floor(range_start / 60) * 60, "range start should be minute-aligned" );
+		assert.equal( range.end, Math.floor(range_end / 60) * 60, "range end should be minute-aligned" );
+		assert.equal( blackout.start, Math.floor(blackout_start / 60) * 60, "blackout start should be minute-aligned" );
+		assert.equal( blackout.end, Math.floor(blackout_end / 60) * 60, "blackout end should be minute-aligned" );
 		this.event_id = data.event.id;
 	},
 
@@ -119,6 +139,16 @@ exports.tests = [
 		assert.ok( data.event.limits[0].type === 'time' && data.event.limits[0].duration === 60, "unexpected limit content" );
 		assert.ok( Array.isArray(data.event.actions) && data.event.actions.length === 1, "expected one action" );
 		assert.ok( data.event.actions[0].type === 'email' && data.event.actions[0].enabled === true, "unexpected action content" );
+		
+		// Verify the normalized trigger epochs were actually persisted.
+		let single = Tools.findObject( data.event.triggers, { type: 'single' } );
+		let range = Tools.findObject( data.event.triggers, { type: 'range' } );
+		let blackout = Tools.findObject( data.event.triggers, { type: 'blackout' } );
+		assert.equal( single.epoch % 60, 0, "persisted single shot epoch should be minute-aligned" );
+		assert.equal( range.start % 60, 0, "persisted range start should be minute-aligned" );
+		assert.equal( range.end % 60, 0, "persisted range end should be minute-aligned" );
+		assert.equal( blackout.start % 60, 0, "persisted blackout start should be minute-aligned" );
+		assert.equal( blackout.end % 60, 0, "persisted blackout end should be minute-aligned" );
 	},
 
 	async function test_api_event_rejects_reserved_job_override(test) {
@@ -143,12 +173,33 @@ exports.tests = [
 
 	async function test_api_update_event(test) {
 		// update our event
+		const single_epoch = 2000100037;
+		const range_start = 2000100098;
+		const range_end = 2000103729;
+		const blackout_start = 2000100159;
+		const blackout_end = 2000107359;
 		let { data } = await this.request.json( this.api_url + '/app/update_event/v1', {
 			id: this.event_id,
 			title: 'UTE v2',
-			notes: 'updated by tests'
+			notes: 'updated by tests',
+			triggers: [
+				{ type: 'manual', enabled: true },
+				{ type: 'single', enabled: true, epoch: single_epoch },
+				{ type: 'range', enabled: true, start: range_start, end: range_end },
+				{ type: 'blackout', enabled: true, start: blackout_start, end: blackout_end }
+			]
 		});
 		assert.ok( data.code === 0, "successful api response" );
+		
+		// The same minute normalization must apply when replacing triggers on update.
+		let single = Tools.findObject( data.event.triggers, { type: 'single' } );
+		let range = Tools.findObject( data.event.triggers, { type: 'range' } );
+		let blackout = Tools.findObject( data.event.triggers, { type: 'blackout' } );
+		assert.equal( single.epoch, Math.floor(single_epoch / 60) * 60, "updated single shot epoch should be minute-aligned" );
+		assert.equal( range.start, Math.floor(range_start / 60) * 60, "updated range start should be minute-aligned" );
+		assert.equal( range.end, Math.floor(range_end / 60) * 60, "updated range end should be minute-aligned" );
+		assert.equal( blackout.start, Math.floor(blackout_start / 60) * 60, "updated blackout start should be minute-aligned" );
+		assert.equal( blackout.end, Math.floor(blackout_end / 60) * 60, "updated blackout end should be minute-aligned" );
 	},
 
 	async function test_api_update_event_invalid_limit(test) {

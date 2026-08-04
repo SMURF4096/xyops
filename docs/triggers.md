@@ -157,13 +157,13 @@ Example: Every 90 seconds starting at a specific time:
 
 ### Single Shot
 
-Launch exactly once at the specified absolute timestamp.
+Launch exactly once during the specified minute.  To launch at a particular second within the minute, add a [Precision](#precision) modifier to the event.
 
 Parameters:
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `epoch` | Number | Yes | Exact Unix timestamp (seconds) when to run. |
+| `epoch` | Number | Yes | Unix timestamp for the minute when the event should run. |
 | `params` | Object | Optional | Optionally include parameter overrides for the event / plugin. |
 | `tags` | Array | Optional | Optionally include a set of [Tag.id](data.md#tag-id)s to add to the job as it starts. |
 
@@ -176,6 +176,8 @@ Example:
   "epoch": 1754631600
 }
 ```
+
+When a Single Shot trigger is created or updated, xyOps normalizes `epoch` down to the beginning of its minute.  For example, an epoch at `12:34:37` is stored as `12:34:00`.
 
 ### Magic Link
 
@@ -330,6 +332,7 @@ Parameters:
 Notes:
 
 - Ranges may be open or closed.  Meaning, you can specify only `start`, only `end`, or both. If both are set, `start` must be ≤ `end`.
+- When a Range trigger is created or updated, xyOps normalizes `start` and `end` down to the beginning of their respective minutes.
 - Applies to automatic triggers (schedule/interval/plugin/single). Does not affect manual runs.
 
 Example: Only run between March 1 and May 31 (inclusive):
@@ -357,6 +360,7 @@ Parameters:
 Notes:
 
 - Useful for maintenance windows or holidays.
+- When a Blackout trigger is created or updated, xyOps normalizes `start` and `end` down to the beginning of their respective minutes.
 - Applies to automatic triggers (schedule/interval/plugin/single). Does not affect manual runs.
 
 Example:
