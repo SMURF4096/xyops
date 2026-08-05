@@ -391,13 +391,13 @@ app.comm = {
 		// don't show actions from ourselves, and also respect the user's settings
 		if (!item.username) {
 			// no username, so this is a non-user "system" event, such as a server connecting or disconnecting
-			if (!app.user.admin_hide_notify_sys) app.showMessage(type, desc, 8);
+			if (!app.user.admin_hide_notify_sys) app.showMessage(type, desc, 8, item.loc);
 		}
 		else {
 			// okay, item has a username, but only show if it's not us, and the user wants it
 			// also, this may be a user action BY AN ADMIN, so check item.admin for the actual effective user
 			var username = item.admin || item.username;
-			if ((username != app.username) && !app.user.admin_hide_notify_user) app.showMessage(type, desc, 8);
+			if ((username != app.username) && !app.user.admin_hide_notify_user) app.showMessage(type, desc, 8, item.loc);
 		}
 		
 		// recheck versions for specific actions (lazy)
