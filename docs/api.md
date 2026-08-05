@@ -2216,7 +2216,7 @@ Parameters:
 | Property Name | Type | Description |
 |---------------|------|-------------|
 | `id` | String | **(Required)** The [Job.id](data.md#job-id). |
-| `bytes` | Number | Optional. Approximate number of bytes to return from the end. Defaults to `32678` (32K). |
+| `bytes` | Number | Optional. Approximate number of bytes to return from the end. Must be an integer from `1` to `1048576`. Defaults to `32768` (32K). |
 
 Example response:
 

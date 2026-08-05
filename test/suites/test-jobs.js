@@ -155,15 +155,32 @@ exports.tests = [
 	},
 	
 	async function test_run_job_basic(test) {
-		// run basic job
+		// Run a simulated two-second job, leaving time to exercise the live log API.
 		let { data } = await this.request.json( this.api_url + '/app/run_event/v1', {
 			id: this.event_id,
-			params: { duration: 1 },
+			params: { duration: 2 },
 			tags: [ this.tag_id ]
 		});
 		assert.ok( data.code === 0, "successful api response" );
 		assert.ok( data.id, "expected id in response" );
 		this.job_id = data.id;
+		
+		// Query string parameters arrive as strings.  This exact request used to
+		// pass "32768" to Buffer.alloc() and crash the entire server process.
+		var tail_url = this.api_url + '/app/tail_live_job_log/v1?id=' + this.job_id;
+		let { data: tail_raw } = await this.request.get( tail_url + '&bytes=32768' );
+		var tail_data = JSON.parse( tail_raw.toString() );
+		assert.ok( tail_data.code === 0, "string byte count is safely coerced" );
+		
+		// Invalid and excessive allocations should return normal API errors while
+		// leaving the server alive for the remaining tests.
+		let { data: invalid_raw } = await this.request.get( tail_url + '&bytes=32KB' );
+		var invalid_data = JSON.parse( invalid_raw.toString() );
+		assert.ok( invalid_data.code !== 0, "malformed byte count is rejected" );
+		
+		let { data: oversized_raw } = await this.request.get( tail_url + '&bytes=1048577' );
+		var oversized_data = JSON.parse( oversized_raw.toString() );
+		assert.ok( oversized_data.code !== 0, "oversized byte count is rejected" );
 		
 		// wait for job to complete
 		await waitForJob( this, this.job_id );
