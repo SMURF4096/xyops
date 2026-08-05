@@ -399,6 +399,21 @@ var satellite = {
 				arr: ["aa", "bb", "cc"],
 				secrets: sec // echo secrets so unit test can verify
 			};
+			
+			// Some API tests need a completed output file record without writing a
+			// real file.  Mirror the metadata shape produced by a real satellite.
+			if (job.params.output_file) {
+				job.files = [{
+					id: Tools.generateShortID('f'),
+					date: Tools.timeNow(true),
+					filename: job.params.output_file,
+					path: 'files/jobs/' + job.id + '/unit-test/' + job.params.output_file,
+					size: 128,
+					job: job.id,
+					server: job.server
+				}];
+			}
+			
 			job.code = 0;
 			job.description = "Unit Test Job Complete";
 			job.state = 'finishing';

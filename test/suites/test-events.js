@@ -128,6 +128,92 @@ exports.tests = [
 		assert.equal( blackout.end, Math.floor(blackout_end / 60) * 60, "blackout end should be minute-aligned" );
 		this.event_id = data.event.id;
 	},
+	
+	async function test_api_create_wait_event(test) {
+		// Create a dedicated Event with both Manual and Magic Link triggers so
+		// the two synchronous API variants can share the same fixture.
+		this.wait_event_id = 'wait_api_test';
+		this.wait_magic_key = 'unit-test-wait-magic-key';
+		
+		let { data } = await this.request.json( this.api_url + '/app/create_event/v1', {
+			id: this.wait_event_id,
+			title: 'Wait API Test Event',
+			enabled: true,
+			category: this.category_final_id || 'general',
+			targets: ['main'],
+			algo: 'random',
+			plugin: 'shellplug',
+			params: { script: "#!/bin/bash\necho hello\n", annotate: false, json: false },
+			limits: [],
+			actions: [],
+			triggers: [
+				{ type: 'manual', enabled: true },
+				{ type: 'magic', enabled: true, key: this.wait_magic_key }
+			],
+			notes: 'Created by wait API unit tests'
+		});
+		
+		assert.equal( data.code, 0, 'successful wait Event creation' );
+		assert.equal( data.event.id, this.wait_event_id, 'expected wait Event ID' );
+		assert.ok( Tools.findObject(data.event.triggers, { type: 'magic' }).token, 'Magic Link key was hashed' );
+	},
+	
+	async function test_api_run_event_wait(test) {
+		// The /wait suffix should hold the request open and return the completed
+		// Job instead of the usual background Job ID response.
+		let { data } = await this.request.json( this.api_url + '/app/run_event/v1/wait', {
+			id: this.wait_event_id,
+			params: {
+				duration: 1,
+				caller: 'run_event',
+				output_file: 'run-event-wait.txt'
+			}
+		});
+		
+		assert.equal( data.code, 0, 'successful run_event wait response' );
+		assert.ok( data.job && data.job.id, 'response contains the completed Job' );
+		assert.equal( data.job.event, this.wait_event_id, 'Job belongs to the requested Event' );
+		assert.equal( data.job.params.caller, 'run_event', 'Event parameter override was preserved' );
+		assert.equal( data.job.code, 0, 'Job completed successfully' );
+		assert.equal( data.job.final, true, 'Job record is fully finalized' );
+		assert.equal( data.job.data.num, 42, 'response includes Job output data' );
+		assert.equal( data.job.files.length, 1, 'response includes Job output files' );
+		assert.equal( data.job.files[0].filename, 'run-event-wait.txt', 'output filename is preserved' );
+		assert.equal( data.job.files[0].path, 'files/jobs/' + data.job.id + '/unit-test/run-event-wait.txt', 'output file path is URL-ready' );
+	},
+	
+	async function test_api_magic_wait(test) {
+		// Magic Link parameters remain ordinary Event overrides, while /wait is
+		// carried in the URL path and returns the same completed Job shape.
+		var url = this.api_url + '/app/magic/v1/' + encodeURIComponent(this.wait_magic_key) + '/wait';
+		url += '?duration=1&caller=magic&output_file=magic-wait.txt';
+		
+		let { data: raw_data } = await this.request.get(url);
+		let data = JSON.parse( raw_data.toString('utf8') );
+		
+		assert.equal( data.code, 0, 'successful Magic Link wait response' );
+		assert.ok( data.job && data.job.id, 'response contains the completed Magic Link Job' );
+		assert.equal( data.job.event, this.wait_event_id, 'Magic Link launched the expected Event' );
+		assert.equal( data.job.source, 'magic', 'Job records the Magic Link source' );
+		assert.equal( data.job.params.caller, 'magic', 'Magic Link query parameter was preserved' );
+		assert.equal( data.job.code, 0, 'Magic Link Job completed successfully' );
+		assert.equal( data.job.final, true, 'Magic Link Job record is fully finalized' );
+		assert.equal( data.job.data.num, 42, 'response includes Magic Link Job output data' );
+		assert.equal( data.job.files.length, 1, 'response includes Magic Link Job output files' );
+		assert.equal( data.job.files[0].filename, 'magic-wait.txt', 'Magic Link output filename is preserved' );
+		assert.equal( data.job.files[0].path, 'files/jobs/' + data.job.id + '/unit-test/magic-wait.txt', 'Magic Link output file path is URL-ready' );
+	},
+	
+	async function test_api_delete_wait_event(test) {
+		// Clean up the dedicated wait fixture after both endpoint variants run.
+		let { data } = await this.request.json( this.api_url + '/app/delete_event/v1', {
+			id: this.wait_event_id
+		});
+		
+		assert.equal( data.code, 0, 'successful wait Event deletion' );
+		delete this.wait_event_id;
+		delete this.wait_magic_key;
+	},
 
 	async function test_api_get_new_event(test) {
 		// fetch our new event

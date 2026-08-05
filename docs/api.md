@@ -1391,9 +1391,12 @@ Deletions are permanent and cannot be undone.
 
 ```
 POST /api/app/run_event/v1
+POST /api/app/run_event/v1/wait
 ```
 
 Run an event on demand with optional overrides and optional file uploads. Requires the [run_jobs](privileges.md#run_jobs) privilege, plus category/target access to the event, and a valid user session or API Key.
+
+By default, this API starts the job in the background and immediately returns its [Job.id](data.md#job-id).  To wait for the job to finish, add `/wait` to the URL.  The request will remain open until the job completes, and the response will contain the full completed [Job](data.md#job) record, including any output [Job.data](data.md#job-data) and [Job.files](data.md#job-files).
 
 Manual run rules:
 
@@ -1468,10 +1471,42 @@ Example response:
 
 In addition to the [Standard Response Format](#standard-response-format), this will include an `id` property containing the newly created [Job.id](data.md#job-id).
 
+When using the `/wait` URL, the response instead includes a `job` property containing the full completed [Job](data.md#job) record:
+
+```json
+{
+	"code": 0,
+	"job": {
+		"id": "jabc123def",
+		"code": 0,
+		"description": "Success!",
+		"completed": 1766379212.239,
+		"elapsed": 1.234,
+		"data": {
+			"failed_events": 3
+		},
+		"files": [
+			{
+				"filename": "report.csv",
+				"path": "files/jobs/jabc123def/abc123/report.csv",
+				"size": 1234
+			}
+		]
+	}
+}
+```
+
+Output file `path` values are URL paths relative to the xyOps base URL.  For example, the file above is available at `https://xyops.example.com/files/jobs/jabc123def/abc123/report.csv`.
+
+The `/wait` form is best suited to jobs that complete within the timeout limits of the calling client and any intervening HTTP proxies.
+
 ### magic
 
 ```
 GET /api/app/magic/v1/TOKEN
+POST /api/app/magic/v1/TOKEN
+GET /api/app/magic/v1/TOKEN/wait
+POST /api/app/magic/v1/TOKEN/wait
 ```
 
 Start a job using a "Magic Link".  This is a unique URL with an embedded cryptographic token, which is keyed to fire off a specific event via a special magic trigger.  This API does not require a user session or API key -- the authentication is built right into the URL.  Any parameters passed to the API, either via query string parameters or POST parameters, are passed directly into the job as event parameters.
@@ -1491,6 +1526,12 @@ Example response:
 ```
 
 In addition to the [Standard Response Format](#standard-response-format), this will include an `id` property containing the newly created [Job.id](data.md#job-id), and a special "stream token" in a property named `stream`.  This token can be provided to the [stream_job](#stream_job) API to stream job updates via [Server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events).
+
+To wait for the Magic Link job to finish, add `/wait` after the token in the URL.  This keeps the HTTP request open and returns a `job` property containing the full completed [Job](data.md#job) record instead of returning an `id` and `stream` token.  The completed record includes output [Job.data](data.md#job-data) and [Job.files](data.md#job-files), when present.  See the [`run_event` wait response](#run_event) above for the response format and output file URL behavior.
+
+The `/wait` suffix is part of the URL path, so it is not passed to the job as an Event parameter.  Query string and POST parameters continue to work normally as Event parameter overrides.
+
+As with `run_event`, the `/wait` form is best suited to jobs that complete within the timeout limits of the calling client and any intervening HTTP proxies.
 
 ### form
 
