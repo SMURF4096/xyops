@@ -3859,11 +3859,11 @@ Page.Base = class Base extends Page {
 			
 			html += '</div>';
 			
-			html += '<div style="margin-top:5px;">';
+			html += '<div ' + ((app.user?.wide_tables) ? 'class="data_grid_horiz_scroll_wrapper"' : '') + ' style="margin-top:5px;">';
 		}
 		else {
 			// no pagination
-			html += '<div>';
+			html += '<div ' + ((app.user?.wide_tables) ? 'class="data_grid_horiz_scroll_wrapper"' : '') + '>';
 		}
 		
 		var tattrs = opts.attribs || {};
@@ -3872,6 +3872,7 @@ Page.Base = class Base extends Page {
 			tattrs.class = 'data_grid';
 			if (opts.item_name.match(/^\w+$/)) tattrs.class += ' ' + opts.item_name + '_grid';
 		}
+		if (app.user?.wide_tables) tattrs.class = 'data_grid';
 		if (!tattrs.style) tattrs.style = '';
 		tattrs.style += 'grid-template-columns: repeat(' + opts.column_ids.length + ', auto);';
 		html += '<div id="st_' + opts.id + '" ' + compose_attribs(tattrs) + '>';
