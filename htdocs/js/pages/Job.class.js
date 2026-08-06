@@ -550,11 +550,12 @@ Page.Job = class Job extends Page.PageUtils {
 			this.getAdditionalJobs();
 			this.getJobTickets();
 			this.getJobSnapshots();
-			this.renderPluginParams('#d_job_params');
-			this.renderEventParams();
 			this.renderJobTags();
 			this.renderMediaSlideshow();
 		}
+		
+		this.renderPluginParams('#d_job_params');
+		this.renderEventParams();
 		
 		this.renderJobActions();
 		this.setupCharts();
