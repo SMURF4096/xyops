@@ -62,7 +62,7 @@
 		"pixl-logger": "^2.0.0",
 		"pixl-mail": "^1.1.9",
 		"pixl-perf": "^1.0.6",
-		"pixl-request": "^2.6.7",
+		"pixl-request": "^2.6.10",
 		"pixl-resize": "^1.0.0",
 		"pixl-server": "^1.0.50",
 		"pixl-server-api": "^1.0.8",
