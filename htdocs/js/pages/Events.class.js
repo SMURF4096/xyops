@@ -327,7 +327,7 @@ Page.Events = class Events extends Page.PageUtils {
 			actions.push( `<button class="link" data-event="${item.id}" onClick="$P().go_hist_from_list(this)"><b>History</b></button>` );
 			
 			var tds = [
-				'<span style="font-weight:bold">' + self.getNiceEvent(item, true) + '</span>',
+				'<span class="s_event_wrapper">' + self.getFormCheckbox({ checked: item.enabled, 'data-id':item.id, onChange: '$P().toggle_event_enabled(this)' }) + self.getNiceEvent(item, true) + '</span>',
 				self.getNiceCategory(item.category, true),
 				self.getNiceTagList(item.tags || [], true, ', '),
 				(item.plugin == '_workflow') ? '(Workflow)' : self.getNicePlugin(item.plugin, true),
@@ -399,6 +399,29 @@ Page.Events = class Events extends Page.PageUtils {
 		
 		// SingleSelect.init( this.div.find('#fe_ee_filter') );
 		// MultiSelect.init( this.div.find('#fe_ee_filter') );
+	}
+	
+	toggle_event_enabled(elem) {
+		// toggle event checkbox, actually do the enable/disable here, update row
+		var self = this;
+		var item = find_object( this.events, { id: $(elem).data('id') } );
+		if (!item) return; // sanity
+		
+		if (config.alt_to_toggle && !app.lastClick.altKey) {
+			$(elem).prop('checked', !$(elem).is(':checked'));
+			return app.showMessage('warning', "Accidental Click Protection: Please hold the Alt/Opt key to toggle this checkbox.", 8);
+		}
+		
+		item.enabled = !!$(elem).is(':checked');
+		
+		app.api.post( 'app/update_event', { id: item.id, enabled: item.enabled }, function(resp) {
+			if (!self.active) return; // sanity
+			
+			if (item.enabled) $(elem).closest('ul').removeClass('disabled');
+			else $(elem).closest('ul').addClass('disabled');
+			
+			app.showMessage('success', '&ldquo;' + item.title + "&rdquo; was " + (item.enabled ? 'enabled' : 'disabled') + ".");
+		} );
 	}
 	
 	do_new_from_list() {

@@ -1109,6 +1109,16 @@ body.dark div.box_unit {
 	cursor: default;
 }
 
+/* Event List */
+
+span.s_event_wrapper {
+	font-weight: bold;
+}
+span.s_event_wrapper > div.checkbox_container {
+	top: 3px;
+	margin-right: 8px;
+}
+
 /* Misc */
 
 object { display: none; }
