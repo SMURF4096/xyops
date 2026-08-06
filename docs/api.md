@@ -1396,7 +1396,7 @@ POST /api/app/run_event/v1/wait
 
 Run an event on demand with optional overrides and optional file uploads. Requires the [run_jobs](privileges.md#run_jobs) privilege, plus category/target access to the event, and a valid user session or API Key.
 
-By default, this API starts the job in the background and immediately returns its [Job.id](data.md#job-id).  To wait for the job to finish, add `/wait` to the URL.  The request will remain open until the job completes, and the response will contain the full completed [Job](data.md#job) record, including any output [Job.data](data.md#job-data) and [Job.files](data.md#job-files).
+By default, this API starts the job in the background and immediately returns its [Job.id](data.md#job-id).  To wait for the job to finish, add `/wait` to the URL.  The request will remain open until the job completes, and the response will contain the full completed [Job](data.md#job) record, including any output [Job.data](data.md#job-data) and [Job.files](data.md#job-files).  If the launched job is a workflow, the response will also include a `jobs` array containing the full completed Job record for every workflow sub-job.
 
 Manual run rules:
 
@@ -1498,6 +1498,40 @@ When using the `/wait` URL, the response instead includes a `job` property conta
 
 Output file `path` values are URL paths relative to the xyOps base URL.  For example, the file above is available at `https://xyops.example.com/files/jobs/jabc123def/abc123/report.csv`.
 
+If the launched job is a workflow, the `/wait` response includes an additional top-level `jobs` array.  Each item is a full [Job](data.md#job) object for one workflow sub-job, including its own output data and files.  The `jobs` property is omitted for non-workflow jobs.
+
+Here is an abbreviated workflow response showing the structure:
+
+```json
+{
+	"code": 0,
+	"job": {
+		"id": "jworkflow123",
+		"type": "workflow",
+		"code": 0,
+		"description": "Success!",
+		"data": {
+			"total": 3
+		}
+	},
+	"jobs": [
+		{
+			"id": "jsubjob123",
+			"code": 0,
+			"description": "Success!",
+			"workflow": {
+				"job": "jworkflow123",
+				"node": "node100"
+			},
+			"data": {
+				"result": 3
+			},
+			"files": []
+		}
+	]
+}
+```
+
 The `/wait` form is best suited to jobs that complete within the timeout limits of the calling client and any intervening HTTP proxies.
 
 ### magic
@@ -1527,7 +1561,7 @@ Example response:
 
 In addition to the [Standard Response Format](#standard-response-format), this will include an `id` property containing the newly created [Job.id](data.md#job-id), and a special "stream token" in a property named `stream`.  This token can be provided to the [stream_job](#stream_job) API to stream job updates via [Server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events).
 
-To wait for the Magic Link job to finish, add `/wait` after the token in the URL.  This keeps the HTTP request open and returns a `job` property containing the full completed [Job](data.md#job) record instead of returning an `id` and `stream` token.  The completed record includes output [Job.data](data.md#job-data) and [Job.files](data.md#job-files), when present.  See the [`run_event` wait response](#run_event) above for the response format and output file URL behavior.
+To wait for the Magic Link job to finish, add `/wait` after the token in the URL.  This keeps the HTTP request open and returns a `job` property containing the full completed [Job](data.md#job) record instead of returning an `id` and `stream` token.  The completed record includes output [Job.data](data.md#job-data) and [Job.files](data.md#job-files), when present.  If the launched job is a workflow, the response also includes a top-level `jobs` array containing the full completed Job record for every workflow sub-job.  See the [`run_event` wait response](#run_event) above for the response format, workflow sub-job structure, and output file URL behavior.
 
 The `/wait` suffix is part of the URL path, so it is not passed to the job as an Event parameter.  Query string and POST parameters continue to work normally as Event parameter overrides.
 
