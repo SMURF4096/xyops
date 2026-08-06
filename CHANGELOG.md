@@ -1,5 +1,17 @@
 # xyOps Changelog
 
+## Version v1.0.88
+
+> August 5, 2026
+
+- [`5f976741`](https://github.com/pixlcore/xyops/commit/5f976741926ce7688bbf2ab320da452507dc9018): Version 1.0.88
+- [`e1a296da`](https://github.com/pixlcore/xyops/commit/e1a296da409126fb5f3197b1f0df04c167023351): Feature: Add settings checkbox for users to opt into tables that scroll horizontally instead of compress / collapse columns.  Fixes #253.
+- [`b721b4c2`](https://github.com/pixlcore/xyops/commit/b721b4c2bdb61a2c95d5ee240c5169916dbc379c): Feature: Both run_event and magic APIs now accept an optional "/wait" URL suffix, to wait for the job to complete before sending a response.  Ref #403.
+- [`2180487f`](https://github.com/pixlcore/xyops/commit/2180487fe22309a3262438d26459113660f38395): Bug Fix: Crasher in tail_live_job_log API when a custom "bytes" parameter is present.
+- [`8b930f84`](https://github.com/pixlcore/xyops/commit/8b930f84692d37906d79454f615addc5043f23d9): Feature: Server alert toast notifications can be clicked, and nav to the alert detail screen.
+- [`4ea8da07`](https://github.com/pixlcore/xyops/commit/4ea8da0777d6e35a5574cf0885e9eadd4eb95d6f): Bug Fix: With a catch-up modifier in play, single-shot and precision schedules were not correctly fired during catch-up.  Ref #401.
+- [`7f4e7cdd`](https://github.com/pixlcore/xyops/commit/7f4e7cddf956cd16e0dbc522eeb52ff7a02d4112): Bug Fix: Normalize all single-shot, date range and blackout epoch timestamps to the minute on create / update.  Fixes #401.
+
 ## Version v1.0.87
 
 > August 3, 2026
