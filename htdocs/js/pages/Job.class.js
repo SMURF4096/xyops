@@ -3595,8 +3595,18 @@ Page.Job = class Job extends Page.PageUtils {
 			
 			case 'job_updated':
 				merge_hash_into(this.job, pdata);
-				this.renderJobTags();
-				this.updateLiveMetaLog();
+				if (this.live) {
+					// job is live and was updated, redraw workflow if applicable
+					if (this.isWorkflow) {
+						this.setupActiveWorkflow();
+						this.renderWorkflowJobs();
+					}
+				}
+				else {
+					// job completed, redraw tags and meta log
+					this.renderJobTags();
+					this.updateLiveMetaLog();
+				}
 			break;
 			
 			case 'meta_row':

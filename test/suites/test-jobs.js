@@ -23,6 +23,23 @@ async function waitForJob(ctx, job_id, opts = {}) {
 	throw new Error('Timed out waiting for job to finish');
 }
 
+// helper: poll until xySat has taken ownership of a standard job
+async function waitForRemoteJob(ctx, job_id, opts = {}) {
+	const timeout = opts.timeout || 20000;
+	const interval = opts.interval || 250;
+	const start = performance.now();
+	
+	while (performance.now() - start < timeout) {
+		let { data } = await ctx.request.json(ctx.api_url + '/app/get_active_jobs/v1', { id: job_id });
+		if (data.code !== 0) throw new Error('get_active_jobs failed');
+		let job = data.rows.find(function(row) { return row.id === job_id; });
+		if (job && job.remote) return job;
+		await sleep(interval);
+	}
+	
+	throw new Error('Timed out waiting for remote job: ' + job_id);
+}
+
 // helper: wait for all jobs, with optional criteria
 async function waitForAllJobs(ctx, opts = {}) {
 	const timeout = opts.timeout || 20000;
@@ -164,6 +181,16 @@ exports.tests = [
 		assert.ok( data.code === 0, "successful api response" );
 		assert.ok( data.id, "expected id in response" );
 		this.job_id = data.id;
+		
+		// Once xySat owns a standard job, its full status updates become the source
+		// of truth.  The conductor must reject local mutations that would be lost.
+		await waitForRemoteJob( this, this.job_id );
+		let { data:update_data } = await this.request.json( this.api_url + '/app/update_active_job/v1', {
+			id: this.job_id,
+			title: 'This Update Must Be Rejected'
+		});
+		assert.ok( update_data.code !== 0, "remote active job update was rejected" );
+		assert.match( update_data.description, /running remotely/i, "remote update returned a useful error" );
 		
 		// Query string parameters arrive as strings.  This exact request used to
 		// pass "32768" to Buffer.alloc() and crash the entire server process.

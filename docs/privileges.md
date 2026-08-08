@@ -88,6 +88,9 @@ Run events on demand and upload pre-run input files for jobs.
 ### abort_jobs
 Abort running jobs.
 
+### update_jobs
+Update running jobs.
+
 ### delete_jobs
 Delete jobs and their associated files or logs (where applicable).
 

@@ -27,6 +27,7 @@
 		{ "id": "delete_groups", "title": "Delete Groups", "icon": "server-network" },
 		
 		{ "id": "run_jobs", "title": "Run Jobs", "icon": "timer-outline" },
+		{ "id": "update_jobs", "title": "Update Jobs", "icon": "timer-outline" },
 		{ "id": "abort_jobs", "title": "Abort Jobs", "icon": "timer-outline" },
 		{ "id": "delete_jobs", "title": "Delete Jobs", "icon": "timer-outline" },
 		{ "id": "tag_jobs", "title": "Job Tags", "icon": "timer-outline" },

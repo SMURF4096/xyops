@@ -2355,6 +2355,47 @@ The intermediate updates include relevant job properties that frequently change 
 
 After all updates are complete, a final `end` event is sent (with an empty data record).
 
+### update_active_job
+
+```
+POST /api/app/update_active_job/v1
+```
+
+Update an active [Job](data.md#job) record while it is owned by the conductor.  This requires the [update_jobs](privileges.md#update_jobs) privilege and a valid user session or API Key.  The caller must have access to the job's category and targets.  For workflows, the caller must also have access to all referenced events, categories, targets and replayed jobs, both before and after the update.
+
+This API updates the live in-memory [Job](data.md#job) record.  The resulting values become part of the completed Job record when the job finishes.  It does not modify the source Event.
+
+Standard jobs can only be updated before they are dispatched to xySat, while the conductor is still the source of truth.  This includes jobs in states such as `queued`, `ready` and `starting`.  Once a standard job has been sent to xySat, its [Job.remote](data.md#job-remote) property is set and this API rejects the update.  xySat sends complete Job updates back to the conductor during execution, so any local changes made during that period would otherwise be overwritten.
+
+Top-level workflow jobs remain on the conductor throughout execution, so they can be updated while their sub-jobs are running.  See [Update a Live Workflow](https://github.com/pixlcore/xyops/wiki/Update-Live-Workflow) for a complete example, including changing future node targets and adding new nodes dynamically.
+
+Parameters:
+
+| Property Name | Type | Description |
+|---------------|------|-------------|
+| `id` | String | **(Required)** The active [Job.id](data.md#job-id) to update. |
+| (Other) | Various | Optional [Job](data.md#job) properties to update. |
+
+The Job `type` and `category` cannot be changed.  Process launch properties such as `command`, `script`, `uid`, `gid`, `cwd`, `env`, `kill` and `runner` are ignored.  Target changes and workflow node changes are checked against the caller's privileges.  Locked Plugin parameters cannot be changed by non-administrator accounts.
+
+Here is a simple request that updates the title and targets of a queued job before it is dispatched:
+
+```json
+{
+	"id": "jmjgok2xeb5ufrcl",
+	"title": "Updated Before Dispatch",
+	"targets": ["production"]
+}
+```
+
+Example response:
+
+```json
+{
+	"code": 0
+}
+```
+
 ### update_job
 
 ```

@@ -23,6 +23,26 @@ async function waitForJob(ctx, job_id, opts = {}) {
 	throw new Error('Timed out waiting for job to finish');
 }
 
+// helper: wait for a specific workflow node job to be actively running
+async function waitForActiveWorkflowNode(ctx, workflow_job_id, node_id, opts = {}) {
+	const timeout = opts.timeout || 20000;
+	const interval = opts.interval || 250;
+	const start = performance.now();
+	
+	while (performance.now() - start < timeout) {
+		let { data } = await ctx.request.json(ctx.api_url + '/app/get_active_jobs/v1', {
+			'workflow.job': workflow_job_id,
+			'workflow.node': node_id,
+			state: 'active'
+		});
+		if (data.code !== 0) throw new Error('get_active_jobs failed');
+		if (data.rows.length) return data.rows[0];
+		await sleep(interval);
+	}
+	
+	throw new Error('Timed out waiting for active workflow node: ' + node_id);
+}
+
 // helper: load workflow template from fixtures
 function getWorkflow(name) {
 	const data = JSON.parse( fs.readFileSync('test/fixtures/workflows/' + name + '.json') );
@@ -66,6 +86,63 @@ exports.tests = [
 		
 		let { data } = await this.request.json( this.api_url + '/app/create_event/v1', workflow );
 		assert.ok( data.code !== 0, "api rejected duplicate connection pair" );
+	},
+	
+	async function test_update_active_workflow(test) {
+		// Update a future workflow node while xySat is delaying the current node.
+		const first_node_id = 'nk42jgcz';
+		const future_node_id = 'nqe6dmpv';
+		let workflow = getWorkflow('decision');
+		workflow.id = 'eactiveupdate';
+		workflow.title = 'Active Workflow Update Test';
+		Tools.findObject(workflow.workflow.nodes, { id: first_node_id }).data.params.duration = '4';
+		
+		let { data:wflow } = await this.request.json( this.api_url + '/app/create_event/v1', workflow );
+		assert.ok( wflow.code === 0, "successful api response" );
+		assert.ok( wflow.event && wflow.event.id, "expected event in response" );
+		
+		let { data:run_data } = await this.request.json( this.api_url + '/app/run_event/v1', { id: wflow.event.id } );
+		assert.ok( run_data.code === 0, "successful api response" );
+		assert.ok( run_data.id, "expected workflow job id" );
+		let job_id = run_data.id;
+		
+		// Wait until the first node is definitely executing, then fetch the live
+		// workflow so we can replace its complete nodes array.
+		await waitForActiveWorkflowNode( this, job_id, first_node_id );
+		let { data:before_data } = await this.request.json( this.api_url + '/app/get_job/v1', { id: job_id } );
+		assert.ok( before_data.code === 0 && before_data.job, "expected active workflow job" );
+		assert.ok( before_data.job.workflow.state[first_node_id], "workflow has live state before update" );
+		
+		let nodes = Tools.copyHash(before_data.job.workflow.nodes, true);
+		let future_node = Tools.findObject(nodes, { id: future_node_id });
+		future_node.data.targets = ['satunit1'];
+		
+		// Only send nodes.  The API should shallow-merge the workflow object and
+		// preserve its connections, runtime state and completed-job history.
+		let { data:update_data } = await this.request.json( this.api_url + '/app/update_active_job/v1', {
+			id: job_id,
+			workflow: { nodes: nodes }
+		});
+		assert.ok( update_data.code === 0, "active workflow update succeeded" );
+		
+		let { data:live_data } = await this.request.json( this.api_url + '/app/get_job/v1', { id: job_id } );
+		assert.ok( live_data.code === 0 && live_data.job, "expected updated active workflow job" );
+		assert.ok( live_data.job.workflow.connections.length === before_data.job.workflow.connections.length, "workflow connections were preserved" );
+		assert.ok( live_data.job.workflow.state[first_node_id], "workflow runtime state was preserved" );
+		assert.deepEqual( Tools.findObject(live_data.job.workflow.nodes, { id: future_node_id }).data.targets, ['satunit1'], "future node targets were updated" );
+		
+		// The current node completes after its mock delay, then the workflow should
+		// launch the future node using its new target and finish normally.
+		await waitForJob( this, job_id );
+		let { data:final_data } = await this.request.json( this.api_url + '/app/get_job/v1', { id: job_id } );
+		assert.ok( final_data.code === 0 && final_data.job, "expected completed workflow job" );
+		assert.ok( final_data.job.code === 0, "updated workflow completed successfully" );
+		assert.ok( final_data.job.workflow.jobs[future_node_id], "updated future node was launched" );
+		
+		let child_job_id = final_data.job.workflow.jobs[future_node_id][0].id;
+		let { data:child_data } = await this.request.json( this.api_url + '/app/get_job/v1', { id: child_job_id } );
+		assert.ok( child_data.code === 0 && child_data.job, "expected completed future node job" );
+		assert.deepEqual( child_data.job.targets, ['satunit1'], "future node used its updated targets" );
 	},
 	
 	async function test_workflow_decision(test) {
