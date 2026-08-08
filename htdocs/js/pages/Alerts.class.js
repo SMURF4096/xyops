@@ -376,7 +376,7 @@ Page.Alerts = class Alerts extends Page.PageUtils {
 		this.def = null;
 		
 		this.loading();
-		app.api.get( 'app/search_alerts', { query: '#id:' + args.id }, this.receive_alert.bind(this), this.fullPageError.bind(this) );
+		app.api.get( 'app/get_alert_invocations', { ids: args.id }, this.receive_alert.bind(this), this.fullPageError.bind(this) );
 		return true;
 	}
 	
@@ -387,7 +387,7 @@ Page.Alerts = class Alerts extends Page.PageUtils {
 		// make sure page is still active (API may be slow)
 		if (!this.active) return;
 		
-		var alert = this.alert = resp.rows.shift();
+		var alert = this.alert = resp.alerts.shift();
 		if (!alert) return this.doFullPageError("Alert ID not found: " + this.args.id);
 		
 		var def = this.def = find_object( app.alerts, { id: alert.alert } );
@@ -1111,7 +1111,7 @@ Page.Alerts = class Alerts extends Page.PageUtils {
 				this.doSearch();
 			}
 			else if (this.args.sub == 'view') {
-				app.api.get( 'app/search_alerts', { query: '#id:' + this.args.id }, this.receive_alert.bind(this) );
+				app.api.get( 'app/get_alert_invocations', { ids: this.args.id }, this.receive_alert.bind(this) );
 			}
 		}
 	}
