@@ -1073,6 +1073,7 @@ Page.Job = class Job extends Page.PageUtils {
 					stub.event = node.data.event;
 					stub.category = event.category;
 					stub.type = event.type;
+					stub.plabel = node.data.label;
 				}
 				else {
 					stub.type = 'adhoc';

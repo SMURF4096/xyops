@@ -1513,6 +1513,17 @@ Page.Workflows = class Workflows extends Page.Events {
 		
 		var html = '<div class="dialog_box_content scroll maximize">';
 		
+		// title
+		html += this.getFormRow({
+			id: 'd_wfde_title',
+			content: this.getFormText({
+				id: 'fe_wfde_title',
+				spellcheck: 'false',
+				autocomplete: 'off',
+				value: node.data.label || ''
+			})
+		});
+		
 		// event
 		html += this.getFormRow({
 			id: 'd_wfde_event',
@@ -1600,6 +1611,7 @@ Page.Workflows = class Workflows extends Page.Events {
 			if (!result) return;
 			app.clearError();
 			
+			node.data.label = strip_html( $('#fe_wfde_title').val() );
 			node.data.event = $('#fe_wfde_event').val();
 			node.data.targets = $('#fe_wfde_targets').val();
 			node.data.expression = $('#fe_wfde_expression').val();

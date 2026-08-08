@@ -399,7 +399,7 @@ Page.Base = class Base extends Page {
 		return html;
 	}
 	
-	getNiceEvent(item, link, icon_override = '') {
+	getNiceEvent(item, link, opts = {}) {
 		// get formatted event with icon, plus optional link
 		if (typeof(item) == 'string') item = find_object(app.events, { id: item });
 		if (!item) return '(None)';
@@ -425,14 +425,16 @@ Page.Base = class Base extends Page {
 			if (category.color) cat_class = 'cat_' + category.color;
 		}
 		
-		var html = '<span class="nowrap ' + cat_class + '" title="' + encode_attrib_entities(item.title) + '">';
-		var icon = '<i class="mdi mdi-' + (icon_override || item.icon || default_icon) + '"></i>';
+		var title = opts.title || item.title;
+		var tooltip = opts.title ? `${opts.title} (${item.title})` : item.title;
+		var html = '<span class="nowrap ' + cat_class + '" title="' + encode_attrib_entities(tooltip) + '">';
+		var icon = '<i class="mdi mdi-' + (opts.icon || item.icon || default_icon) + '"></i>';
 		if (link) {
 			html += '<a href="' + loc + '?id=' + item.id + '" class="' + cat_class + '">';
-			html += icon + '<span>' + item.title + '</span></a>';
+			html += icon + '<span>' + title + '</span></a>';
 		}
 		else {
-			html += icon + item.title;
+			html += icon + title;
 		}
 		
 		html += '</span>';
@@ -491,6 +493,12 @@ Page.Base = class Base extends Page {
 			
 			html += '</span>';
 			return html;
+		}
+		else if ('plabel' in job) {
+			// custom label for event (from workflow node)
+			return this.getNiceEvent(job.event, link, {
+				title: job.plabel
+			});
 		}
 		else if (job.event_revision) {
 			var event = find_object(app.events, { id: job.event });
@@ -1277,7 +1285,7 @@ Page.Base = class Base extends Page {
 			}
 		}
 		else if (event) {
-			event_title = event.title;
+			event_title = job.plabel || event.title;
 			event_icon = event.icon || ((event.type == 'workflow') ? 'clipboard-flow-outline' : 'file-clock-outline');
 		}
 		

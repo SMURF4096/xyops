@@ -475,6 +475,10 @@
 				"caption": "Optionally enter notes for the event, which will be included in all email notifications."
 			},
 			
+			"d_wfde_title": {
+				"label": "Title:",
+				"caption": "Optionally customize the title for the node (defaults to the Event name)."
+			},
 			"d_wfde_event": {
 				"label": "Event:",
 				"caption": "Select the event to use for the workflow node."

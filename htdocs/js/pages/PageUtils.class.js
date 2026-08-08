@@ -865,7 +865,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 			nice_skip = app.hasPrivilege('edit_events') ? `<button class="link danger" onClick="$P().doSkipUpcomingJob(${idx})"><b>Skip Job...</b></button>` : '-';
 			
 			var tds = [
-				'<b>' + self.getNiceEvent(job.event, true, job.invisible ? 'selection-ellipse' : '') + '</b>',
+				'<b>' + self.getNiceEvent(job.event, true, { icon: job.invisible ? 'selection-ellipse' : '' }) + '</b>',
 				self.getNiceCategory(event.category, true),
 				self.getNiceTargetList(event.targets),
 				nice_source,
@@ -4043,13 +4043,14 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		
 		var params = node.data.params;
 		var default_icon = (event.type == 'workflow') ? 'clipboard-flow-outline' : config.ui.data_types.event.icon;
+		var title = node.data.label || event.title;
 		var icon = event.icon || default_icon;
 		var replay = node.data.replay ? `<i class="mdi mdi-replay replay" title="Replay"></i>` : '';
 		var toggle = (this.ID == 'Workflows') ? `<i class="mdi mdi-unfold-more-horizontal toggle_compact clicky" title="Toggle Compact"></i>` : '';
 		
-		html += `<div id="d_wfn_${node.id}" class="${classes.join(' ')}" style="left:${pos.x}px; top:${pos.y}px;" aria-label="${encode_attrib_entities(event.title)}">
+		html += `<div id="d_wfn_${node.id}" class="${classes.join(' ')}" style="left:${pos.x}px; top:${pos.y}px;" aria-label="${encode_attrib_entities(title)}">
 			<div class="wf_event_title">
-				<div class="wf_event_title_text"><i class="mdi mdi-drag"></i><i class="mdi mdi-${icon}"></i>${event.title}</div>
+				<div class="wf_event_title_text"><i class="mdi mdi-drag"></i><i class="mdi mdi-${icon}"></i>${title}</div>
 				<div class="wf_event_title_widget">${replay}${toggle}</div>
 			</div>
 			<div class="wf_body">
