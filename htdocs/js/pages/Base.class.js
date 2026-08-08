@@ -951,6 +951,15 @@ Page.Base = class Base extends Page {
 		else return value;
 	}
 	
+	getTextFromSecondsShort(sec) {
+		if (sec >= 31536000) return '' + Math.floor(sec / 31536000) + 'y';
+		if (sec >= 2592000) return '' + Math.floor(sec / 2592000) + 'mo';
+		if (sec >= 86400) return '' + Math.floor(sec / 86400) + 'd';
+		if (sec >= 3600) return '' + Math.floor(sec / 3600) + 'h';
+		if (sec >= 60) return '' + Math.floor(sec / 60) + 'm';
+		return '' + Math.floor(sec / 1) + 's';
+	}
+	
 	getUserLocale() {
 		// get user customized locale, default to current detected one
 		var user = app.user;
@@ -1685,9 +1694,14 @@ Page.Base = class Base extends Page {
 		var args = this.getJobResultArgs(job);
 		var url = '#Job?id=' + job.id;
 		var tooltip = job.completed ? this.getNiceDateTimeText(job.completed, true) : "";
+		var suffix = '';
+		
+		if (job.completed && ((app.epoch - job.completed) >= 60)) {
+			suffix = ' ' + this.getTextFromSecondsShort( app.epoch - job.completed ) + ' ago';
+		}
 		
 		return '<span class="color_label ' + args.color + ' nowrap linky" onClick="Nav.go(\'' + url + '\')" title="' + tooltip + '">' + 
-			'<i class="mdi mdi-' + args.icon + '"></i>' + args.text + '</span>';
+			'<i class="mdi mdi-' + args.icon + '"></i>' + args.text + suffix + '</span>';
 	}
 	
 	getUsersEditingEvent(event) {
