@@ -220,6 +220,15 @@ app.comm = {
 				this.handleSelfUpdate(data);
 			break;
 			
+			case 'tickets_changed':
+				// tickets have changed (created, updated or deleted)
+				app.cacheBust = hires_time_now();
+				setTimeout( function() {
+					$P('Tickets').updateAllPresetCounts();
+					if ($P().onTicketsChanged) $P().onTicketsChanged();
+				}, Math.random() * 1000 );
+			break;
+			
 			// more commands here
 			
 		} // switch cmd

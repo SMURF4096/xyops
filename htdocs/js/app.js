@@ -17,6 +17,7 @@ app.extend({
 	serverCache: {},
 	tracks: {},
 	cssVarCache: {},
+	ticketCountCache: {},
 	default_prefs: {
 		
 	},
@@ -601,11 +602,14 @@ app.extend({
 				var icon = search.icon || '';
 				if (!icon) icon = 'text-box-search-outline';
 				
+				var cached_value = "";
+				if (search.uri in app.ticketCountCache) cached_value = app.ticketCountCache[search.uri];
+				
 				var $search = $('<a></a>')
 					.prop('id', 'tab_Tickets_' + search.name.replace(/\W+/g, ''))
 					.attr('href', '#' + search.uri)
 					.addClass('section_item')
-					.html( '<i class="mdi mdi-' + icon + '">&nbsp;</i>' + search.name );
+					.html( `<i class="mdi mdi-${icon}">&nbsp;</i><span class="sbs_ticket_search_label">${search.name}</span><span class="sbs_ticket_search_count">${cached_value}</span>` );
 				$ticket_section.append( $search );
 			} );
 		}
@@ -615,6 +619,9 @@ app.extend({
 		
 		// calling this again to recalculate sidebar expandable group heights, for animation toggle thing
 		setTimeout( function() { app.page_manager.initSidebar(); }, 1 );
+		
+		// add ticket preset counts
+		setTimeout( function() { $P('Tickets').updateAllPresetCounts(); }, 100 );
 	},
 	
 	notifyUserNav: function(loc) {

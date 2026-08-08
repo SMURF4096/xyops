@@ -295,7 +295,7 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 		// get form values, return search args object
 		var args = {};
 		
-		var query = this.div.find('#fe_s_query').val().trim()
+		var query = this.div.find('#fe_s_query').val().replace(/[\']+/g, '').trim();
 		if (query.length) args.query = query;
 		
 		var tags = this.div.find('#fe_s_tags').val();
@@ -355,8 +355,8 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 		var query = args.query ? args.query.toString().toLowerCase().trim() : ''; //  : 'status:open|closed'; // omit drafts
 		if (args.tags) query += ' tags:' + args.tags.split(/\,\s*/).join(' ');
 		if (args.type) query += ' type:' + args.type;
-		if (args.assignee) query += ' assignees:' + args.assignee;
-		if (args.username) query += ' username:' + args.username;
+		if (args.assignee) query += ' assignees:' + ((args.assignee === "self") ? app.username : args.assignee);
+		if (args.username) query += ' username:' + ((args.username === "self") ? app.username : args.username);
 		if (args.status) query += ' status:' + args.status;
 		if (args.category) query += ' category:' + args.category;
 		if (args.server) query += ' server:' + args.server;
@@ -368,6 +368,47 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 		}
 		
 		return query.trim();
+	}
+	
+	updatePresetCount(preset, callback) {
+		// update preset count in sidebar
+		var self = this;
+		if (!callback) callback = function() {};
+		if (!preset.count) return callback();
+		
+		var args = parse_query_string(preset.uri);
+		var query = this.getSearchQuery(args) || '*';
+		
+		app.api.get( 'app/search_tickets', { query, count: 1 }, function(resp) {
+			var count = resp.list.length ? self.getNiceDashNumber(resp.list.length) : "";
+			$(`#d_section_my_ticket_searches > a.section_item[href='#${preset.uri}'] > span.sbs_ticket_search_count`).html( count );
+			app.ticketCountCache[ preset.uri ] = count;
+			callback();
+		} );
+	}
+	
+	updateAllPresetCounts() {
+		// loop over all user presets with counts enabled, and refresh in series
+		var self = this;
+		var presets = (app.user.searches || []).filter( preset => preset.count && !!preset.uri.match(/^Tickets/) );
+		if (!presets.length) return;
+		
+		if (this.presetCountsInProgress) return;
+		this.presetCountsInProgress = true;
+		
+		var countNextPreset = function() {
+			var preset = presets.shift();
+			if (!preset) {
+				delete self.presetCountsInProgress;
+				return; // all done
+			}
+			
+			self.updatePresetCount(preset, function() {
+				setTimeout( countNextPreset, 100 ); // stagger these a bit
+			});
+		};
+		
+		countNextPreset();
 	}
 	
 	doSearch() {
@@ -572,6 +613,17 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 			caption: 'Optionally choose an icon for your search preset.'
 		});
 		
+		// count
+		html += this.getFormRow({
+			label: 'Show Count:',
+			content: this.getFormCheckbox({
+				id: 'fe_sp_count',
+				label: 'Show Count in Sidebar',
+				checked: !!preset.count
+			}),
+			caption: 'Optionally show the search result count in the sidebar.'
+		});
+		
 		html += '</div>';
 		
 		var title = preset.name ? 'Edit Search Preset' : 'Save Search Preset';
@@ -583,6 +635,7 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 			preset = { uri: Nav.currentAnchor() };
 			preset.name = $('#fe_sp_name').val().trim();
 			preset.icon = $('#fe_sp_icon').val();
+			preset.count = $('#fe_sp_count').is(':checked');
 			
 			if (!preset.name) return app.badField('#fe_sp_name', "Please enter a name for the search preset before saving.");
 			
@@ -605,6 +658,9 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 				// save complete
 				Dialog.hideProgress();
 				app.showMessage('success', "Your search preset was saved successfully.");
+				
+				// delete item from cache
+				delete app.ticketCountCache[ preset.uri ];
 				
 				if (!self.active) return; // sanity
 				
@@ -641,6 +697,9 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 					// save complete
 					Dialog.hideProgress();
 					app.showMessage('success', "Your search preset was successfully deleted.");
+					
+					// delete item from cache
+					delete app.ticketCountCache[ preset.uri ];
 					
 					if (!self.active) return; // sanity
 					
@@ -2701,6 +2760,14 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 		if (visible && this.requestGetTicketJobs) {
 			this.getTicketJobs();
 			delete this.requestGetTicketJobs;
+		}
+	}
+	
+	onTicketsChanged() {
+		// called via ws when a ticket is created, updated or deleted
+		if (this.args.sub == 'search') {
+			app.cacheBust = hires_time_now();
+			this.doSearch();
 		}
 	}
 	

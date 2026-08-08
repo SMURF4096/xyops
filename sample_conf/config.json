@@ -230,22 +230,26 @@
 			{
 				"name": "Open Tickets",
 				"uri": "Tickets?status=open",
-				"icon": "label-variant-outline"
+				"icon": "label-variant-outline",
+				"count": true
 			},
 			{
 				"name": "Overdue Tickets",
 				"uri": "Tickets?status=open&query=due%3A%3Ctoday",
-				"icon": "calendar-alert"
+				"icon": "calendar-alert",
+				"count": true
 			},
 			{
 				"name": "My InBox",
 				"uri": "Tickets?status=open&assignee=self",
-				"icon": "email-variant"
+				"icon": "email-variant",
+				"count": true
 			},
 			{
 				"name": "My Drafts",
 				"uri": "Tickets?status=draft&username=self",
-				"icon": "dots-horizontal"
+				"icon": "dots-horizontal",
+				"count": true
 			}
 		]
 	},
