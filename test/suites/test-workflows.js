@@ -31,12 +31,13 @@ async function waitForActiveWorkflowNode(ctx, workflow_job_id, node_id, opts = {
 	
 	while (performance.now() - start < timeout) {
 		let { data } = await ctx.request.json(ctx.api_url + '/app/get_active_jobs/v1', {
-			'workflow.job': workflow_job_id,
-			'workflow.node': node_id,
 			state: 'active'
 		});
 		if (data.code !== 0) throw new Error('get_active_jobs failed');
-		if (data.rows.length) return data.rows[0];
+		let job = data.rows.find(function(row) {
+			return row.workflow && (row.workflow.job === workflow_job_id) && (row.workflow.node === node_id);
+		});
+		if (job) return job;
 		await sleep(interval);
 	}
 	
