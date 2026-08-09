@@ -37,6 +37,7 @@
 		"@mdi/font": "7.4.47",
 		"@mdi/svg": "7.4.47",
 		"@highlightjs/cdn-assets": "11.10.0",
+		"@pixlcore/xyops-sdk": "^1.0.4",
 		"@xterm/xterm": "5.5.0",
 		"@xterm/addon-fit": "0.10.0",
 		"async": "2.6.4",
