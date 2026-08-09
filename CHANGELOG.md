@@ -1,5 +1,23 @@
 # xyOps Changelog
 
+## Version v1.0.89
+
+> August 8, 2026
+
+- [`92ce9963`](https://github.com/pixlcore/xyops/commit/92ce996379c8adbae73fdd1e239d4c543443e3c2): Unit Test: Fix failling unit test with update_active_job API.
+- [`05e9b250`](https://github.com/pixlcore/xyops/commit/05e9b2500648a209d628653f9285ef011ea96f6d): Version 1.0.89
+- [`696c8905`](https://github.com/pixlcore/xyops/commit/696c890555e7a5d1581578f591accca42b7a5291): Dep: Add @pixlcore/xyops-sdk to main deps, for trigger / action plugins to use.
+- [`734c74df`](https://github.com/pixlcore/xyops/commit/734c74df19a5ec4771b28c882982901b5b0791ca): Feature: Add new update_active_job API and privilege, for dynamically changing workflows as they are running.
+- [`14fc75df`](https://github.com/pixlcore/xyops/commit/14fc75df11a1685f3a75ec1146a4659cd14fc13d): Feature: Show abbreviated last run delta time for all events in event list (hover for full date/time).  Fixes #377.
+- [`00f74dcb`](https://github.com/pixlcore/xyops/commit/00f74dcbbac7bca7f90982c03273d4b7c23e81e5): Security: Harden search APIs for category and group limited users.
+- [`7db86423`](https://github.com/pixlcore/xyops/commit/7db864238e786ac49590537e2ae16953adbc4db6): Feature: Allow workflow event nodes to specify custom titles.  Ref #408.
+- [`8db36e5d`](https://github.com/pixlcore/xyops/commit/8db36e5dca9226e242c0cab81dcb2cccff48dd32): Feature: Show ticket counts in sidebar for search presets (opt-in).  Fixes #355.
+- [`648471ae`](https://github.com/pixlcore/xyops/commit/648471aeb5a5aac5669894e95fc06e0f923285fd): Feature: When the "/wait" URL suffix is used on either run_event or magic, and the launched job is a workflow, the response will now include all sub-job objects as well.  Ref #403
+- [`fe2c47a2`](https://github.com/pixlcore/xyops/commit/fe2c47a2e3f1d810c8cc0f90790e459345f31673): Feature: Show event and/or plugin params while job is still running.  Fixes #405.
+- [`522ebf50`](https://github.com/pixlcore/xyops/commit/522ebf5024fdc45b491d69301c35f18774860e95): Feature: Restore inline enable/disable checkbox on Event List.  Fixes #407.
+- [`a4db8bda`](https://github.com/pixlcore/xyops/commit/a4db8bda7345215432f5e1b4226757db88408087): Dep: Bump pixl-xyapp to v2.1.41 for bug fix in query parser with SSO numeric usernames.  Fixes #406.
+- [`ece5b158`](https://github.com/pixlcore/xyops/commit/ece5b1584cd029769407205f40980dc48e4110d2): Dep: Bump pixl-request to v2.6.10 for regression bug fix in download retries.  Fixes #404.
+
 ## Version v1.0.88
 
 > August 5, 2026
