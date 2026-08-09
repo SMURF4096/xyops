@@ -564,36 +564,34 @@ See [User](data.md#user) for details on what properties can be specified here.
 
 
 
+<!-- Group: Database -->
+
 ## db_maint
-<!-- Title: Database Maintenance -->
-<!-- Type: Group -->
+<!-- Title: DB Maintenance -->
 
-These settings are used during nightly database maintenance.
+This object controls the nightly database maintenance settings, which trims tables to a maximum row count by deleting the oldest rows.
 
-### db_maint.jobs.max_rows
-<!-- Title: Jobs Max Rows -->
+Example:
 
-This number sets the maximum rows retained for the jobs database table (default: `1000000`); oldest are pruned during maintenance.
-
-### db_maint.alerts.max_rows
-<!-- Title: Alerts Max Rows -->
-
-This number sets the maximum rows retained for the alerts database table (default: `100000`); oldest are pruned during maintenance.
-
-### db_maint.snapshots.max_rows
-<!-- Title: Snapshots Max Rows -->
-
-This number sets the maximum rows retained for the snapshots database table (default: `100000`); oldest are pruned during maintenance.
-
-### db_maint.activity.max_rows
-<!-- Title: Activity Max Rows -->
-
-This number sets the maximum rows retained for the activity database table (default: `100000`); oldest are pruned during maintenance.
-
-### db_maint.servers.max_rows
-<!-- Title: Servers Max Rows -->
-
-This number sets the maximum rows retained for the servers database table (default: `10000`); oldest are pruned during maintenance.
+```json
+"db_maint": {
+	"jobs": {
+		"max_rows": 100000
+	},
+	"alerts": {
+		"max_rows": 100000
+	},
+	"snapshots": {
+		"max_rows": 100000
+	},
+	"activity": {
+		"max_rows": 100000
+	},
+	"servers": {
+		"max_rows": 10000
+	}
+}
+```
 
 
 

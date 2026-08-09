@@ -194,6 +194,43 @@ limit_req_status 429;
 
 This would limit traffic to 100 requests/sec per IP, utilizing up to 20MB of IP cache (around 300K IPs).  For more details see the [ngx_http_limit_req_module](https://nginx.org/en/docs/http/ngx_http_limit_req_module.html).
 
+## Database Maintenance
+
+xyOps performs nightly database maintenance, specifically chopping tables to a max row count by deleting the oldest rows.  Here is the default configuration, which is located in the `/opt/xyops/conf/config.json` file as a top-level `db_maint` property:
+
+```json
+"db_maint": {
+	"jobs": {
+		"max_rows": 100000
+	},
+	"alerts": {
+		"max_rows": 100000
+	},
+	"snapshots": {
+		"max_rows": 100000
+	},
+	"activity": {
+		"max_rows": 100000
+	},
+	"servers": {
+		"max_rows": 10000
+	}
+}
+```
+
+It is highly recommend that you do **not** increase these row limits unless you have a *very* powerful storage backend, tested at high scale, and a high-powered xyOps conductor server.
+
+It is possible to customize the DB queries used to locate rows for deletion, by adding a `query` property in the DB table sub-object.  The `query` should be formatted as an [Unbase-style query](https://github.com/jhuckaby/pixl-server-storage/blob/master/docs/Indexer.md#simple-queries), and use proper indexed columns defined in the [Database](db.md) document.  For example, if you want to only delete old jobs that were successful (i.e. keep all the failed jobs), add this query to the `db_maint.jobs` object:
+
+```json
+"jobs": {
+	"max_rows": 100000,
+	"query": "tags:_success"
+}
+```
+
+The special `_success` system tag is applied to all jobs that succeeded.
+
 ## Additional Tuning Ideas
 
 - Job throughput: Increase [max_jobs_per_min](config.md#max_jobs_per_min) prudently and monitor worker CPU/RAM. Align with your per-category limits and workflow constraints.
