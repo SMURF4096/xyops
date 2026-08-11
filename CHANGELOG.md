@@ -1,5 +1,20 @@
 # xyOps Changelog
 
+## Version v1.0.90
+
+> August 11, 2026
+
+- [`aaab52e0`](https://github.com/pixlcore/xyops/commit/aaab52e0eaf3b88e548744c6b62e49269d9eda15): Version 1.0.90
+- [`e548b8fc`](https://github.com/pixlcore/xyops/commit/e548b8fc01d2f6380dbcfb2cd923b3035e6ac5ec): Feature: Allow servers to "disable" themselves during unplanned graceful shutdown.
+- [`7806865f`](https://github.com/pixlcore/xyops/commit/7806865f18254e4680a4aaab391c1049bcde8fec): Feature: Worker server upgrade requests now automatically disable server (to prevent new jobs from being dispatched during upgrade).
+- [`1d25f999`](https://github.com/pixlcore/xyops/commit/1d25f999c6030535948edf0454d384e3075f715c): Bug Fix: UI: Server list page needs to visually indicate which servers are disabled.
+- [`335a9345`](https://github.com/pixlcore/xyops/commit/335a9345ff3915b21f4e29caa8b00f739c77743d): Dep: Bump pixl-xyapp to v2.1.42 for various API performance improvements, including a client-side queue for all GET requests.
+- [`426f8103`](https://github.com/pixlcore/xyops/commit/426f8103aa3a788d1fb3750d8f4745c1143ed463): Bug Fix: Performance: A bunch of front-end UI API calls were incorrectly using HTTP POST (should be GET).
+- [`ce96796e`](https://github.com/pixlcore/xyops/commit/ce96796e02d276e49e2fa728458e453be94df94c): Feature: Performance: Implement queue for DB search queries so they do not stack up under heavy load.
+- [`986eeeb7`](https://github.com/pixlcore/xyops/commit/986eeeb784c902dcb460662e482e10b447deedc9): Feature: Add detailed performance metrics logging for all DB search queries (see API log).
+- [`3ce3cb9f`](https://github.com/pixlcore/xyops/commit/3ce3cb9f1aefdf909a415b00aa32a41772d24f36): Feature: The nightly DB maint can now optionally create XYBK backups containing all chopped rows, for offline analysis or re-importing.
+- [`5b27e67f`](https://github.com/pixlcore/xyops/commit/5b27e67f09930b90ff92c1a6242ca82a55963e08): Feature: DB maint settings now editable as JSON in UI, for advanced options such as custom queries.
+
 ## Version v1.0.89
 
 > August 8, 2026
