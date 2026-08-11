@@ -120,6 +120,7 @@ Page.Servers = class Servers extends Page.ServerUtils {
 				id: item.id,
 				hostname: item.hostname,
 				title: item.title || '',
+				enabled: item.enabled,
 				info: item.info,
 				offline: item.offline,
 				label: (item.title || item.hostname).toLowerCase(), // for sorting
@@ -193,7 +194,7 @@ Page.Servers = class Servers extends Page.ServerUtils {
 				nice_alerts // no need for div here: alert change redraws entire table
 			];
 			
-			if (item.offline) classes.push('disabled');
+			if (item.offline || !item.enabled) classes.push('disabled');
 			if (num_alerts > 0) classes.push( 'clr_red' );
 			if (classes.length) tds.className = classes.join(' ');
 			return tds;
