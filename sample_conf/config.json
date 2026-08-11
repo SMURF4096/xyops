@@ -140,7 +140,9 @@
 			"monitoring_enabled": true,
 			"quickmon_enabled": true,
 			"graphics_enabled": false,
-			"docker_enabled": true
+			"docker_enabled": true,
+			"upgrade_timeout_sec": 60,
+			"graceful": false
 		}
 	},
 	

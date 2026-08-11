@@ -502,7 +502,55 @@ This number (seconds) sets the cache TTL for satellite release metadata and tarb
 ### satellite.config
 <!-- Title: xySat Configuration -->
 
-This object contains web server and runtime settings for xySat; these options are passed along when managing or provisioning satellite nodes (defaults provided in the sample config).
+This object contains web server and runtime settings for xySat; these options are passed along when managing or provisioning satellite nodes.
+
+Here is the full default configuration:
+
+```json
+{ 
+	"port": 5522,
+	"secure": false,
+	"socket_opts": { "rejectUnauthorized": false },
+	"pid_file": "pid.txt",
+	"log_dir": "logs",
+	"log_filename": "[component].log",
+	"log_crashes": true,
+	"log_archive_path": "logs/archives/[filename]-[yyyy]-[mm]-[dd].log.gz",
+	"log_archive_keep": "7 days",
+	"temp_dir": "temp",
+	"debug_level": 5,
+	"child_kill_timeout": 10,
+	"monitoring_enabled": true,
+	"quickmon_enabled": true,
+	"graphics_enabled": false,
+	"docker_enabled": true,
+	"upgrade_timeout_sec": 60,
+	"graceful": false
+}
+```
+
+Here are descriptions of the configuration properties:
+
+| Property Name | Type | Description |
+|---------------|------|-------------|
+| `port` | Number | Specifies which port the xyOps conductor server will be listening on (default is `5522` for ws:// and `5523` for wss://). |
+| `secure` | Boolean | Set to `true` to use secure WebSocket (wss://) and HTTPS connections. |
+| `socket_opts` | Object | Options to pass to the WebSocket connection (see [WebSocket](https://github.com/websockets/ws/blob/master/doc/ws.md#class-websocket)). |
+| `pid_file` | String | Location of the PID file to ensure two satellites don't run simultaneously. |
+| `log_dir` | String | Location of the log directory, relative to the xySat base dir (`/opt/xyops/satellite`). |
+| `log_filename` | String | This string is the filename pattern used by the core logger (default: `[component].log`); supports log column placeholders like `[component]`. |
+| `log_crashes` | Boolean | This boolean enables capturing uncaught exceptions and crashes in the logger subsystem (default: `true`). |
+| `log_archive_path` | String | This string sets the nightly log archive path pattern (default: `logs/archives/[filename]-[yyyy]-[mm]-[dd].log.gz`). |
+| `log_archive_keep` | String | How many days to keep log archives before auto-deleting the oldest ones. |
+| `temp_dir` | String | Location of temp directory, relative to the base dir (`/opt/xyops/satellite`). |
+| `debug_level` | Number | This number sets the verbosity level for the logger (default: `5`; 1 = quiet, 10 = very verbose). |
+| `child_kill_timeout` | Number | Number of seconds to wait after sending a SIGTERM to follow-up with a SIGKILL. |
+| `monitoring_enabled` | Boolean | Enable or disable the monitoring subsystem (i.e. send monitoring metrics every minute). |
+| `quickmon_enabled` | Boolean | Enable or disable the "quick" monitors, which send lightweight metrics every second. |
+| `graphics_enabled` | Boolean | Enable or disable graphics card (GPU) monitoring features (default: `false`).  Currently experimental. |
+| `docker_enabled` | Boolean | Enable or disable Docker container monitoring features (default: `true`). |
+| `upgrade_timeout_sec` | Number | The number of seconds to allow for upgrades to complete, before reporting an error (default: `60`). |
+| `graceful` | Boolean | Set to `true` to have xySat gracefully stop on shutdown (i.e. wait for all jobs to complete).  The default is `false`. |
 
 
 
