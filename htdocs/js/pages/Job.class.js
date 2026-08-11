@@ -1804,7 +1804,7 @@ Page.Job = class Job extends Page.PageUtils {
 		
 		var ids = job.jobs.map( function(item) { return item.id; } );
 		
-		app.api.post( 'app/get_jobs', { ids: ids }, function(resp) {
+		app.api.get( 'app/get_jobs', { ids: ids }, function(resp) {
 			if (!self.active) return; // sanity
 			
 			var jobs = resp.jobs || [];
@@ -3016,7 +3016,7 @@ Page.Job = class Job extends Page.PageUtils {
 			return;
 		}
 		
-		app.api.post( 'app/get_tickets', { ids: job.tickets }, function(resp) {
+		app.api.get( 'app/get_tickets', { ids: job.tickets }, function(resp) {
 			self.tickets = resp.tickets || [];
 			self.renderJobTickets();
 		});

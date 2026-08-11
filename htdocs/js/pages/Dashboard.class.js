@@ -724,7 +724,7 @@ Page.Dashboard = class Dashboard extends Page.PageUtils {
 		});
 		
 		// request all data from server
-		app.api.post( 'app/get_quickmon_data', {}, function(resp) {
+		app.api.get( 'app/get_quickmon_data', {}, function(resp) {
 			if (!self.active) return; // sanity
 			
 			// now iterate over all quick monitors

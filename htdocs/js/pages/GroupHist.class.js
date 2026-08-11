@@ -366,6 +366,7 @@ Page.GroupHist = class GroupHist extends Page.ServerUtils {
 		};
 		
 		// request snapshot hour from server
+		// NOTE: This must be a POST, so it bypasses the API queue
 		app.api.post( 'app/get_historical_monitor_data', opts, function(resp) {
 			if (!self.active) return; // sanity
 			self.serverRequestsInFlight--; 

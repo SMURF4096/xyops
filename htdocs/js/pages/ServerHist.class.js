@@ -274,7 +274,7 @@ Page.ServerHist = class ServerHist extends Page.ServerUtils {
 			limit: this.chartLimit
 		};
 		
-		app.api.post( 'app/get_historical_monitor_data', opts, function(resp) {
+		app.api.get( 'app/get_historical_monitor_data', opts, function(resp) {
 			if (!self.active) return; // sanity
 			
 			if (!resp.rows.length) {

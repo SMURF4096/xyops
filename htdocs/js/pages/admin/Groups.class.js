@@ -1061,7 +1061,7 @@ Page.Groups = class Groups extends Page.ServerUtils {
 		});
 		
 		// request all data from servers
-		app.api.post( 'app/get_quickmon_data', { group: this.group.id }, function(resp) {
+		app.api.get( 'app/get_quickmon_data', { group: this.group.id }, function(resp) {
 			if (!self.active || !self.charts) return; // sanity
 			
 			for (var server_id in resp.servers) {
@@ -1252,7 +1252,7 @@ Page.Groups = class Groups extends Page.ServerUtils {
 		this.serverRequestsInFlight++;
 		
 		// request last hour from server
-		app.api.post( 'app/get_latest_monitor_data', { server: server.id, sys: 'hourly', limit: 60 }, function(resp) {
+		app.api.get( 'app/get_latest_monitor_data', { server: server.id, sys: 'hourly', limit: 60 }, function(resp) {
 			if (!self.active || !self.charts) return; // sanity
 			self.serverRequestsInFlight--; 
 			

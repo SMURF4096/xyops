@@ -634,7 +634,7 @@ Page.Snapshots = class Snapshots extends Page.ServerUtils {
 			return this.renderSnapshotAlerts();
 		}
 		
-		app.api.post( 'app/get_alert_invocations', { ids: snapshot.alerts }, function(resp) {
+		app.api.get( 'app/get_alert_invocations', { ids: snapshot.alerts }, function(resp) {
 			self.alerts = resp.alerts || [];
 			self.renderSnapshotAlerts();
 		});
@@ -650,7 +650,7 @@ Page.Snapshots = class Snapshots extends Page.ServerUtils {
 			return this.renderSnapshotJobs();
 		}
 		
-		app.api.post( 'app/get_jobs', { ids: snapshot.jobs }, function(resp) {
+		app.api.get( 'app/get_jobs', { ids: snapshot.jobs }, function(resp) {
 			self.jobs = resp.jobs || [];
 			self.renderSnapshotJobs();
 		});
@@ -773,7 +773,7 @@ Page.Snapshots = class Snapshots extends Page.ServerUtils {
 			limit: 60
 		};
 		
-		app.api.post( 'app/get_historical_monitor_data', opts, function(resp) {
+		app.api.get( 'app/get_historical_monitor_data', opts, function(resp) {
 			if (!self.active) return; // sanity
 			
 			if (!resp.rows.length) {
@@ -1076,7 +1076,7 @@ Page.Snapshots = class Snapshots extends Page.ServerUtils {
 			return this.renderSnapshotAlerts();
 		}
 		
-		app.api.post( 'app/get_alert_invocations', { ids: snapshot.alerts }, function(resp) {
+		app.api.get( 'app/get_alert_invocations', { ids: snapshot.alerts }, function(resp) {
 			self.alerts = resp.alerts || [];
 			self.updateGroupServerTable(); // this ultimately calls renderSnapshotAlerts
 		});
@@ -1092,7 +1092,7 @@ Page.Snapshots = class Snapshots extends Page.ServerUtils {
 			return this.renderSnapshotJobs();
 		}
 		
-		app.api.post( 'app/get_jobs', { ids: snapshot.jobs }, function(resp) {
+		app.api.get( 'app/get_jobs', { ids: snapshot.jobs }, function(resp) {
 			self.jobs = resp.jobs || [];
 			self.updateGroupServerTable(); // this ultimately calls renderSnapshotJobs
 		});
@@ -1285,6 +1285,7 @@ Page.Snapshots = class Snapshots extends Page.ServerUtils {
 		};
 		
 		// request snapshot hour from server
+		// NOTE: This must be a POST, so it bypasses the API queue
 		app.api.post( 'app/get_historical_monitor_data', opts, function(resp) {
 			if (!self.active) return; // sanity
 			self.serverRequestsInFlight--; 

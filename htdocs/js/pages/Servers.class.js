@@ -1611,7 +1611,7 @@ Page.Servers = class Servers extends Page.ServerUtils {
 		});
 		
 		// request all data from server
-		app.api.post( 'app/get_quickmon_data', { server: this.server.id }, function(resp) {
+		app.api.get( 'app/get_quickmon_data', { server: this.server.id }, function(resp) {
 			if (!self.active) return; // sanity
 			
 			// now iterate over all quick monitors
@@ -1834,7 +1834,7 @@ Page.Servers = class Servers extends Page.ServerUtils {
 		});
 		
 		// request last hour from server
-		app.api.post( 'app/get_latest_monitor_data', { server: server.id, sys: 'hourly', limit: 60 }, function(resp) {
+		app.api.get( 'app/get_latest_monitor_data', { server: server.id, sys: 'hourly', limit: 60 }, function(resp) {
 			if (!self.active) return; // sanity
 			
 			// prune based on latest sample, not "now" (server may be offline and we're rendering the last known state)

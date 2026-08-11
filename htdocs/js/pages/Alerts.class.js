@@ -807,7 +807,7 @@ Page.Alerts = class Alerts extends Page.PageUtils {
 			return;
 		}
 		
-		app.api.post( 'app/get_tickets', { ids: alert.tickets }, function(resp) {
+		app.api.get( 'app/get_tickets', { ids: alert.tickets }, function(resp) {
 			self.tickets = resp.tickets || [];
 			self.renderAlertTickets();
 		});
@@ -898,7 +898,7 @@ Page.Alerts = class Alerts extends Page.PageUtils {
 			return this.renderAlertJobs();
 		}
 		
-		app.api.post( 'app/get_jobs', { ids: alert.jobs }, function(resp) {
+		app.api.get( 'app/get_jobs', { ids: alert.jobs }, function(resp) {
 			self.jobs = resp.jobs || [];
 			self.renderAlertJobs();
 		});

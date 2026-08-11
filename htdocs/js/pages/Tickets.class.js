@@ -1045,7 +1045,7 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 		app.showSidebar(true);
 		
 		this.loading();
-		app.api.post( 'app/get_ticket', args, this.receive_ticket_for_view.bind(this), this.receive_ticket_for_view.bind(this) );
+		app.api.get( 'app/get_ticket', args, this.receive_ticket_for_view.bind(this), this.receive_ticket_for_view.bind(this) );
 	}
 	
 	render_header() {
@@ -2007,7 +2007,8 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 	
 	prep_edit_ticket_body() {
 		// reload ticket for edit, just in case it changed from under us
-		app.api.post( 'app/get_ticket', { id: this.ticket.id }, this.do_edit_ticket_body.bind(this) );
+		app.cacheBust = hires_time_now();
+		app.api.get( 'app/get_ticket', { id: this.ticket.id }, this.do_edit_ticket_body.bind(this) );
 	}
 	
 	do_edit_ticket_body(resp) {
