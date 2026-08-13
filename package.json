@@ -31,7 +31,8 @@
 		"webapp"
 	],
 	"overrides": {
-		"lodash": "4.18.1"
+		"lodash": "4.18.1",
+		"nanoid": "3.3.17"
 	},
 	"dependencies": {
 		"@mdi/font": "7.4.47",
@@ -50,7 +51,7 @@
 		"juice": "11.0.1",
 		"marked": "4.3.0",
 		"mime": "2.5.2",
-		"sanitize-html": "2.17.5",
+		"sanitize-html": "2.17.6",
 		"ioredis": "5.10.1",
 		"pg": "8.20.0",
 		"pixl-acl": "^1.0.4",
