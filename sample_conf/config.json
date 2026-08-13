@@ -403,7 +403,7 @@
 		"network_transactions": false,
 		"trans_auto_recover": true,
 		"trans_dir": "data/_transactions",
-		"log_event_types": { "get": 1, "put": 1, "head": 1, "delete": 1, "expire_set": 1, "perf_min": 1, "commit":1, "index":1, "unindex":1, "search":1, "sort":1, "maint": 1 },
+		"log_event_types": { "get": 0, "put": 0, "head": 0, "delete": 0, "expire_set": 0, "perf_min": 1, "commit":1, "index":1, "unindex":1, "search":1, "sort":1, "maint": 1 },
 		
 		"Hybrid": {
 			"docEngine": "SQLite",
