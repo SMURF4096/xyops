@@ -23,6 +23,25 @@ Since it is built upon JEXL you can easily traverse arrays of objects, and selec
 - **Alert Expression**: `monitors.load_avg >= (cpu.cores + 1)`
 - **Alert Message**: `Less than 5% of total memory is available ({{bytes(memory.available)}} of {{bytes(memory.total)}})`
 
+### Object Property Names
+
+You can use dot notation to access object properties with simple names, such as `params.timeout` or `data.color`.  If a property name contains a hyphen, space, or other special character, use bracket notation with the property name in quotes:
+
+```text
+params.timeout
+params['a-number']
+data.headers['x-uuid']
+data['display name']
+```
+
+Both single and double quotes are supported inside the brackets.  For example, `params['a-number']` and `params["a-number"]` are equivalent.
+
+Be careful not to use dot notation with a hyphenated property name.  JEXL interprets `params.a-number` as the subtraction expression `params.a - number`.  This rule also applies inside `{{ mustache }}` macros, so a hyphenated Plugin Parameter ID should be referenced like this:
+
+```text
+{{ params['a-number'] }}
+```
+
 ## Custom Functions
 
 In addition to the standard JEXL operators, the following custom functions are available to use inside expressions:

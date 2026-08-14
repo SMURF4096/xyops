@@ -1553,6 +1553,8 @@ When the job runs, those `{{ mustache }}` placeholders are automatically expande
 
 The mustache macros can do more than just data lookups.  They can also evaluate simple JavaScript-style expressions as well.  For more on this, see [xyOps Expression Syntax](xyexp.md).
 
+If a property name or Plugin Parameter ID contains a hyphen, space, or other special character, use bracket notation.  For example, use `{{ params['a-number'] }}` instead of `{{ params.a-number }}`.  See [Object Property Names](xyexp.md#object-property-names) for more examples and details.
+
 ## Built-in Plugins
 
 The following Event Plugins are built into xyOps and come preinstalled.
