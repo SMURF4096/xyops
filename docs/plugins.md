@@ -540,6 +540,8 @@ When Action Plugins are invoked, they are passed a JSON document on STDIN (compr
 | `base_url` | String | A localhost base URL is provided in case your Plugin needs to make any xyOps API calls. |
 | (Other) | Various | Based on context; see below. |
 
+The `base_url` value is also passed to the Action Plugin process in the `XYOPS_BASE_URL` environment variable.  Use this when the Plugin needs to call a xyOps API on the primary conductor.
+
 If the Action Plugin is being invoked in job-related context (i.e. on job start, job complete, or other job actions) the contents of [JobHookData](data.md#jobhookdata) will also be merged in at the top-level.  Similarly, if the plugin is being invoked in an alert-related context (alert fired or cleared), then the contents of [AlertHookData](data.md#alerthookdata) will be merged in.
 
 Here is an example JSON document sent to an Action Plugin's STDIN as part of a job completion:
@@ -752,6 +754,8 @@ As with all xyOps STDIO communication, the JSON will always have a top-level `xy
 | `secrets` | Object | If your plugin was assigned any secrets, they will be passed in this object (and also as environment variables). |
 | `active_jobs` | Array | An array of all active [Job](data.md#job)s currently running. |
 | `base_url` | String | A localhost base URL is provided in case your Plugin needs to make any xyOps API calls. |
+
+The scheduler also passes the `base_url` value to the Trigger Plugin process in the `XYOPS_BASE_URL` environment variable.  Use this when the Plugin needs to call a xyOps API on the primary conductor.
 
 The `items` array will contain an element for each event that is scheduled to launch, and has the plugin assigned as a trigger.  It is up to your plugin code to decide if each event should actually launch a job or not.  You are also provided some other information about the each event:
 
