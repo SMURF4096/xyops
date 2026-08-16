@@ -389,6 +389,9 @@ Page.Plugins = class Plugins extends Page.PageUtils {
 			html += '<div class="button danger mobile_collapse" onClick="$P().show_delete_plugin_dialog()"><i class="mdi mdi-trash-can-outline">&nbsp;</i><span>Delete...</span></div>';
 			html += '<div class="button secondary mobile_collapse" onClick="$P().do_clone()"><i class="mdi mdi-content-copy">&nbsp;</i><span>Clone...</span></div>';
 			html += '<div class="button secondary mobile_collapse" onClick="$P().do_test()"><i class="mdi mdi-test-tube">&nbsp;</i><span>Test...</span></div>';
+			if (this.plugin.type == 'event') {
+				html += '<div class="button danger mobile_collapse mobile_hide" onClick="$P().do_push_defaults()"><i class="mdi mdi-arrow-right-circle-outline">&nbsp;</i><span>Defaults...</span></div>';
+			}
 			html += '<div class="button secondary mobile_collapse mobile_hide" onClick="$P().do_export()"><i class="mdi mdi-cloud-download-outline">&nbsp;</i><span>Export...</span></div>';
 			html += '<div class="button save phone_collapse" id="btn_save" onClick="$P().do_save_plugin()"><i class="mdi mdi-floppy">&nbsp;</i><span>Save Changes</span></div>';
 		html += '</div>'; // box_buttons
@@ -414,6 +417,169 @@ Page.Plugins = class Plugins extends Page.PageUtils {
 		
 		if (this.args.delete) this.show_delete_plugin_dialog();
 		else if (this.args.test) this.do_test();
+	}
+	
+	do_push_defaults() {
+		// show dialog to select which defaults to push
+		var self = this;
+		var title = "Push Parameter Defaults";
+		var btn = ['arrow-right-circle', 'Push Defaults'];
+		app.clearError();
+		
+		if (this.div.find('.button.save').hasClass('primary')) return app.doError("Please save or revert your changes before pushing defaults.");
+		
+		// basic validation
+		var plugin = this.get_plugin_form_json();
+		if (!plugin) return; // error
+		if (!plugin.params || !plugin.params.length) return app.doError("This Plugin has no parameters defined, so there are no defaults to push.");
+		
+		// only some param types have default values -- grab only those
+		var params = plugin.params.filter( param => !!('value' in param) );
+		if (!params.length) return app.doError("This Plugin has no parameters with defaults, so there is nothing to push.");
+		
+		// find deps
+		var deps = this.get_plugin_dependants();
+		if (!deps || !deps.events.length) return app.doError("This Plugin has no event dependants, so there is nowhere to push the defaults to.");
+		
+		var html = '';
+		html += `<div class="dialog_intro">Use this form to push out new plugin parameter default values to all dependent events.  Note that this will <b>replace</b> all selected parameter values in the target events with the plugin defaults, and save new revisions of each event, so please use with caution.</div>`;
+		html += '<div class="dialog_box_content scroll maximize">';
+		
+		// params
+		html += this.getFormRow({
+			label: 'Parameters:',
+			content: this.getFormMenuMulti({
+				id: 'fe_pd_params',
+				title: 'Select parameters',
+				placeholder: '(None)',
+				options: params.map( function(param) {
+					var elem_icon = param.locked ? 'lock-outline' : config.ui.control_type_icons[param.type];
+					return { id: param.id, title: param.title, icon: elem_icon };
+				} ),
+				values: [],
+				'data-hold': 1,
+				'data-select-all': 1
+			}),
+			caption: 'Select the plugin parameters you would like to push defaults for.'
+		});
+		
+		// events
+		html += this.getFormRow({
+			label: 'Push to Events:',
+			content: this.getFormMenuMulti({
+				id: 'fe_pd_events',
+				title: 'Select dependent events',
+				placeholder: '(None)',
+				options: this.getCategorizedEvents( app.events.filter( event => deps.events.includes(event.id) ) ),
+				values: [],
+				'data-hold': 1,
+				'data-select-all': 1
+			}),
+			caption: 'Select which events to push the new default values to.'
+		});
+		
+		html += '</div>';
+		Dialog.confirmDanger( title, html, btn, function(result) {
+			if (!result) return;
+			app.clearError();
+			
+			var param_ids = $('#fe_pd_params').val();
+			if (!param_ids || !param_ids.length) return app.badField('#fe_pd_params', "Please select one or more parameters to push defaults for.");
+			
+			var event_ids = $('#fe_pd_events').val();
+			if (!event_ids || !event_ids.length) return app.badField('#fe_pd_events', "Please select one or more events to push the defaults to.");
+			
+			// make sure selected events aren't being edited
+			var lines = [];
+			for (var ws_id in app.socketNav) {
+				var socket = app.socketNav[ws_id];
+				var loc = socket.loc || {};
+				if (((loc.id == 'Events') || (loc.id == 'Workflows')) && loc.query && (loc.query.sub == 'edit') && loc.query.id && event_ids.includes(loc.query.id)) {
+					var user = find_object( app.users, { username: socket.username } ) || { full_name: username };
+					var event = find_object( app.events, { id: loc.query.id } ) || { title: loc.query.id };
+					var thing = (event.type == 'workflow') ? 'workflow' : 'event';
+					lines += `- User **${user.full_name}** is currently editing ${thing} **${event.title}**.`;
+				}
+			}
+			if (lines.length) {
+				var md = `The push defaults operation could not be started due to the following conditions:\n\n`;
+				md += lines.join("\n") + "\n\n";
+				md += `Please wait for these users to complete their edits, then try the operation again.`;
+				return self.viewMarkdownAuto("Editing In Progress", md);
+			}
+			
+			// good to go
+			Dialog.hide();
+			Dialog.showProgress( 0, "Pushing Defaults..." );
+			
+			// create hash of param values to quickly apply
+			var param_map = {};
+			param_ids.forEach( function(param_id) {
+				var param = find_object( params, { id: param_id } );
+				
+				if (param.type == 'select') {
+					param_map[ param.id ] = param.value.replace(/\,.*$/, '').replace(/^.+\[([\w\-\.]+)\]\s*$/, '$1');
+				}
+				else {
+					// here we can assume param will have a value (valueless ones were filtered out above)
+					param_map[ param.id ] = (param.value && (typeof(param.value) == 'object')) ? deep_copy_object(param.value) : param.value;
+				}
+			} ); // foreach param
+			
+			// keep track of progress across multiple api calls
+			var num_events = event_ids.length;
+			var event_idx = 0;
+			
+			var finish = function() {
+				// all done with queue
+				Dialog.hideProgress();
+				app.showMessage('success', "Plugin defaults successfully pushed to the selected events.");
+			}; // finish
+			
+			var push_next_update = function() {
+				// send one update and recurse for next
+				var event_id = event_ids.shift();
+				if (!event_id) return finish();
+				
+				var event = find_object( app.events, { id: event_id } );
+				if (!event) return push_next_update(); // sanity
+				
+				var req = {
+					id: event.id,
+					revision: event.revision,
+				};
+				
+				if (event.plugin == plugin.id) {
+					// standard event
+					if (!event.params) event.params = {}; // sanity
+					merge_hash_into( event.params, param_map );
+					req.params = event.params;
+				}
+				else if ((event.type == 'workflow') && event.workflow && event.workflow.nodes) {
+					// workflow
+					event.workflow.nodes.filter( node => node.type == 'job' ).forEach( function(node) {
+						if (!node.data || !node.data.params) return; // sanity
+						merge_hash_into( node.data.params, param_map );
+					} );
+					req.workflow = event.workflow;
+				}
+				
+				// send update_event api call
+				app.api.post( 'app/update_event', req, function(resp) {
+					event_idx++;
+					Dialog.showProgress( event_idx / num_events );
+					
+					// sanity sleep
+					setTimeout( push_next_update, 50 );
+				} );
+				
+			}; // push_next_update
+			
+			push_next_update();
+		}); // Dialog.confirm
+		
+		MultiSelect.init( $('#fe_pd_params, #fe_pd_events') );
+		Dialog.autoResize();
 	}
 	
 	go_job_history() {
