@@ -1454,12 +1454,14 @@ Page.Base = class Base extends Page {
 	getNiceProgressBar(amount = 0, extra_classes = '', show_label = false) {
 		// render nice progress bar for arbitrary value
 		var html = '';
-		var counter = Math.min(1, Math.max(0, amount || 0));
+		var counter = Math.min(1, Math.max(0, amount || 1));
 		var bar_width = this.bar_width || 100;
 		if (extra_classes.match(/\b(wider)\b/)) bar_width = 150;
 		var cx = Math.floor( counter * bar_width );
 		var label = '' + Math.floor( (counter / 1.0) * 100 ) + '%';
 		var extra_attribs = show_label ? '' : ('title="' + label + '"');
+		var indeterminate = !!(counter == 1.0);
+		if (indeterminate && !extra_classes.match(/\b(static)\b/)) extra_classes += ' indeterminate';
 		
 		html += '<div class="progress_bar_container ' + extra_classes + '" style="width:' + bar_width + 'px; margin:0;" ' + extra_attribs + ' role="progressbar">';
 			if (show_label) html += '<div class="progress_bar_label first_half" style="width:' + bar_width + 'px;">' + label + '</div>';
@@ -1850,13 +1852,13 @@ Page.Base = class Base extends Page {
 		} );
 	}
 	
-	getCategorizedEvents() {
+	getCategorizedEvents(all_events) {
 		// get list of categorized events for menu
 		// sorted by category, then by title
 		var last_cat_id = '';
 		var cat_map = obj_array_to_hash( app.categories, 'id' );
 		
-		var events = deep_copy_object(app.events).sort( function(a, b) {
+		var events = deep_copy_object(all_events || app.events).sort( function(a, b) {
 			if (a.category == b.category) {
 				return a.title.toLowerCase().localeCompare( b.title.toLowerCase() );
 			}
