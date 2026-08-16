@@ -1178,6 +1178,7 @@ Page.System = class System extends Page.PageUtils {
 				title: 'Select Style',
 				options: [
 					{ id: 'info', title: "Information", icon: 'information-outline', class: 'clr_blue' },
+					{ id: 'success', title: "Success", icon: 'check-circle', class: 'clr_green' },
 					{ id: 'warning', title: "Warning", icon: 'alert-rhombus', class: 'clr_yellow' },
 					{ id: 'error', title: "Error", icon: 'alert-decagram', class: 'clr_red' },
 					{ id: 'critical', title: "Critical", icon: 'fire-alert', class: 'clr_purple' }
@@ -1223,6 +1224,8 @@ Page.System = class System extends Page.PageUtils {
 			var sound = $('#fe_bm_sound').val();
 			var message = strip_html( $('#fe_bm_message').val().trim() );
 			if (!message.length) return app.badField('#fe_bm_message', "Please enter text for your custom message.");
+			
+			message = "Message from " + app.user.full_name + ": " + message;
 			
 			Dialog.hide();
 			Dialog.showProgress( 1.0, "Broadcasting message..." );
