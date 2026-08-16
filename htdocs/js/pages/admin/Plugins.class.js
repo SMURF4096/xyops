@@ -363,6 +363,11 @@ Page.Plugins = class Plugins extends Page.PageUtils {
 		
 		html += '<div class="box">';
 		html += '<div class="box_title">';
+			html += '<div class="button icon right secondary" title="Revision History..." onClick="$P().go_edit_history()"><i class="mdi mdi-script-text-outline"></i></div>';
+			if (this.plugin.type == 'event') {
+				html += '<div class="button icon right secondary sm_hide" title="Job History..." onClick="$P().go_job_history()"><i class="mdi mdi-cloud-search-outline"></i></div>';
+				html += '<div class="button icon right secondary sm_hide" title="Show Dependants..." onClick="$P().go_show_deps()"><i class="mdi mdi-graph-outline"></i></div>';
+			}
 			if (this.plugin.marketplace) {
 				html += 'Edit Marketplace Plugin';
 				html += '<div class="box_subtitle"><a href="#Marketplace?id=' + encodeURIComponent(this.plugin.marketplace.id) + '">&laquo; Back to Marketplace Page</a></div>';
@@ -385,7 +390,6 @@ Page.Plugins = class Plugins extends Page.PageUtils {
 			html += '<div class="button secondary mobile_collapse" onClick="$P().do_clone()"><i class="mdi mdi-content-copy">&nbsp;</i><span>Clone...</span></div>';
 			html += '<div class="button secondary mobile_collapse" onClick="$P().do_test()"><i class="mdi mdi-test-tube">&nbsp;</i><span>Test...</span></div>';
 			html += '<div class="button secondary mobile_collapse mobile_hide" onClick="$P().do_export()"><i class="mdi mdi-cloud-download-outline">&nbsp;</i><span>Export...</span></div>';
-			html += '<div class="button secondary mobile_collapse mobile_hide" onClick="$P().go_edit_history()"><i class="mdi mdi-history">&nbsp;</i><span>History...</span></div>';
 			html += '<div class="button save phone_collapse" id="btn_save" onClick="$P().do_save_plugin()"><i class="mdi mdi-floppy">&nbsp;</i><span>Save Changes</span></div>';
 		html += '</div>'; // box_buttons
 		
@@ -408,6 +412,23 @@ Page.Plugins = class Plugins extends Page.PageUtils {
 		
 		if (this.args.delete) this.show_delete_plugin_dialog();
 		else if (this.args.test) this.do_test();
+	}
+	
+	go_job_history() {
+		// jump over to job history for plugin
+		Nav.go( 'Search?plugin=' + this.plugin.id );
+	}
+	
+	go_show_deps() {
+		// show dialog with deps
+		var deps = this.get_plugin_dependants();
+		if (!deps) return app.doError("This Plugin has no dependants.");
+		
+		var md = '';
+		md += `The following resources depend on this plugin:\n`;
+		md += this.get_plugin_deps_markdown(deps);
+		
+		this.viewMarkdownAuto( "Plugin Dependants", md );
 	}
 	
 	do_test() {

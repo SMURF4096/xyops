@@ -6354,13 +6354,6 @@ Page.PageUtils = class PageUtils extends Page.Base {
 			} );
 			// md += "\n";
 		}
-		if (deps.workflows.length) {
-			// md += `\n#### Workflows:\n\n`;
-			deps.workflows.forEach( function(id) {
-				md += '- **' + self.getNiceEvent(id, true) + "**\n";
-			} );
-			// md += "\n";
-		}
 		if (deps.categories.length) {
 			// md += `\n#### Categories:\n\n`;
 			deps.categories.forEach( function(id) {
@@ -6389,7 +6382,6 @@ Page.PageUtils = class PageUtils extends Page.Base {
 	get_plugin_dependants(plugin) {
 		// get lists of things that depend on the current plugin
 		var self = this;
-		var flows = {};
 		var events = {};
 		var cats = {};
 		var groups = {};
@@ -6407,7 +6399,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 			if (plugin.type == 'scheduler') {
 				(event.triggers || []).forEach( function(trigger) {
 					if ((trigger.type == 'plugin') && (trigger.plugin_id == plugin.id)) {
-						if (event.workflow) flows[ event.id ] = 1; else events[ event.id ] = 1;
+						events[ event.id ] = 1;
 					}
 				} );
 			}
@@ -6415,14 +6407,14 @@ Page.PageUtils = class PageUtils extends Page.Base {
 			if (plugin.type == 'action') {
 				(event.actions || []).forEach( function(action) {
 					if ((action.type == 'plugin') && (action.plugin_id == plugin.id)) {
-						if (event.workflow) flows[ event.id ] = 1; else events[ event.id ] = 1;
+						events[ event.id ] = 1;
 					}
 				} );
 			}
 			
 			if (event.workflow && event.workflow.nodes) event.workflow.nodes.forEach( function(node) {
-				if ((node.type == 'job') && node.data && node.data.plugin && (node.data.plugin == plugin.id)) flows[ event.id ] = 1;
-				if ((node.type == 'action') && node.data && node.data.plugin_id && (node.data.plugin_id == plugin.id)) flows[ event.id ] = 1;
+				if ((node.type == 'job') && node.data && node.data.plugin && (node.data.plugin == plugin.id)) events[ event.id ] = 1;
+				if ((node.type == 'action') && node.data && node.data.plugin_id && (node.data.plugin_id == plugin.id)) events[ event.id ] = 1;
 			} );
 		} ); // foreach event
 		
@@ -6450,13 +6442,12 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		
 		var info = {
 			events: Object.keys(events),
-			workflows: Object.keys(flows),
 			categories: Object.keys(cats),
 			groups: Object.keys(groups),
 			alerts: Object.keys(alerts)
 		};
 		
-		if (!info.events.length && !info.workflows.length && !info.categories.length && !info.groups.length && !info.alerts.length) return false;
+		if (!info.events.length && !info.categories.length && !info.groups.length && !info.alerts.length) return false;
 		else return info;
 	}
 	
