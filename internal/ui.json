@@ -89,7 +89,7 @@
 		{ "id": "jobs", "title": "Jobs", "icon": "timer-outline" },
 		{ "id": "servers", "title": "Servers", "icon": "router-network" },
 		{ "id": "snapshots", "title": "Snapshots", "icon": "monitor-screenshot" },
-		{ "id": "activity", "title": "Activity", "icon": "script-text-outline" },
+		{ "id": "activity", "title": "Activity", "icon": "history" },
 		{ "id": "tickets", "title": "Tickets", "icon": "text-box-outline" }
 	],
 	

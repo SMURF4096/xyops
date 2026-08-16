@@ -2067,6 +2067,8 @@ Page.Events = class Events extends Page.PageUtils {
 		
 		html += '<div class="box">';
 		html += '<div class="box_title">';
+			html += '<div class="button icon right secondary" title="Revision History..." onClick="$P().go_edit_history()"><i class="mdi mdi-history"></i></div>';
+			html += '<div class="button icon right secondary sm_hide" title="Job History..." onClick="$P().go_job_history()"><i class="mdi mdi-cloud-search-outline"></i></div>';
 			html += 'Edit Event Details';
 			html += '<div class="box_subtitle"><a href="#Events?sub=view&id=' + this.event.id + '">&laquo; Back to Event</a></div>';
 		html += '</div>';
@@ -2083,7 +2085,7 @@ Page.Events = class Events extends Page.PageUtils {
 			html += '<div class="button secondary mobile_collapse" onClick="$P().do_clone()"><i class="mdi mdi-content-copy">&nbsp;</i><span>Clone...</span></div>';
 			html += '<div class="button secondary mobile_collapse" onClick="$P().do_test_event()"><i class="mdi mdi-test-tube">&nbsp;</i><span>Test...</span></div>';
 			html += '<div class="button secondary mobile_collapse mobile_hide" onClick="$P().do_export_current()"><i class="mdi mdi-cloud-download-outline">&nbsp;</i><span>Export...</span></div>';
-			html += '<div class="button secondary mobile_collapse mobile_hide" onClick="$P().go_edit_history()"><i class="mdi mdi-history">&nbsp;</i><span>History...</span></div>';
+			// html += '<div class="button secondary mobile_collapse mobile_hide" onClick="$P().go_edit_history()"><i class="mdi mdi-history">&nbsp;</i><span>History...</span></div>';
 			html += '<div class="button save phone_collapse" id="btn_save" onClick="$P().do_save_event()"><i class="mdi mdi-floppy">&nbsp;</i><span>Save Changes</span></div>';
 		html += '</div>'; // box_buttons
 		
@@ -2099,6 +2101,11 @@ Page.Events = class Events extends Page.PageUtils {
 		this.setupBoxButtonFloater();
 		this.setupEditTriggers();
 		this.checkUserEditWarning('event');
+	}
+	
+	go_job_history() {
+		// jump over to job history for event
+		Nav.go( 'Search?event=' + this.event.id );
 	}
 	
 	cancel_event_edit() {

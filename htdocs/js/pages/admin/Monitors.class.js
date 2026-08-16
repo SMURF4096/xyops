@@ -386,6 +386,7 @@ Page.Monitors = class Monitors extends Page.PageUtils {
 		
 		html += '<div class="box">';
 		html += '<div class="box_title">';
+			html += '<div class="button icon right secondary" title="Revision History..." onClick="$P().go_edit_history()"><i class="mdi mdi-history"></i></div>';
 			html += 'Edit Monitor Details';
 			html += '<div class="box_subtitle"><a href="#Monitors?sub=list">&laquo; Back to Monitor List</a></div>';
 		html += '</div>';
@@ -402,7 +403,7 @@ Page.Monitors = class Monitors extends Page.PageUtils {
 			html += '<div class="button secondary mobile_collapse" onClick="$P().do_clone()"><i class="mdi mdi-content-copy">&nbsp;</i><span>Clone...</span></div>';
 			html += '<div class="button secondary mobile_collapse" onClick="$P().do_test_monitor()"><i class="mdi mdi-test-tube">&nbsp;</i><span>Test...</span></div>';
 			html += '<div class="button secondary mobile_hide" onClick="$P().do_export()"><i class="mdi mdi-cloud-download-outline">&nbsp;</i><span>Export...</span></div>';
-			html += '<div class="button secondary mobile_hide" onClick="$P().go_edit_history()"><i class="mdi mdi-history">&nbsp;</i><span>History...</span></div>';
+			// html += '<div class="button secondary mobile_hide" onClick="$P().go_edit_history()"><i class="mdi mdi-history">&nbsp;</i><span>History...</span></div>';
 			html += '<div class="button save phone_collapse" id="btn_save" onClick="$P().do_save_monitor()"><i class="mdi mdi-floppy">&nbsp;</i><span>Save Changes</span></div>';
 		html += '</div>'; // box_buttons
 		

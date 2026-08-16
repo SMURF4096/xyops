@@ -288,6 +288,8 @@ Page.AlertSetup = class AlertSetup extends Page.PageUtils {
 		
 		html += '<div class="box">';
 		html += '<div class="box_title">';
+			html += '<div class="button icon right secondary" title="Revision History..." onClick="$P().go_edit_history()"><i class="mdi mdi-history"></i></div>';
+			html += '<div class="button icon right secondary sm_hide" title="Alert Invocations..." onClick="$P().go_alert_history()"><i class="mdi mdi-cloud-search-outline"></i></div>';
 			html += 'Edit Alert Details';
 			html += '<div class="box_subtitle"><a href="#AlertSetup?sub=list">&laquo; Back to Alert List</a></div>';
 		html += '</div>';
@@ -304,7 +306,7 @@ Page.AlertSetup = class AlertSetup extends Page.PageUtils {
 			html += '<div class="button secondary mobile_collapse" onClick="$P().do_clone()"><i class="mdi mdi-content-copy">&nbsp;</i><span>Clone...</span></div>';
 			html += '<div class="button secondary mobile_collapse" onClick="$P().do_test_alert()"><i class="mdi mdi-test-tube">&nbsp;</i><span>Test...</span></div>';
 			html += '<div class="button secondary mobile_hide" onClick="$P().do_export()"><i class="mdi mdi-cloud-download-outline">&nbsp;</i><span>Export...</span></div>';
-			html += '<div class="button secondary mobile_hide" onClick="$P().go_edit_history()"><i class="mdi mdi-history">&nbsp;</i><span>History...</span></div>';
+			// html += '<div class="button secondary mobile_hide" onClick="$P().go_edit_history()"><i class="mdi mdi-history">&nbsp;</i><span>History...</span></div>';
 			html += '<div class="button save phone_collapse" id="btn_save" onClick="$P().do_save_alert()"><i class="mdi mdi-floppy">&nbsp;</i><span>Save Changes</span></div>';
 		html += '</div>'; // box_buttons
 		
@@ -319,6 +321,11 @@ Page.AlertSetup = class AlertSetup extends Page.PageUtils {
 		this.setupEditor('text/plain');
 		this.setupEditTriggers();
 		this.checkUserEditWarning('alert');
+	}
+	
+	go_alert_history() {
+		// jump over to alert invocation history for the current alert def
+		Nav.go('Alerts?alert=' + this.alert.id);
 	}
 	
 	do_clone() {

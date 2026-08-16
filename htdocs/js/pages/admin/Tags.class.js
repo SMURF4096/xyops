@@ -233,6 +233,8 @@ Page.Tags = class Tags extends Page.PageUtils {
 		
 		html += '<div class="box">';
 		html += '<div class="box_title">';
+			html += '<div class="button icon right secondary" title="Revision History..." onClick="$P().go_edit_history()"><i class="mdi mdi-history"></i></div>';
+			html += '<div class="button icon right secondary sm_hide" title="Job History..." onClick="$P().go_job_history()"><i class="mdi mdi-cloud-search-outline"></i></div>';
 			html += 'Edit Tag Details';
 			html += '<div class="box_subtitle"><a href="#Tags?sub=list">&laquo; Back to Tag List</a></div>';
 		html += '</div>';
@@ -247,7 +249,7 @@ Page.Tags = class Tags extends Page.PageUtils {
 			html += '<div class="button cancel mobile_collapse" onClick="$P().cancel_tag_edit()"><i class="mdi mdi-close-circle-outline">&nbsp;</i><span>Close</span></div>';
 			html += '<div class="button danger mobile_collapse" onClick="$P().show_delete_tag_dialog()"><i class="mdi mdi-trash-can-outline">&nbsp;</i><span>Delete...</span></div>';
 			html += '<div class="button secondary mobile_collapse" onClick="$P().do_export()"><i class="mdi mdi-cloud-download-outline">&nbsp;</i><span>Export...</span></div>';
-			html += '<div class="button secondary mobile_collapse" onClick="$P().go_edit_history()"><i class="mdi mdi-history">&nbsp;</i><span>History...</span></div>';
+			// html += '<div class="button secondary mobile_collapse" onClick="$P().go_edit_history()"><i class="mdi mdi-history">&nbsp;</i><span>History...</span></div>';
 			html += '<div class="button save phone_collapse" id="btn_save" onClick="$P().do_save_tag()"><i class="mdi mdi-floppy">&nbsp;</i><span>Save Changes</span></div>';
 		html += '</div>'; // box_buttons
 		
@@ -259,6 +261,11 @@ Page.Tags = class Tags extends Page.PageUtils {
 		this.setupBoxButtonFloater();
 		this.setupEditTriggers();
 		this.checkUserEditWarning('tag');
+	}
+	
+	go_job_history() {
+		// jump over to job history for tag
+		Nav.go( 'Search?tags=' + this.tag.id );
 	}
 	
 	do_export() {

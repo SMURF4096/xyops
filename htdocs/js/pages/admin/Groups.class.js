@@ -413,6 +413,8 @@ Page.Groups = class Groups extends Page.ServerUtils {
 		
 		html += '<div class="box">';
 		html += '<div class="box_title">';
+			html += '<div class="button icon right secondary" title="Revision History..." onClick="$P().go_edit_history()"><i class="mdi mdi-history"></i></div>';
+			html += '<div class="button icon right secondary sm_hide" title="Job History..." onClick="$P().go_job_history()"><i class="mdi mdi-cloud-search-outline"></i></div>';
 			html += 'Edit Server Group Details';
 			html += '<div class="box_subtitle"><a href="#Groups?sub=view&id=' + this.group.id + '">&laquo; Back to Group View</a></div>';
 		html += '</div>';
@@ -427,7 +429,7 @@ Page.Groups = class Groups extends Page.ServerUtils {
 			html += '<div class="button cancel mobile_collapse" onClick="$P().cancel_group_edit()"><i class="mdi mdi-close-circle-outline">&nbsp;</i><span>Close</span></div>';
 			html += '<div class="button danger mobile_collapse" onClick="$P().show_delete_group_dialog()"><i class="mdi mdi-trash-can-outline">&nbsp;</i><span>Delete...</span></div>';
 			html += '<div class="button secondary mobile_collapse" onClick="$P().do_export()"><i class="mdi mdi-cloud-download-outline">&nbsp;</i><span>Export...</span></div>';
-			html += '<div class="button secondary mobile_collapse" onClick="$P().go_edit_history()"><i class="mdi mdi-history">&nbsp;</i><span>History...</span></div>';
+			// html += '<div class="button secondary mobile_collapse" onClick="$P().go_edit_history()"><i class="mdi mdi-history">&nbsp;</i><span>History...</span></div>';
 			html += '<div class="button save phone_collapse" id="btn_save" onClick="$P().do_save_group()"><i class="mdi mdi-floppy">&nbsp;</i><span>Save Changes</span></div>';
 		html += '</div>'; // box_buttons
 		
@@ -439,6 +441,11 @@ Page.Groups = class Groups extends Page.ServerUtils {
 		this.setupBoxButtonFloater();
 		this.setupEditTriggers();
 		this.checkUserEditWarning('group');
+	}
+	
+	go_job_history() {
+		// jump over to job history for group
+		Nav.go( 'Search?group=' + this.group.id );
 	}
 	
 	do_export() {
@@ -742,7 +749,7 @@ Page.Groups = class Groups extends Page.ServerUtils {
 				if (app.hasPrivilege('delete_groups')) html += '<div class="button icon right danger" title="Delete Group..." onClick="$P().show_delete_group_dialog()"><i class="mdi mdi-trash-can-outline"></i></div>';
 				html += '<div class="button icon right secondary sm_hide" title="Job History..." onClick="$P().goJobHistory()"><i class="mdi mdi-cloud-search-outline"></i></div>';
 				html += '<div class="button icon right secondary sm_hide" title="Alert History..." onClick="$P().goAlertHistory()"><i class="mdi mdi-restore-alert"></i></div>';
-				if (app.isAdmin()) html += '<div class="button icon right secondary sm_hide" title="Group History..." onClick="$P().goGroupHistory()"><i class="mdi mdi-script-text-outline"></i></div>';
+				if (app.isAdmin()) html += '<div class="button icon right secondary sm_hide" title="Group History..." onClick="$P().goGroupHistory()"><i class="mdi mdi-history"></i></div>';
 				if (app.hasPrivilege('add_servers')) html += '<div class="button icon right" title="Add Server..." onClick="$P().addServerToGroup()"><i class="mdi mdi-server-plus-outline"></i></div>';
 				
 				html += '<div class="clear"></div>';

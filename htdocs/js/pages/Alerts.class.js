@@ -36,8 +36,8 @@ Page.Alerts = class Alerts extends Page.PageUtils {
 		if (!args.offset) args.offset = 0;
 		if (!args.limit) args.limit = config.items_per_page;
 		
-		app.setWindowTitle('Alert History');
-		app.setHeaderTitle( '<i class="mdi mdi-restore-alert">&nbsp;</i>Alert History' ); // or: cloud-alert-outline
+		app.setWindowTitle('Alert Invocations');
+		app.setHeaderTitle( '<i class="mdi mdi-restore-alert">&nbsp;</i>Alert Invocations' ); // or: cloud-alert-outline
 		
 		var html = '';
 		html += '<div class="box" style="border:none;">';
@@ -396,7 +396,7 @@ Page.Alerts = class Alerts extends Page.PageUtils {
 		// var icon = '<i class="mdi mdi-' + (alert.active ? 'progress-alert' : 'alert-circle-outline') + '">&nbsp;</i>';
 		
 		app.setHeaderNav([
-			{ icon: 'restore-alert', loc: '#Alerts?sub=list', title: 'Alert History' },
+			{ icon: 'restore-alert', loc: '#Alerts?sub=list', title: 'Alert Invocations' },
 			{ icon: (alert.active ? 'progress-alert' : 'alert-circle-outline'), title: "Alert Details" }
 		]);
 		

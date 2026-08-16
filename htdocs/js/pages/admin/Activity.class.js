@@ -19,7 +19,7 @@ Page.ActivityLog = class ActivityLog extends Page.PageUtils {
 		this.args = args;
 		
 		app.showSidebar(true);
-		app.setHeaderTitle( '<i class="mdi mdi-script-text-outline">&nbsp;</i>Activity Log' );
+		app.setHeaderTitle( '<i class="mdi mdi-history">&nbsp;</i>Activity Log' );
 		app.setWindowTitle( "Activity Log" );
 		
 		// this.loading();

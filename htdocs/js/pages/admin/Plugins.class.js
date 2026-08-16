@@ -363,7 +363,7 @@ Page.Plugins = class Plugins extends Page.PageUtils {
 		
 		html += '<div class="box">';
 		html += '<div class="box_title">';
-			html += '<div class="button icon right secondary" title="Revision History..." onClick="$P().go_edit_history()"><i class="mdi mdi-script-text-outline"></i></div>';
+			html += '<div class="button icon right secondary" title="Revision History..." onClick="$P().go_edit_history()"><i class="mdi mdi-history"></i></div>';
 			if (this.plugin.type == 'event') {
 				html += '<div class="button icon right secondary sm_hide" title="Job History..." onClick="$P().go_job_history()"><i class="mdi mdi-cloud-search-outline"></i></div>';
 				html += '<div class="button icon right secondary sm_hide" title="Show Dependants..." onClick="$P().go_show_deps()"><i class="mdi mdi-graph-outline"></i></div>';
