@@ -179,12 +179,14 @@ Page.Dashboard = class Dashboard extends Page.PageUtils {
 		
 		// masters
 		html += '<div class="dash_unit_box clicky" onClick="Nav.go(\'Conductors\')">';
+			html += '<div class="dash_unit_icon"><i class="mdi mdi-chevron-right"></i></div>';
 			html += '<div class="dash_unit_value">' + num_keys(app.masters) + '</div>';
 			html += '<div class="dash_unit_label">Conductors</div>';
 		html += '</div>';
 		
 		// servers
 		html += '<div class="dash_unit_box clicky" onClick="Nav.go(\'Servers\')">';
+			html += '<div class="dash_unit_icon"><i class="mdi mdi-chevron-right"></i></div>';
 			html += '<div class="dash_unit_value">' + num_keys(app.servers) + '</div>';
 			html += '<div class="dash_unit_label">Servers</div>';
 		html += '</div>';
@@ -192,6 +194,7 @@ Page.Dashboard = class Dashboard extends Page.PageUtils {
 		// alerts
 		var num_alerts = num_keys(app.activeAlerts);
 		html += '<div class="dash_unit_box clicky ' + (num_alerts ? 'warning' : '') + '" onClick="Nav.go(\'Alerts\')">';
+			html += '<div class="dash_unit_icon"><i class="mdi mdi-chevron-right"></i></div>';
 			html += '<div class="dash_unit_value">' + num_alerts + '</div>';
 			html += '<div class="dash_unit_label">Current Alerts</div>';
 		html += '</div>';
@@ -204,12 +207,14 @@ Page.Dashboard = class Dashboard extends Page.PageUtils {
 		
 		// completed
 		html += '<div class="dash_unit_box clicky" onClick="Nav.go(\'Search?date=today\')">';
+			html += '<div class="dash_unit_icon"><i class="mdi mdi-chevron-right"></i></div>';
 			html += '<div class="dash_unit_value">' + this.getNiceDashNumber(trans.job_complete) + '</div>';
 			html += '<div class="dash_unit_label">Jobs Today</div>';
 		html += '</div>';
 		
 		// failed
 		html += '<div class="dash_unit_box clicky ' + (trans.job_error ? 'warning' : '') + '" onClick="Nav.go(\'Search?result=error&date=today\')">';
+			html += '<div class="dash_unit_icon"><i class="mdi mdi-chevron-right"></i></div>';
 			html += '<div class="dash_unit_value">' + this.getNiceDashNumber(trans.job_error) + '</div>';
 			html += '<div class="dash_unit_label">Jobs Failed Today</div>';
 		html += '</div>';

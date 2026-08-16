@@ -440,6 +440,7 @@ a.section_item.active > .sbs_ticket_search_count {
 }
 
 .dash_unit_box {
+	position: relative;
 	min-width: 0;
 	padding: 10px 15px 10px 15px;
 	
@@ -502,6 +503,21 @@ body.dark div.dash_unit_box {
 }
 .dash_unit_box.warning.clicky:active {
 	border: 1px solid var(--red);
+}
+
+.dash_unit_icon {
+	position: absolute;
+	top: 8px;
+	right: 6px;
+	width: 16px;
+	height: 16px;
+	pointer-events: none;
+}
+.dash_unit_icon > i {
+	font-size: 20px;
+	text-align: center;
+	line-height: 16px;
+	color: var(--icon-color);
 }
 
 /* Dash Donuts */
