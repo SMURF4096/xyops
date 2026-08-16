@@ -1,5 +1,28 @@
 # xyOps Changelog
 
+## Version v1.0.91
+
+> August 16, 2026
+
+- [`59416344`](https://github.com/pixlcore/xyops/commit/59416344e2384f1f27006e846bd97f8e0f459b73): Version 1.0.91
+- [`4a5d2f23`](https://github.com/pixlcore/xyops/commit/4a5d2f23b909c9ad22ec2f37f95e0663fac5248a): Dep: Bump pixl-xyapp to v2.1.43 for nav fix inside code editor dialog, when used for markdown.
+- [`bc275f81`](https://github.com/pixlcore/xyops/commit/bc275f81f2929a30b82e3f37e6c870fa4b25de3e): Bug Fix: run_event and magic APIs should skip the job launch queue, to avoid the scheduler throttle delay.
+- [`44bccf76`](https://github.com/pixlcore/xyops/commit/44bccf76a56f1f34667a7210463d195bfff46842): Feature: Visually indicate which dash grid units can be clicked.  Fixes #414.
+- [`93564d2e`](https://github.com/pixlcore/xyops/commit/93564d2ebfbc62db7ba39901e3bc1372bac14f5b): Feature: Push default plugin values to existing events.  Fixes #412.
+- [`c8c031e7`](https://github.com/pixlcore/xyops/commit/c8c031e722e4c6a78fb02e742ba5c9fb0fa8bcb9): Bug Fix: Typo in error path validating number range params.
+- [`548dde9e`](https://github.com/pixlcore/xyops/commit/548dde9e2065a4d9c61247fb9e01f2d4b1a65ca0): Feature: Move revision history to new header icon button, along with job history where applicable.
+- [`59fe4b25`](https://github.com/pixlcore/xyops/commit/59fe4b252e8badda245c8c1227a58365da616349): Bug Fix: launchJob: Only apply missing plugin params when they actually have a default value.
+- [`c3beaf48`](https://github.com/pixlcore/xyops/commit/c3beaf48af720b9bf09d0fc1950c3f146e9e7e86): Feature: System message broadcast: Add "success" notification type, and add sender prefix to all messages.
+- [`de9ee2b7`](https://github.com/pixlcore/xyops/commit/de9ee2b7b7b8590cfd56d3a9c09b64ce106d499f): Bug FIx: Do not allow plugin types to be changed when editing.
+- [`32eee4e3`](https://github.com/pixlcore/xyops/commit/32eee4e36fc87b819639850350410c028bd51a81): Feature: Plugin Editor: Add new icon buttons for rev history, job history, and a new "Show Dependants" dialog.
+- [`c8bebba8`](https://github.com/pixlcore/xyops/commit/c8bebba870f091cd8b86533fce3918d938b166cf): Bug Fix: UI: Prevent workflow controller progress bars from flickering when at 0%.
+- [`269c497d`](https://github.com/pixlcore/xyops/commit/269c497dc649509ea6dd351cb9e5a98b6f16e625): Dep: Update sanitize-html and nanoid for more vuln fixes.
+- [`2aa0bc44`](https://github.com/pixlcore/xyops/commit/2aa0bc440119b89d0b563a89125a53e4b59b4760): Doc: XYEXP: Add blurb about using hyphens in property names (JEXL syntax).  Ref #413.
+- [`d835a131`](https://github.com/pixlcore/xyops/commit/d835a131b3028621a7938b1918df70b555066f70): Bug Fix: Restore code that adds missing job.params with plugin params at job launch time.  Fixes #411.
+- [`f8092b45`](https://github.com/pixlcore/xyops/commit/f8092b4570421cd15b2fd380c5cb94601968b80a): Config: Disable low-level storage CRUD transaction logging by default (becomes extremely verbose at scale).
+- [`2b705d63`](https://github.com/pixlcore/xyops/commit/2b705d63c55228be9decd9d57827cffd3f4fc223): Bug Fix: Cosmetic: Log actual DB index name in code column in the API perf logs, instead of "0".
+- [`68825573`](https://github.com/pixlcore/xyops/commit/68825573474b27a4971d03b35318ca18e7ef67ab): Dep: Bump sanitize-html to v2.17.6 for multiple vuln fixes.
+
 ## Version v1.0.90
 
 > August 11, 2026
