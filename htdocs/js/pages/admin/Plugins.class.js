@@ -410,6 +410,8 @@ Page.Plugins = class Plugins extends Page.PageUtils {
 			this.div.find('#d_ep_uid, #d_ep_gid').hide();
 		}
 		
+		this.div.find('#fe_ep_type').next().attr('disabled', 'disabled').addClass('disabled');
+		
 		if (this.args.delete) this.show_delete_plugin_dialog();
 		else if (this.args.test) this.do_test();
 	}

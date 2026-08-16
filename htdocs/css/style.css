@@ -1299,6 +1299,10 @@ div.td_big {
 	display: block;
 }
 
+.multiselect.disabled {
+	cursor: not-allowed;
+}
+
 .multiselect > .item {
 	font-size: 13px;
 }
