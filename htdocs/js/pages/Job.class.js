@@ -3609,6 +3609,14 @@ Page.Job = class Job extends Page.PageUtils {
 				}
 			break;
 			
+			case 'job_progress':
+				// job progress was updated
+				if (this.live && pdata.progress) {
+					this.job.progress = pdata.progress;
+					this.updateLiveJobStats();
+				}
+			break;
+			
 			case 'meta_row':
 				this.appendLiveMetaLog(pdata);
 			break;
