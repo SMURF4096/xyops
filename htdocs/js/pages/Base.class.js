@@ -551,6 +551,10 @@ Page.Base = class Base extends Page {
 			var orig_item = item;
 			item = find_object(app.servers, { id: orig_item }) || find_object(app.servers, { hostname: orig_item });
 			if (!item && this.servers) item = find_object(this.servers, { id: orig_item });
+			if (!item && app.serverCache) {
+				item = find_object(app.serverCache, { id: orig_item });
+				if (item) item = { ...item, icon: 'close-network-outline' };
+			}
 			if (!item) {
 				item = { id: orig_item, hostname: orig_item, icon: 'close-network-outline' };
 			}
