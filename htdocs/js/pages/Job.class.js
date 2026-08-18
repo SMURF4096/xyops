@@ -2198,7 +2198,7 @@ Page.Job = class Job extends Page.PageUtils {
 		this.emptyLogAttempts++;
 		
 		app.api.get( 'app/tail_live_job_log', { id: this.job.id }, function(resp) {
-			if (!self.active) return; // sanity
+			if (!self.active || !self.job) return; // sanity
 			
 			var text = resp.text;
 			
@@ -3546,6 +3546,12 @@ Page.Job = class Job extends Page.PageUtils {
 			if (!this.isWorkflow && this.emptyLogMessage && !this.job.log_file_size) {
 				this.div.find('#d_live_job_log > div.inline_page_message').html( this.getEmptyLogMessageHTML() );
 			}
+		}
+		else if ((this.job.state == 'complete') && !this.job.final) {
+			Debug.trace('job', "Job has (presumably) completed, refreshing page");
+			app.cacheBust = hires_time_now();
+			Nav.refresh();
+			return;
 		}
 		
 		// special behavior for queued jobs, they are NOT in app.activeJobs client-side, so just wait for it to appear
