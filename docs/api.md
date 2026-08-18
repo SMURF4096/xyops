@@ -2318,6 +2318,7 @@ Parameters:
 |---------------|------|-------------|
 | `id` | String | **(Required)** The [Job.id](data.md#job-id). |
 | `token` | String | Optional | A special auth token used by the [magic](#magic) API to stream jobs for the magic landing pages. |
+| `output` | Boolean | Optional | If set to any truthy value, the stream will include live updates from the job's raw text output. |
 
 The response will be streamed using [Server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events).  The first update will include a JSON document containing the [Job.id](data.md#job.id), followed by multiple updates as the job runs, with a final update when the job completes.  Here is an example raw streaming response (many intermediate updates omitted for brevity):
 
@@ -2354,6 +2355,13 @@ The stream will always start with a `start` event, and an empty data record.
 The intermediate updates include relevant job properties that frequently change or were updated (e.g. [Job.progress](data.md#job-progress), [Job.cpu](data.md#job-cpu), [Job.mem](data.md#job-mem), etc.).  The final update is sent once the job completes, and it includes properties such as [Job.code](data.md#job-code), [Job.description](data.md#job-description) and [Job.elapsed](data.md#job-elapsed).  It also includes the job's output [Job.data](data.md#job-data) and [Job.files](data.md#job-files) if applicable.
 
 After all updates are complete, a final `end` event is sent (with an empty data record).
+
+If the `output` parameter is set to a truthy value, the stream will also include special events containing live updates from the job's raw output.  Example:
+
+```
+event: output
+data: {"xy":1,"type":"output","text":"This was printed to STDOUT from inside the job!"}
+```
 
 ### update_active_job
 
