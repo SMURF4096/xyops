@@ -2015,7 +2015,7 @@ Page.Servers = class Servers extends Page.ServerUtils {
 			this.onDeactivate();
 			this.receive_snapshot({ server: app.servers[server.id], data: snapshot, online: true });
 		}
-		else {
+		else if (app.servers[server.id]) {
 			// neither happened, but groups may have changed
 			server = this.server = app.servers[server.id];
 			this.div.find('#d_vs_stat_groups').html( this.getNiceGroupList(server.groups) );
