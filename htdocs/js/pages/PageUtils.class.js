@@ -1563,6 +1563,18 @@ Page.PageUtils = class PageUtils extends Page.Base {
 			caption: '<span id="s_erl_duration_cap"></span>'
 		});
 		
+		// retry force
+		html += this.getFormRow({
+			id: 'd_erl_retry_force',
+			label: 'Force:',
+			content: this.getFormCheckbox({
+				id: 'fe_erl_retry_force',
+				label: 'Always Retry on Abort',
+				checked: limit.force || false
+			}),
+			caption: 'Check this box to *always* retry the job, even it was manually aborted.'
+		});
+		
 		// job weight
 		html += this.getFormRow({
 			id: 'd_erl_job_weight',
@@ -1729,6 +1741,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 			delete limit.duration;
 			delete limit.accept;
 			delete limit.condition;
+			delete limit.force;
 			
 			if (limit.type.match(/^(time|mem|cpu|log)$/)) {
 				limit.tags = $('#fe_erl_tags').val();
@@ -1767,6 +1780,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 				case 'retry':
 					limit.amount = parseInt( $('#fe_erl_raw_amount').val() );
 					limit.duration = parseInt( $('#fe_erl_duration').val() );
+					limit.force = $('#fe_erl_retry_force').is(':checked');
 				break;
 				
 				case 'queue':
@@ -1794,7 +1808,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		} ); // Dialog.confirm
 		
 		var change_limit_type = function(new_type) {
-			$('#d_erl_byte_amount, #d_erl_raw_amount, #d_erl_duration, #d_erl_job_weight, #d_erl_file_size, #d_erl_file_types, #d_erl_tags, #d_erl_users, #d_erl_email, #d_erl_web_hook, #d_erl_web_hook_text, #d_erl_day_condition, #d_erl_day_amount, #d_erl_actions').hide();
+			$('#d_erl_byte_amount, #d_erl_raw_amount, #d_erl_duration, #d_erl_retry_force, #d_erl_job_weight, #d_erl_file_size, #d_erl_file_types, #d_erl_tags, #d_erl_users, #d_erl_email, #d_erl_web_hook, #d_erl_web_hook_text, #d_erl_day_condition, #d_erl_day_amount, #d_erl_actions').hide();
 			
 			if (new_type.match(/^(time|mem|cpu|log)$/)) {
 				$('#d_erl_tags, #d_erl_users, #d_erl_email, #d_erl_web_hook, #d_erl_web_hook_text, #d_erl_actions').show();
@@ -1834,6 +1848,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 					$('#s_erl_raw_amount_cap').html('Enter the maximum number of retries to attempt before failing the job.');
 					$('#d_erl_duration').show();
 					$('#s_erl_duration_cap').html('Optionally set a delay to wait between retries.');
+					$('#d_erl_retry_force').show();
 				break;
 				
 				case 'queue':
