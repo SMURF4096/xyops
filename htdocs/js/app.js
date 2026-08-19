@@ -724,6 +724,9 @@ app.extend({
 					self.latestMasterVersion = resp.releases[1];
 					self.checkConductorVersions();
 				}
+			}, 
+			function(resp) {
+				// ignore errors for this
 			});
 			return;
 		}
@@ -764,6 +767,9 @@ app.extend({
 					self.latestSatVersion = resp.releases[1];
 					self.checkServerVersions();
 				}
+			}, 
+			function(resp) {
+				// ignore error for this
 			});
 			return;
 		}
@@ -803,6 +809,9 @@ app.extend({
 					self.marketRows = resp.rows;
 					self.checkPluginVersions();
 				}
+			}, 
+			function(resp) {
+				// ignore errors for this
 			});
 			return;
 		}
