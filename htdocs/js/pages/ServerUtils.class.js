@@ -485,6 +485,7 @@ Page.ServerUtils = class ServerUtils extends Page.PageUtils {
 	getDashValue(value, type, suffix) {
 		// format number value for dashboard units
 		var value_disp = '';
+		value = Math.max( 0, value );
 		
 		switch (type) {
 			case 'integer': value_disp = this.getNiceDashNumber(value); break;
@@ -503,7 +504,7 @@ Page.ServerUtils = class ServerUtils extends Page.PageUtils {
 		// get donut dash unit
 		// opts: { value, max, type, suffix, label, color }
 		var html = '';
-		var amount = opts.value / (opts.max || 1);
+		var amount = Math.max( 0, opts.value / (opts.max || 1) );
 		var pct = short_float( amount * 100, 3 );
 		var value_disp = this.getDashValue(opts.value, opts.type, opts.suffix);
 		
@@ -1420,7 +1421,7 @@ Page.ServerUtils = class ServerUtils extends Page.PageUtils {
 			
 			for (var key in mmas) {
 				var mma = mmas[key];
-				var value = data.mem[key] || 0;
+				var value = Math.max( 0, data.mem[key] || 0 );
 				
 				mma.total += value;
 				mma.count++;
@@ -1444,8 +1445,8 @@ Page.ServerUtils = class ServerUtils extends Page.PageUtils {
 				var key = RegExp.$1;
 				var opts = this.donutDashUnits[id];
 				
-				var new_value = mem[key] || 0;
-				var old_value = opts.value || 0;
+				var new_value = Math.max( 0, mem[key] || 0 );
+				var old_value = Math.max( 0, opts.value || 0 );
 				
 				var new_pct = short_float( (new_value / (mem.total || 1)) * 100, 3 );
 				var old_pct = short_float( (old_value / (opts.max || 1)) * 100, 3 );
@@ -1491,7 +1492,7 @@ Page.ServerUtils = class ServerUtils extends Page.PageUtils {
 			
 			for (var key in mmas) {
 				var mma = mmas[key];
-				var value = data.cpu.totals[key] || 0;
+				var value = Math.max( 0, data.cpu.totals[key] || 0 );
 				
 				mma.total += value;
 				mma.count++;
@@ -1515,8 +1516,8 @@ Page.ServerUtils = class ServerUtils extends Page.PageUtils {
 				var key = RegExp.$1;
 				var opts = this.donutDashUnits[id];
 				
-				var new_value = cpu[key] || 0;
-				var old_value = opts.value || 0;
+				var new_value = Math.max( 0, cpu[key] || 0 );
+				var old_value = Math.max( 0, opts.value || 0 );
 				
 				var new_pct = short_float( (new_value / (cpu.total || 1)) * 100, 3 );
 				var old_pct = short_float( (old_value / (opts.max || 1)) * 100, 3 );
