@@ -1,5 +1,24 @@
 # xyOps Changelog
 
+## Version v1.0.92
+
+> August 19, 2026
+
+- [`a9a75dcf`](https://github.com/pixlcore/xyops/commit/a9a75dcfa36848024437e02e129253338686938f): Version 1.0.92
+- [`d0dd73ed`](https://github.com/pixlcore/xyops/commit/d0dd73ed8891fe24fad1ddff017dbcc84f2860ce): Bug Fix: Prevent negative numbers from breaking server and group donut pies.  Fixes #419.
+- [`b82c62d3`](https://github.com/pixlcore/xyops/commit/b82c62d375b6f8aaba5f749f11cdca724a0298d9): Doc: Limits: Add retry force property, and new section on retry eligibility.
+- [`7a90aaa9`](https://github.com/pixlcore/xyops/commit/7a90aaa9ad9010adcebaa0c2bd11aab3613a341a): Bug FIx: Stop showing error notifications in the UI when GitHub is down.
+- [`0dcc9585`](https://github.com/pixlcore/xyops/commit/0dcc95857634a2631a8734b87c52f4b01308e285): Feature: UI: Improve display of server names: Pull label/hostname from recently offline cache before falling back to showing the raw ID.
+- [`e7875acf`](https://github.com/pixlcore/xyops/commit/e7875acf5c88fe9ab5727835761bb591cf2afc2a): Bug Fix: Client-side JS error in server detail view for offline server when updates come in.
+- [`dd0fa2a4`](https://github.com/pixlcore/xyops/commit/dd0fa2a42fdbe3e56c364e94bc07b90576cfa067): Bug Fix: Allow job aborts via xySat shutdown to trigger a retry.  Ref #417.
+- [`51982284`](https://github.com/pixlcore/xyops/commit/51982284e23d1d3785687d1e5f742618ea296036): Bug Fix: Regression from v1.0.70: Conductor failover does not automatically resume active jobs.  Ref #418.
+- [`b2b361b6`](https://github.com/pixlcore/xyops/commit/b2b361b682c0bb20939caab0093507f119b54a8b): Bug Fix: updateJobLate could inadvertenly reset the job event and tags.
+- [`e918cee7`](https://github.com/pixlcore/xyops/commit/e918cee7f51ed3f93efd86e8572583fc68a6caba): Feature: Optional "force" mode for retries, so they will always run, even on job abort.
+- [`871451e6`](https://github.com/pixlcore/xyops/commit/871451e621c70ae464c8e755eb58aab99ba1a384): Feature: The stream_job API can now optionally include the raw job text output.
+- [`5cc4d9d3`](https://github.com/pixlcore/xyops/commit/5cc4d9d3bd0bb6afc0853bff0ca5de40ac96abf6): Bug Fix: UI: Race condition when navigating to job details page at the exact moment the job is finishing.
+- [`fe732387`](https://github.com/pixlcore/xyops/commit/fe732387dc489712c1405bd1794ff5732a57b73b): Bug Fix: Job progress bar tends to lag behind actual progress by a second or so.
+- [`d6d34eb8`](https://github.com/pixlcore/xyops/commit/d6d34eb80dc24278e065a60778c48f7a40e68303): Doc: Plugins: Add blurb about XYOPS_BASE_URL env var passed to action and trigger plugins.
+
 ## Version v1.0.91
 
 > August 16, 2026
