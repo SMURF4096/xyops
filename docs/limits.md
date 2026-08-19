@@ -224,7 +224,7 @@ Example:
 
 ### Max Retry Limit
 
-Control how many retries are attempted for failed jobs, and optionally how long to wait between retries. On each retry, xyOps clones the job context, increments `retry_count`, and optionally delays before relaunch.
+Control how many retries are attempted for failed jobs, and optionally how long to wait between retries.  On each retry, xyOps clones the job context, increments `retry_count`, and optionally delays before relaunch.
 
 Parameters:
 
@@ -233,6 +233,7 @@ Parameters:
 | `type` | String | Yes | Set to `retry` for max retry limit. |
 | `amount` | Number | Yes | Maximum number of retries to attempt. `0` disables retries. |
 | `duration` | Number | Optional | Delay in seconds between retries. |
+| `force` | Boolean | Optional | Set to `true` to retry jobs for any abort reason.  This is labeled **Always Retry on Abort** in the UI and defaults to `false`. |
 
 Example:
 
@@ -244,6 +245,32 @@ Example:
 	"duration": 60
 }
 ```
+
+#### Retry Eligibility
+
+xyOps launches a retry only when all of the following conditions are true:
+
+1. The job has an enabled **Max Retry Limit** with a non-zero `amount`.
+2. The job completed with a non-zero result code.  Successful jobs with a code of `0` are never retried.
+3. The current `retry_count` is less than the configured `amount`.
+4. If the result code is `abort`, the abort is specifically allowed to retry, or the retry limit has `force` set to `true`.
+
+All non-zero result codes other than `abort` are eligible for retry.  The `abort` result receives extra handling because an abort often represents an intentional stop rather than a normal job failure.
+
+By default, the following abort situations are eligible for retry:
+
+| Abort Situation | Description |
+|-----------------|-------------|
+| `No available servers matching targets.` | No online, enabled, and eligible server matched the job targets. |
+| `No available servers matching targets, and the queue is full.` | No eligible server was available, and the applicable queue had no remaining capacity. |
+| `No updates received in last x minutes, assuming job is dead.` | The conductor stopped receiving updates from an active job for the configured dead-job timeout. |
+| `Server is shutting down.` | xySat aborted its active jobs during a non-graceful shutdown. |
+| Runtime limit requested an abort | A **Max Run Time**, **Max Output Size**, **Max Memory Limit**, or **Max CPU Limit** was exceeded and its **Abort Job** option was enabled. |
+
+Other aborts do not retry by default.  For example, a job will not normally retry after `Maximum number of concurrent jobs for event has been reached.` or `Manually aborted by user: x`.  To override this protection, enable **Always Retry on Abort** in the UI, or set `force` to `true` on the retry limit.  This only overrides the special abort restriction.  The job must still have a non-zero result code, an enabled retry limit, and retries remaining.
+
+> [!TIP]
+> Retry attempts launch immediately when `duration` is omitted or set to `0`.  For temporary conditions such as unavailable target servers, configure a delay so the server has time to reconnect or become eligible before the next attempt.
 
 ### Max Queue Limit
 
