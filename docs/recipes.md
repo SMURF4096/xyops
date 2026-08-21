@@ -50,6 +50,123 @@ Back up databases and files to Amazon S3 on a fixed schedule, with optional rete
 
 - Use `params` and event `fields` for database credentials and include Secrets where appropriate.
 
+## Advanced Data Exports
+
+The [`admin_export_data`](api.md#admin_export_data) API provides shortcut options for most backups.  For more control, use its advanced `items` array.  This lets you filter database records with custom queries, limit the number of records exported, and raise the default 1 MB limit for individual files.
+
+Create an [API Key](api.md#api-keys) with the [`bulk_export`](privileges.md#bulk_export) privilege before using this recipe.
+
+### How It Works
+
+Each object in the `items` array describes one export operation.  Items are processed in the order provided.
+
+| Item Type | Properties | Description |
+|-----------|------------|-------------|
+| `list` | `key` (required) | Export a storage list and all its pages.  For example, use `global/events` for events or `global/stats` for stat history. |
+| `index` | `index` (required), `query`, `max_rows` | Export matching database records, newest first.  `query` defaults to `*`, which matches all records. |
+| `users` | `avatars` | Export individual user records.  Set `avatars` to `true` to include both avatar sizes. |
+| `jobFiles` | `query`, `max_rows`, `max_size`, `logs`, `files` | Export files and/or external logs from matching jobs, newest first.  `query` defaults to `tags:_files`, and `max_size` defaults to 1 MB per file. |
+| `ticketFiles` | `query`, `max_rows`, `max_size` | Export attachments from matching tickets, newest first.  `query` defaults to `*`, and `max_size` defaults to 1 MB per file. |
+| `monitorData` | `query` | Export monitor timelines for matching servers.  `query` defaults to `*`. |
+| `bucketData` | None | Export the data stored in every bucket. |
+| `bucketFiles` | `max_size` | Export files stored in buckets.  `max_size` defaults to 1 MB per file. |
+| `secretData` | None | Export the encrypted value stored for every secret. |
+
+The `query` property uses the [Unbase query syntax](https://github.com/jhuckaby/pixl-server-storage/blob/master/docs/Indexer.md#simple-queries).  The `max_rows` property limits the number of matching records or jobs processed.  The `max_size` property is a per-file limit specified in bytes.  For example, `104857600` allows files up to approximately 100 MB.
+
+Save your advanced request body in a file such as `export.json`, then run:
+
+```sh
+curl -X POST "https://xyops.mycompany.com/api/app/admin_export_data/v1" \
+	-H "X-API-Key: YOUR_API_KEY_HERE" \
+	-H "Content-Type: application/json" \
+	--data @export.json \
+	-O -J
+```
+
+The `-O -J` options save the archive using the filename supplied by xyOps.
+
+### Export Records Using a Custom Query
+
+This request exports up to 10,000 failed jobs in the `general` category:
+
+```json
+{
+	"items": [
+		{
+			"type": "index",
+			"index": "jobs",
+			"query": "tags:_error category:general",
+			"max_rows": 10000
+		}
+	]
+}
+```
+
+The same pattern works with the `alerts`, `servers`, `snapshots`, `activity`, and `tickets` indexes.  Query fields depend on the selected index.
+
+### Export Larger Job Files and Logs
+
+File items export the stored file data, but they do not automatically export the associated database records.  Include both an `index` item and a file item when you need a self-contained set of job records and their files.
+
+This request exports the newest 5,000 failed jobs, along with their external logs and job files up to approximately 100 MB each:
+
+```json
+{
+	"items": [
+		{
+			"type": "index",
+			"index": "jobs",
+			"query": "tags:_error",
+			"max_rows": 5000
+		},
+		{
+			"type": "jobFiles",
+			"query": "tags:_error",
+			"max_rows": 5000,
+			"max_size": 104857600,
+			"logs": true,
+			"files": true
+		}
+	]
+}
+```
+
+Use the same query and row limit for both items so the record and file selections stay aligned.
+
+### Export Larger Ticket and Bucket Files
+
+This request combines the normal shortcut interface with advanced file items.  It exports all critical lists, all ticket records, ticket attachments up to approximately 100 MB each, and bucket files up to approximately 500 MB each:
+
+```json
+{
+	"lists": "all",
+	"indexes": ["tickets"],
+	"items": [
+		{
+			"type": "ticketFiles",
+			"query": "*",
+			"max_size": 104857600
+		},
+		{
+			"type": "bucketFiles",
+			"max_size": 524288000
+		}
+	]
+}
+```
+
+Shortcut selections are appended to the `items` array.  Do not also specify `"extras": ["ticket_files", "bucket_files"]` in this example, because that would export the same files a second time using the default 1 MB limit.
+
+### Notes
+
+- Raising `max_size` can substantially increase memory use, transfer time, and archive size because files are loaded and encoded as base64 during export.
+- `jobFiles` only exports external job logs.  Logs already stored inline in the job record are included by the corresponding `index` export.
+- `ticketFiles` only exports attachment data.  Export the matching `tickets` index records as well so the attachment metadata is preserved.
+- `bucketFiles` includes each bucket's file manifest.  Export the `global/buckets` list and `bucketData` item as well when building a complete bucket backup.
+- Secret values remain encrypted in the export.  Preserve the original xyOps configuration and `secret_key` so they can be decrypted after migration.
+- API keys are stored as salted hashes and cannot be recovered as plaintext from an export.
+
 ## Video Transcoding Pipeline
 
 Transcode incoming videos to MP4 H.264 and push the outputs to storage and a CDN. Supports parallel processing with progress feedback.

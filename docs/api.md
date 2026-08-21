@@ -5831,9 +5831,9 @@ The notification is delivered immediately over the live WebSocket connection to 
 POST /api/app/get_transfer_token/v1
 ```
 
-Generate a single-use, short-lived token (60 seconds) that authorizes a subsequent data transfer call (e.g., [admin_export_data](#admin_export_data)). Admin only.
+Generate a single-use, short-lived token (60 seconds) for a browser-based data transfer.  This is an internal helper for the xyOps browser UI and requires an administrator session.  API clients should call [admin_export_data](#admin_export_data) directly with an API Key instead.
 
-Parameters: Same payload you would pass to [admin_export_data](#admin_export_data) (e.g., `lists`, `indexes`, `extras`, or `items`). The token binds to your session and the provided parameters.
+Parameters: The same payload accepted by [admin_export_data](#admin_export_data), such as `lists`, `indexes`, `extras`, or `items`.  The token binds the provided parameters to the current administrator session.
 
 Example response:
 
@@ -5908,32 +5908,99 @@ Notes:
 ### admin_export_data
 
 ```
-GET /api/app/admin_export_data/v1
+POST /api/app/admin_export_data/v1
 ```
 
-Stream a gzip-compressed NDJSON archive of selected data to the client. Requires the [bulk_export](privileges.md#bulk_export) privilege. For browser downloads, first call [get_transfer_token](#get_transfer_token) and then include `?token=...` on this GET to authorize and apply the parameters pre-bound to the token.
+Stream selected xyOps data to the client as a gzip-compressed NDJSON archive.  This API is useful for automated backups and data migrations.
 
-Parameters (choose either the high-level selectors or a custom `items` array):
+Create an [API Key](#api-keys) with the [`bulk_export`](privileges.md#bulk_export) privilege, then pass it in the `X-API-Key` request header.  No administrator privilege or user session is required.  Send the export options as a JSON request body.  For example:
+
+```sh
+curl -X POST "https://xyops.mycompany.com/api/app/admin_export_data/v1" \
+	-H "X-API-Key: YOUR_API_KEY_HERE" \
+	-H "Content-Type: application/json" \
+	-d '{"lists":"all","indexes":["tickets"]}' \
+	-O -J
+```
+
+The API accepts the following properties:
 
 | Property Name | Type | Description |
 |---------------|------|-------------|
-| `lists` | Array(String) or String | List IDs from `config.ui.list_list` or the literal string `"all"`. Each exports the corresponding `global/NAME` list and pages. |
-| `indexes` | Array(String) or String | Database index IDs from `config.ui.database_list` or `"all"`. Exports matching DB records (newest to oldest). |
-| `extras` | Array(String) or String | Optional extras or `"all"`. Supported: `user_avatars`, `job_files`, `job_logs`, `monitor_data`, `stat_data`. |
-| `items` | Array(Object) | Advanced mode. Array of export items such as `{ type: "list", key }`, `{ type: "index", index, query?, max_rows? }`, `{ type: "users", avatars? }`, `{ type: "jobFiles", query?, max_rows?, max_size?, logs?, files? }`, `{ type: "monitorData", query? }`, `{ type: "bucketData" }`, `{ type: "bucketFiles", max_size? }`, `{ type: "secretData" }`. |
-| `token` | String | Single-use token from [get_transfer_token](#get_transfer_token). When present, parameters from the token are applied and the token is invalidated. |
+| `lists` | Array(String) or String | List IDs to export, or the string `"all"`.  Available IDs are `alerts`, `api_keys`, `buckets`, `categories`, `channels`, `events`, `groups`, `monitors`, `plugins`, `secrets`, `tags`, `users`, `roles`, and `web_hooks`. |
+| `indexes` | Array(String) or String | Database index IDs to export, or the string `"all"`.  Available IDs are `alerts`, `jobs`, `servers`, `snapshots`, `activity`, and `tickets`. |
+| `extras` | Array(String) or String | Optional large or historical data to export, or the string `"all"`.  Available IDs are `job_files`, `job_logs`, `bucket_files`, `ticket_files`, `monitor_data`, `stat_data`, and `user_avatars`. |
+| `items` | Array(Object) | Advanced mode, see below. |
 
-Response: A `200 OK` streaming gzip file. The content is NDJSON containing a mix of:
+When using these shortcut properties, at least one selection is required.  An omitted property selects nothing from that group.  The string `"all"` selects every ID in that group, while an array selects only the named IDs.
+
+The API also supports an advanced `items` mode for custom database queries, row limits, larger per-file limits, and precise selection of individual data types.  See the [Advanced Data Exports](recipes.md#advanced-data-exports) recipe for details and examples.
+
+Here are several useful export recipes:
+
+**All critical data and tickets:**
+
+```json
+{
+	"lists": "all",
+	"indexes": ["tickets"]
+}
+```
+
+**All critical data and indexed records, without extras:**
+
+```json
+{
+	"lists": "all",
+	"indexes": "all"
+}
+```
+
+**All critical data, tickets, and ticket attachments:**
+
+```json
+{
+	"lists": "all",
+	"indexes": ["tickets"],
+	"extras": ["ticket_files"]
+}
+```
+
+**Critical data and job history, including job files and their associated external logs:**
+
+```json
+{
+	"lists": "all",
+	"indexes": ["jobs"],
+	"extras": ["job_logs", "job_files"]
+}
+```
+
+**All supported data categories, using the default file limits:**
+
+```json
+{
+	"lists": "all",
+	"indexes": "all",
+	"extras": "all"
+}
+```
+
+Complete exports can be large.  In particular, job files, external job logs, bucket files, ticket files, monitor history, and stat history can add significant time and storage requirements.
+
+A successful request returns `200 OK` and streams an `application/gzip` attachment.  The decompressed file is NDJSON with comment lines and a mixture of:
 
 - `{ "index": INDEX, "id": ID, "record": { ... } }` for DB records.
 - `{ "key": KEY, "value": VALUE }` for storage keys or files (binary values are base64-encoded).
+- `{ "cmd": CMD, "args": [ ... ] }` for commands used when importing the archive.
 
 Notes:
 
-- Job logs/files are exported only if under 1 MB each.
-- Bucket files are exported as base64 with a manifest of file metadata.
-- Secret data is exported as encrypted values (as stored).
-- API keys are exported as salted hashes only (as stored).
+- Job files, external job logs, ticket files, and bucket files have a 1 MB per-file limit in shortcut mode.  Larger files are omitted.  Use the [advanced export recipe](recipes.md#advanced-data-exports) to increase this limit.
+- Bucket files are exported as base64 along with a manifest of file metadata.
+- Secret data is exported in its encrypted stored form.
+- API keys are exported as their stored salted hashes, not as plaintext keys.
+- Keep the original xyOps configuration and `secret_key` with migration backups so imported secrets can be decrypted.  See [Data Migration](hosting.md#data-migration).
 
 ### admin_delete_data
 
