@@ -132,6 +132,7 @@ Page.Search = class Search extends Page.PageUtils {
 								{ id: '_retried', title: "Retried", icon: 'refresh', group: "System Tags:" },
 								{ id: '_last', title: "Last in Set", icon: 'page-last' },
 								{ id: '_files', title: "Has Files", icon: 'file-multiple-outline' },
+								{ id: '_alerted', title: "Alerted", icon: 'bell-outline' },
 								{ id: '_test', title: "Test Job", icon: 'test-tube' }
 							]),
 							values: args.tags ? args.tags.split(/\,\s*/) : [],

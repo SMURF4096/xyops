@@ -365,7 +365,7 @@ Page.Job = class Job extends Page.PageUtils {
 		
 		// alerts (hidden unless needed)
 		html += '<div class="box toggle" id="d_job_alerts" style="display:none">';
-			html += '<div class="box_title">';
+			html += '<div class="box_title" style="color:var(--red);">';
 				html += '<i></i><span>Server Alerts</span>';
 			html += '</div>';
 			html += '<div class="box_content table">';
