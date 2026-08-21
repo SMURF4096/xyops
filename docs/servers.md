@@ -189,6 +189,14 @@ Each server has a dedicated page in the xyOps UI showing live and historical sta
 
 Search the fleet and history from Servers → Search. You can filter by group, OS platform/distro/release/arch, CPU brand/cores, and created/modified ranges.
 
+### Active List and Server History
+
+The main Servers page combines all currently connected servers with a small in-memory cache of recently disconnected servers.  Cached servers appear offline, which makes short outages easy to spot, but they do not remain in the main list indefinitely.
+
+The cache keeps the 10 most recently disconnected servers and is cleared at midnight in the conductor's local timezone.  A maintenance check also removes any cached entry older than 24 hours.  This means an offline server may disappear from the main list sooner than 24 hours, either at midnight or when newer disconnected servers displace it from the cache.
+
+This only removes the server from the temporary in-memory list.  It does not delete the persisted server record or its monitoring data.  Click **Search History** on the Servers page to find historical servers, including those that are no longer shown in the main list.  Persisted records remain subject to explicit deletion and any configured database retention limits.
+
 ## Snapshots and Watches
 
 Snapshots capture the current state of a server and save it for later inspection and comparison. They're available on the Snapshots area, and when linked from actions or alerts.
@@ -222,7 +230,7 @@ To avoid thundering herd effects on conductors, each server deterministically st
 
 ## Lifecycle and Health
 
-- **Online/offline**: A server is online while its xySat WebSocket is connected. If the socket drops, the server is immediately marked offline. The UI updates in real time.
+- **Online/offline**: A server is online while its xySat WebSocket is connected. If the socket drops, the server is immediately marked offline and temporarily remains in the main Servers list. See [Active List and Server History](#active-list-and-server-history) for the cache retention details.
 - **Running jobs**: Jobs are not aborted immediately when a server goes offline. Instead, conductors wait for `dead_job_timeout` before declaring the job dead and aborting it (default: 120 seconds). See [Configuration](config.md#dead_job_timeout).
 - **Enable/disable**: Disabling a server removes it from job selection but it can remain online and continue reporting metrics.
 
