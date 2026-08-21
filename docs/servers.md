@@ -193,9 +193,9 @@ Search the fleet and history from Servers → Search. You can filter by group, O
 
 The main Servers page combines all currently connected servers with a small in-memory cache of recently disconnected servers.  Cached servers appear offline, which makes short outages easy to spot, but they do not remain in the main list indefinitely.
 
-The cache keeps the 10 most recently disconnected servers and is cleared at midnight in the conductor's local timezone.  A maintenance check also removes any cached entry older than 24 hours.  This means an offline server may disappear from the main list sooner than 24 hours, either at midnight or when newer disconnected servers displace it from the cache.
+The cache keeps the 100 most recently disconnected servers ([configurable](config.md#server_cache_max_count)).  A maintenance check also removes any cached entry older than 24 hours ([configurable](config.md#server_cache_max_time)).
 
-This only removes the server from the temporary in-memory list.  It does not delete the persisted server record or its monitoring data.  Click **Search History** on the Servers page to find historical servers, including those that are no longer shown in the main list.  Persisted records remain subject to explicit deletion and any configured database retention limits.
+This only removes the server from the temporary in-memory list.  It does not delete the persisted server record or its monitoring data.  Click **Server History** on the Servers page to find historical servers, including those that are no longer shown in the main list.  Persisted records remain subject to explicit deletion and any configured database retention limits.
 
 ## Snapshots and Watches
 

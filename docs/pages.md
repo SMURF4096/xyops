@@ -86,7 +86,7 @@ Learn more: [Alerts](alerts.md).
 
 **Servers** are worker nodes that execute jobs and collect metrics. Each runs the xySat agent, maintains a connection to a conductor, and reports host details and monitoring data.
 
-The Server List page shows the active fleet with labels, hostnames, IPs, OS and CPU details, and status. Filter by keywords and platform attributes, use "**Search History**" for offline servers, or click "**Add Server**" to generate a one‑line installer for Docker, Linux, macOS, or Windows.
+The Server List page shows the active fleet with labels, hostnames, IPs, OS and CPU details, and status. Filter by keywords and platform attributes, use "**Server History**" for offline servers, or click "**Add Server**" to generate a one‑line installer for Docker, Linux, macOS, or Windows.
 
 Opening a server presents live and historical charts, current processes and network connections, running and upcoming jobs, and active alerts with links to details. 
 

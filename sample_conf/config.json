@@ -41,6 +41,9 @@
 	"dead_job_timeout": 120,
 	"stale_alert_timeout": 90,
 	
+	"server_cache_max_time": "24 hours",
+	"server_cache_max_count": 100,
+	
 	"default_plugin_credentials": {
 		"action": { "uid": "", "gid": "" },
 		"event": { "uid": "", "gid": "" },

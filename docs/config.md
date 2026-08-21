@@ -102,6 +102,20 @@ This number (in seconds) determines when a running job with no updates is consid
 
 This number (in seconds) determines when stale alerts are cleared.  Stale alerts occur when a server disconnects with active alerts attached.
 
+## server_cache_max_time
+<!-- Title: Server Cache Max Time -->
+
+This is the maximum amount of time servers are kept in the offline memory cache (default: `24 hours`).
+
+Note that all offline servers are available on the "Server History" page (subject to database retention settings).  The offline cache just keeps them in memory for a short period after they go offline.
+
+## server_cache_max_count
+<!-- Title: Server Cache Max Count -->
+
+This is the maximum number of server entries allowed in the offline cache, before older ones are removed (default: `100`).
+
+Note that all offline servers are available on the "Server History" page (subject to database retention settings).  The offline cache just keeps the most recent ones in memory for a short period.
+
 ## default_plugin_credentials
 <!-- Title: Default Plugin Credentials -->
 
