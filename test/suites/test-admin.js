@@ -1,5 +1,89 @@
 const assert = require('node:assert/strict');
 const async = require('async');
+const { Writable } = require('node:stream');
+const Admin = require('../../lib/api/admin.js');
+
+// Run the bulk exporter against a small, synchronous mock.  This gives us a
+// deterministic way to close the response between two top-level export items.
+function runMockAdminExport(opts) {
+	return new Promise( function(resolve, reject) {
+		var admin = new Admin();
+		var response = new Writable({
+			write(chunk, encoding, callback) { callback(); }
+		});
+		var fetched = [];
+		var callback_count = 0;
+		var finished = 0;
+		var updated = 0;
+		var job = null;
+		
+		response.setHeader = function() {};
+		response.writeHead = function() {};
+		
+		admin.requireMaster = function() { return true; };
+		admin.loadSession = function(args, callback) {
+			callback(null, { id: 'session' }, { username: 'admin' });
+		};
+		admin.requireValidUser = function() { return true; };
+		admin.requirePrivilege = function() { return true; };
+		admin.logDebug = function() {};
+		admin.logError = function() {};
+		
+		// Match the real internal-job behavior by removing convenience methods
+		// when finish() is called.  The old exporter crashed on its next update().
+		admin.startInternalJob = function() {
+			job = {
+				update() { updated++; },
+				finish() {
+					finished++;
+					delete job.update;
+					delete job.finish;
+				}
+			};
+			return job;
+		};
+		
+		admin.unbase = {
+			indexes: { jobs: {} },
+			get(index, id, callback) {
+				callback(null, {
+					id: id,
+					log_file_size: 100,
+					output: opts.output || ''
+				});
+			}
+		};
+		
+		admin.storage = {
+			searchRecords(query, index, callback) {
+				callback(null, { job1: 1 });
+			},
+			get(key, callback) {
+				fetched.push(key);
+				if (opts.abort && key.match(/log\.txt\.gz$/)) response.emit('close');
+				if (key.match(/log\.txt\.gz$/)) return callback(new Error('Not found'));
+				callback(null, { first_page: 1, last_page: 0 });
+			}
+		};
+		
+		try {
+			admin.api_admin_export_data({
+				params: { items: opts.items },
+				query: {},
+				request: { headers: {} },
+				response: response
+			}, function() {
+				callback_count++;
+				setImmediate( function() {
+					resolve({ fetched, callback_count, finished, updated });
+				});
+			});
+		}
+		catch (err) {
+			reject(err);
+		}
+	});
+}
 
 // helper: sleep
 async function sleep(ms) {
@@ -156,6 +240,39 @@ exports.tests = [
     // gzip magic bytes 0x1f 0x8b
     assert.ok(gz[0] === 0x1f && gz[1] === 0x8b, 'buffer looks like gzip');
   },
+
+	async function test_admin_export_data_skips_unrequested_job_logs(test) {
+		// A small log must not bypass either the item.logs or job.output checks.
+		var unrequested_result = await runMockAdminExport({
+			items: [ { type: 'jobFiles', logs: false, files: false } ]
+		});
+		var inline_result = await runMockAdminExport({
+			output: 'Inline job output',
+			items: [ { type: 'jobFiles', logs: true, files: false } ]
+		});
+		
+		assert.deepEqual(unrequested_result.fetched, [], 'did not fetch an unrequested job log');
+		assert.deepEqual(inline_result.fetched, [], 'did not fetch an inline job log from storage');
+		assert.equal(unrequested_result.finished, 1, 'finished the unrequested-log export job once');
+		assert.equal(inline_result.finished, 1, 'finished the inline-log export job once');
+	},
+
+	async function test_admin_export_data_stops_after_disconnect(test) {
+		// Simulate a disconnect during a benign missing-log error, with another
+		// top-level item waiting.  The exporter must not call job.update() again.
+		var result = await runMockAdminExport({
+			abort: true,
+			items: [
+				{ type: 'jobFiles', logs: true, files: false },
+				{ type: 'list', key: 'global/should-not-export' }
+			]
+		});
+		
+		assert.deepEqual(result.fetched, [ 'logs/jobs/job1/log.txt.gz' ], 'stopped before the next export item');
+		assert.equal(result.updated, 1, 'did not update the finished internal job');
+		assert.equal(result.finished, 1, 'finished the internal export job once');
+		assert.equal(result.callback_count, 1, 'completed the API request once');
+	},
 
   async function test_admin_logout_all(test) {
     // logout all sessions for admin user via background job
