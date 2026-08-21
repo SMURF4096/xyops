@@ -1048,7 +1048,7 @@ Page.Job = class Job extends Page.PageUtils {
 			if (state && state.started) {
 				var stub = { type: 'controller', node, state };
 				if (state.active) rows.push(stub);
-				else if (state.completed) {
+				else if (state.completed || state.error) {
 					stub.completed = state.started; // for table sorting
 					completed_stubs.push(stub);
 				}
