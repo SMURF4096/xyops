@@ -1399,6 +1399,7 @@ Page.Events = class Events extends Page.PageUtils {
 				case 'z_last': args.query += ' tags:_last'; break;
 				case 'z_files': args.query += ' tags:_files'; break;
 				case 'z_alerted': args.query += ' tags:_alerted'; break;
+				case 'z_limited': args.query += ' tags:_limited'; break;
 				case 'z_test': args.query += ' tags:_test'; break;
 				
 				default:

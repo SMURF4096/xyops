@@ -2085,6 +2085,7 @@ Page.Base = class Base extends Page {
 			{ id: 'z_last', title: "Last in Set", icon: 'page-last' },
 			{ id: 'z_files', title: "Has Files", icon: 'file-multiple-outline' },
 			{ id: 'z_alerted', title: "Alerted", icon: 'bell-outline' },
+			{ id: 'z_limited', title: "Limited", icon: 'gauge' },
 			{ id: 'z_test', title: "Test Job", icon: 'test-tube' }
 		);
 	}
