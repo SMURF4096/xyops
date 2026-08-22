@@ -109,6 +109,7 @@ Parameters:
 | `type` | String | Yes | Set to `job` for max concurrent jobs. |
 | `amount` | Number | Yes | Maximum number of concurrent active jobs for the event/workflow. |
 | `weight` | Number | No | Optional job weight, used in server targeting calculations. |
+| `cap_key` | String | No | Optional shared capacity key, used for joining a concurrency pool.  See below. |
 
 Notes:
 
@@ -125,6 +126,42 @@ Example:
 	"amount": 2
 }
 ```
+
+#### Shared Capacity Key
+
+By default, the Max Concurrent Jobs limit only counts similar jobs from the same event or workflow node.  You can optionally set a **Shared Capacity Key** to create a global concurrency pool shared by multiple events and/or workflow nodes.  This is useful when otherwise unrelated jobs all consume the same limited resource, such as an external API, database, or deployment service.
+
+For example, several events may call the Salesforce API, but you only want three of those jobs running at once across the entire xyOps cluster.  Configure each event with the same `cap_key` and Max Concurrent Jobs amount:
+
+```json
+"limits": [
+	{
+		"enabled": true,
+		"type": "job",
+		"amount": 3,
+		"cap_key": "salesforce"
+	},
+	{
+		"enabled": true,
+		"type": "queue",
+		"amount": 100
+	}
+]
+```
+
+Apply these limits to every event or workflow node that should join the pool.  xyOps will then allow no more than three jobs with the `salesforce` capacity key to run concurrently, regardless of which event, workflow, workflow node, or workflow execution launched them.
+
+Capacity keys have the following requirements:
+
+- Keys may contain lowercase letters, numbers, underscores, and hyphens.
+- Keys may be up to 32 characters long.
+- The UI automatically converts keys to lowercase, replaces whitespace with hyphens, and removes unsupported characters.
+- All members of a shared pool must use the same Max Concurrent Jobs amount.  xyOps emits a warning to the job meta log if it detects differing amounts.
+- Each member must configure its own Max Queue limit if jobs should wait when the shared concurrency pool is full.
+
+All waiting jobs with the same capacity key share one priority-first, FIFO queue.  High-priority jobs are considered first, followed by the oldest waiting job.  A member's Max Queue amount is compared against the total number of jobs already waiting in the shared pool.  For predictable behavior, all members should use the same Max Queue amount.  xyOps emits a warning to the job meta log if it detects differing queue amounts.
+
+When capacity becomes available, xyOps examines the oldest waiting job, after considering high-priority jobs first.  If no eligible target server is available for that job, it remains at the front of the queue and later jobs continue waiting, even if their target servers are available.  This preserves queue ordering.  For best results, jobs sharing a capacity key should target similarly available infrastructure.
 
 ### Max Output Size
 

@@ -1575,6 +1575,21 @@ Page.PageUtils = class PageUtils extends Page.Base {
 			caption: 'Check this box to *always* retry the job, even it was manually aborted.'
 		});
 		
+		// cap key
+		html += this.getFormRow({
+			id: 'd_erl_cap_key',
+			label: 'Shared Capacity Key:',
+			content: this.getFormText({
+				id: 'fe_erl_cap_key',
+				class: 'monospace',
+				spellcheck: 'false',
+				maxlength: 32,
+				min: 1,
+				value: limit.cap_key || ''
+			}),
+			caption: 'Optionally set a shared capacity key, which allows multiple events and/or workflow nodes to share a common job concurrency pool.  [Learn More](#Docs/limits/shared-capacity-key)'
+		});
+		
 		// job weight
 		html += this.getFormRow({
 			id: 'd_erl_job_weight',
@@ -1775,6 +1790,8 @@ Page.PageUtils = class PageUtils extends Page.Base {
 				case 'job':
 					limit.amount = parseInt( $('#fe_erl_raw_amount').val() ) || 1;
 					limit.weight = parseInt( $('#fe_erl_job_weight').val() );
+					limit.cap_key = $('#fe_erl_cap_key').val().toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').substring(0, 32);
+					if (!limit.cap_key) delete limit.cap_key;
 				break;
 				
 				case 'retry':
@@ -1808,7 +1825,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		} ); // Dialog.confirm
 		
 		var change_limit_type = function(new_type) {
-			$('#d_erl_byte_amount, #d_erl_raw_amount, #d_erl_duration, #d_erl_retry_force, #d_erl_job_weight, #d_erl_file_size, #d_erl_file_types, #d_erl_tags, #d_erl_users, #d_erl_email, #d_erl_web_hook, #d_erl_web_hook_text, #d_erl_day_condition, #d_erl_day_amount, #d_erl_actions').hide();
+			$('#d_erl_byte_amount, #d_erl_raw_amount, #d_erl_duration, #d_erl_retry_force, #d_erl_job_weight, #d_erl_cap_key, #d_erl_file_size, #d_erl_file_types, #d_erl_tags, #d_erl_users, #d_erl_email, #d_erl_web_hook, #d_erl_web_hook_text, #d_erl_day_condition, #d_erl_day_amount, #d_erl_actions').hide();
 			
 			if (new_type.match(/^(time|mem|cpu|log)$/)) {
 				$('#d_erl_tags, #d_erl_users, #d_erl_email, #d_erl_web_hook, #d_erl_web_hook_text, #d_erl_actions').show();
@@ -1840,7 +1857,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 				case 'job':
 					$('#d_erl_raw_amount').show();
 					$('#s_erl_raw_amount_cap').html('Enter the maximum number of concurrent jobs to allow.');
-					$('#d_erl_job_weight').show();
+					$('#d_erl_job_weight, #d_erl_cap_key').show();
 				break;
 				
 				case 'retry':
