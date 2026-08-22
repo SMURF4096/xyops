@@ -724,6 +724,12 @@ Page.System = class System extends Page.PageUtils {
 			})
 		});
 		
+		// release notes
+		html += this.getFormRow({
+			label: '<span id="s_sys_rel_notes_label"></span>',
+			content: `<div id="d_sys_rel_notes" class="markdown-body" style="margin-top:1em">...</div>`
+		});
+		
 		html += '</div>';
 		Dialog.confirmDanger( "Upgrade Worker Servers", html, ['cloud-upload-outline', "Upgrade Now"], function(result) {
 			if (!result) return;
@@ -752,8 +758,24 @@ Page.System = class System extends Page.PageUtils {
 		RelativeTime.init( $('#fe_sys_sat_stagger') );
 		Dialog.autoResize();
 		
+		var release_data = null;
+		var change_release_version = function() {
+			var rel = $('#fe_sys_sat_release').val();
+			if (rel == 'airgap') {
+				$('#d_sys_rel_notes').html('(No release notes available in air-gapped mode.)');
+				return;
+			}
+			var release = find_object( release_data, { tag_name: rel } ) || release_data[0];
+			var html = marked.parse(release.body, config.ui.marked_config);
+			$('#s_sys_rel_notes_label').html( release.name + ' Release Notes' );
+			$('#d_sys_rel_notes').html( html ).find('a[href]').attr('target', 'blank');
+			var $diff_link = $('#d_sys_rel_notes').find('a[href*="/pixlcore/xysat/compare/"]');
+			$diff_link.html( basename($diff_link.text()) + '<i style="padding-left:3px" class="mdi mdi-open-in-new"></i>' );
+			Dialog.autoResize();
+		};
+		
 		// load release list
-		app.api.get( 'app/get_satellite_releases', {}, function(resp) {
+		app.api.get( 'app/get_satellite_releases', { verbose: 1 }, function(resp) {
 			var title_map = {
 				latest: 'Latest Stable',
 				airgap: '(Air-gapped Custom)'
@@ -768,6 +790,12 @@ Page.System = class System extends Page.PageUtils {
 			
 			// change menu items and fire onChange event for redraw
 			$('#fe_sys_sat_release').html( render_menu_options( items, items[0].id ) ).trigger('change');
+			
+			// grab full release data for notes
+			release_data = resp.data;
+			
+			$('#fe_sys_sat_release').on('change', change_release_version);
+			change_release_version();
 		} ); // api.get
 	}
 	
@@ -819,6 +847,12 @@ Page.System = class System extends Page.PageUtils {
 			})
 		});
 		
+		// release notes
+		html += this.getFormRow({
+			label: '<span id="s_sys_rel_notes_label"></span>',
+			content: `<div id="d_sys_rel_notes" class="markdown-body" style="margin-top:1em">...</div>`
+		});
+		
 		html += '</div>';
 		Dialog.confirmDanger( "Upgrade Conductor Servers", html, ['database-arrow-up-outline', "Upgrade Now"], function(result) {
 			if (!result) return;
@@ -847,8 +881,24 @@ Page.System = class System extends Page.PageUtils {
 		RelativeTime.init( $('#fe_sys_multi_stagger') );
 		Dialog.autoResize();
 		
+		var release_data = null;
+		var change_release_version = function() {
+			var rel = $('#fe_sys_multi_release').val();
+			if (rel == 'airgap') {
+				$('#d_sys_rel_notes').html('(No release notes available in air-gapped mode.)');
+				return;
+			}
+			var release = find_object( release_data, { tag_name: rel } ) || release_data[0];
+			var html = marked.parse(release.body, config.ui.marked_config);
+			$('#s_sys_rel_notes_label').html( release.name + ' Release Notes' );
+			$('#d_sys_rel_notes').html( html ).find('a[href]').attr('target', 'blank');
+			var $diff_link = $('#d_sys_rel_notes').find('a[href*="/pixlcore/xyops/compare/"]');
+			$diff_link.html( basename($diff_link.text()) + '<i style="padding-left:3px" class="mdi mdi-open-in-new"></i>' );
+			Dialog.autoResize();
+		};
+		
 		// load release list
-		app.api.get( 'app/get_master_releases', {}, function(resp) {
+		app.api.get( 'app/get_master_releases', { verbose: 1 }, function(resp) {
 			var title_map = {
 				latest: 'Latest Stable'
 			};
@@ -862,6 +912,12 @@ Page.System = class System extends Page.PageUtils {
 			
 			// change menu items and fire onChange event for redraw
 			$('#fe_sys_multi_release').html( render_menu_options( items, items[0].id ) ).trigger('change');
+			
+			// grab full release data for notes
+			release_data = resp.data;
+			
+			$('#fe_sys_multi_release').on('change', change_release_version);
+			change_release_version();
 		} ); // api.get
 	}
 	
