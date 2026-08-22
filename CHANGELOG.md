@@ -1,5 +1,22 @@
 # xyOps Changelog
 
+## Version v1.0.93
+
+> August 22, 2026
+
+- [`68b6def4`](https://github.com/pixlcore/xyops/commit/68b6def4bc7ef904a1366d256c57850151f1ce4e): Version 1.0.93
+- [`b450c530`](https://github.com/pixlcore/xyops/commit/b450c530b97f31f8b963455f060b9025df57ac15): Feature: Show inline release notes in system upgrade dialogs for both xyOps and xySat.
+- [`285b7bfd`](https://github.com/pixlcore/xyops/commit/285b7bfd4a086bbd368f116995f887cdf14060bc): Feature: Add shared capacity pools for job concurrency limits.
+- [`e95e641f`](https://github.com/pixlcore/xyops/commit/e95e641f400d272819ce9108f18d6e62899ab1fd): Feature: Add new limited system tag for runtime limit triggers.
+- [`1df8a375`](https://github.com/pixlcore/xyops/commit/1df8a375c6dbe79cbc71ad6525658ba9d61c4f1d): Bug Fix: Reset action and limit runtime state for job retries.
+- [`a7e2578c`](https://github.com/pixlcore/xyops/commit/a7e2578cb75f1d6d620d909849ae2236df665a10): Feature: Add alerted system tag for jobs affected by server alerts.
+- [`54b1173c`](https://github.com/pixlcore/xyops/commit/54b1173ce09d43e6fdb56c00f3af047d466c50c7): Docs: Improve bulk data export guidance
+- [`61829bfe`](https://github.com/pixlcore/xyops/commit/61829bfee67375caffd4bd63767c068ee4d659f4): Feature: Make offline server cache retention configurable
+- [`fd8146fa`](https://github.com/pixlcore/xyops/commit/fd8146fa49b33b4f02bec40ac5f9cd005ad78f78): Bug Fix: Doc Search API: Strip HTML markup from source files before searching.
+- [`e3d11a1d`](https://github.com/pixlcore/xyops/commit/e3d11a1d03136a48200d238393675d210f87600f): Bug Fix: Admin bulk data export can timeout and crash with massive amounts of jobs, with "Job Files" or "Job Logs" extras enabled.
+- [`f36fd9d9`](https://github.com/pixlcore/xyops/commit/f36fd9d94130859a93126efbee184447bd238ef0): Doc: Servers: Add section about active server list and server history.
+- [`6f899496`](https://github.com/pixlcore/xyops/commit/6f899496dad8a75c987791d7f0d38edc49c683c5): Bug Fix: UI: Workflow Details: Show controller nodes in table even if they are in an error state.
+
 ## Version v1.0.92
 
 > August 19, 2026
