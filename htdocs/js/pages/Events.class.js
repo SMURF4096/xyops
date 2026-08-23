@@ -3588,7 +3588,7 @@ Page.Events = class Events extends Page.PageUtils {
 				label: 'Ephemeral Jobs',
 				checked: !!trigger.ephemeral
 			}),
-			caption: 'Delete all jobs after completion.  Note that if a job produces output files, it automatically disables ephemeral mode.'
+			caption: 'Delete all jobs after completion.  Note that if a job fails, or produces output files, it automatically disables ephemeral mode.'
 		});
 		
 		// timezone (shared by schedule and crontab types)
