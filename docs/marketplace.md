@@ -169,6 +169,16 @@ On the Plugin Edit screen, xyOps provides a "**Export...**" button.  Click this 
 
 Commit this file to your Plugin's source code repository.  It must live at the root level and be named `xyops.json`.
 
+### Minimum xyOps Version
+
+The optional top-level `xyops` property in `xyops.json` specifies the minimum version of xyOps that your Plugin supports.  Set it to a [semver](https://semver.org/) string without a leading `v`, for example:
+
+```json
+"xyops": "1.2.3"
+```
+
+The export process sets this property to your current xyOps version automatically.  You can change it to the actual minimum version required by your Plugin.  If a user attempts to install the Plugin on an older version of xyOps, the Marketplace will stop the installation and display the required version.
+
 ## README
 
 Make sure your Plugin has a detailed `README.md` file at the root level of your code repository.  It should be in [Markdown](https://daringfireball.net/projects/markdown/syntax) format, specifically [GitHub-Flavored Markdown](https://github.github.com/gfm/).  This file will serve as your product details page when users click on your Plugin from the marketplace search results.  Your README should have the following:
