@@ -128,6 +128,27 @@ This object contains environment variables merged into every job process.
 
 Values can be overridden per job.
 
+## job_custom_overrides
+<!-- Title: Job Custom Overrides -->
+
+This array allows you to define custom job expression rules, which can apply custom updates to the job as it completes.
+
+Example:
+
+```json
+"job_custom_overrides": [
+	{
+		"expression": "(code == 'abort') && match(description, 'No available servers')",
+		"updates": {
+			"code": "warning",
+			"push": { "tags": ["flag"] }
+		}
+	}
+]
+```
+
+Rules are evaluated in order against the completed job.  All matching rules are applied.  See [Custom Job Overrides](recipes.md#custom-job-overrides) for timing details, protected properties, and practical examples.
+
 ## job_universal_limits
 <!-- Title: Job Universal Limits -->
 

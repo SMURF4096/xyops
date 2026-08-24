@@ -15,7 +15,7 @@ Welcome to the xyOps documentation. xyOps is a job scheduler, workflow engine, a
 - **[Production Scaling](scaling.md)**: Best practices for running at scale, hardware sizing, caching, and multi-conductor.
 - **[Command Line](cli.md)**: Service control commands and admin utilities available via `bin/control.sh`.
 - **[Cronicle](cronicle.md)**: Migrate from Cronicle, enable compatibility mode, and optional UI white-labeling.
-- **[Recipes](recipes.md)**: Practical patterns like continuous jobs and error handling you can copy and adapt.
+- **[Recipes](recipes.md)**: Practical patterns like custom job overrides, continuous jobs, and error handling you can copy and adapt.
 
 ## Core Concepts
 

@@ -10,6 +10,7 @@ xyOps uses a custom expression syntax built upon the open-source [JavaScript Exp
 - Plugin Parameters
 - Workflow Decision Controllers
 - Workflow Split Controllers
+- Custom Job Override Rules
 - Web Hook Messages
 - Email Templates
 
@@ -93,3 +94,4 @@ In addition to the standard JEXL operators, the following custom functions are a
 - [Plugin Parameter Macro Expansion](plugins.md#macro-expansion)
 - [Workflow Decision Controller](workflows.md#decision-controller)
 - [Workflow Split Controller](workflows.md#split-controller)
+- [Custom Job Overrides](recipes.md#custom-job-overrides)

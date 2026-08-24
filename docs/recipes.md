@@ -4,6 +4,218 @@
 
 This document provides a set of useful recipes you can use in xyOps.
 
+## Custom Job Overrides
+
+Custom Job Overrides allow administrators to reclassify and annotate completed jobs using global rules.  Each rule contains an expression that is evaluated against the completed job, plus a set of updates to apply when the expression matches.
+
+This is useful when the same technical result can have a different operational meaning in your environment.  For example, you may want to treat an unavailable target as a critical error, consider a full queue to be only a warning, or flag successful jobs that returned partial data.
+
+Rules are configured globally using the [job_custom_overrides](config.md#job_custom_overrides) property in `config.json` or `overrides.json`.  They apply to all completed jobs, including regular event jobs, workflow jobs, workflow sub-jobs, and ad hoc jobs.  This is an administrator-level feature, so job overrides should be reviewed with the same care as other protected server configuration.
+
+### Rule Format
+
+The configuration value is an array of rule objects.  Each rule supports the following properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `expression` | String | A required expression in [xyOps Expression Format](xyexp.md). |
+| `updates` | Object | A required object containing top-level job properties to add or replace. |
+
+Here is the basic structure:
+
+```json
+"job_custom_overrides": [
+	{
+		"expression": "YOUR_EXPRESSION_HERE",
+		"updates": {
+			"code": "warning",
+			"push": {
+				"tags": ["YOURTAGID"]
+			}
+		}
+	}
+]
+```
+
+Expressions use the completed [Job](data.md#job) as their context, so properties are referenced directly without a `job.` prefix.  For example, use `code`, `description`, `event`, `input.data`, and `data`, rather than `job.code` or `job.description`.
+
+Job details that are separated internally while a job is running are available to expressions at completion time.  This includes input data and files, output data and files, timelines, workflow data, and server data.
+
+### Evaluation and Completion Order
+
+Rules are evaluated in the order they appear in the array.  Every matching rule is applied, and later rules see updates made by earlier rules.  This allows rules to build on one another, but it also means their order can matter.
+
+Custom overrides run before retries, completion actions, statistics, system hooks, and final job storage.  As a result:
+
+- Changing `code` changes which completion conditions fire, such as `success`, `warning`, `critical`, `abort`, `error`, or `user`.
+- Changing a non-zero result to `0` can prevent a retry that would otherwise occur.
+- Changing `abort` to another non-zero code can make the job eligible for an ordinary retry limit.
+- Pushed tags are available to tag-based completion actions.
+- The final overridden values are stored in job history and used for statistics.
+
+If a rule is malformed or its expression cannot be evaluated, xyOps adds a warning to the job meta log and continues processing the remaining rules.
+
+### Replacing Properties and Pushing Array Values
+
+Properties inside `updates` are shallow top-level additions or replacements.  For example, this replaces the final result code and description:
+
+```json
+"updates": {
+	"code": "warning",
+	"description": "The expected capacity limit was reached."
+}
+```
+
+Assigning an array property directly replaces the existing array.  To append values instead, use the special `push` object.  This is most commonly used for tags:
+
+```json
+"updates": {
+	"push": {
+		"tags": ["capacitywarning"]
+	}
+}
+```
+
+The `push` system can append to any existing array property on the job, including `tags`, `actions`, and `limits`.  A push is ignored when the target job property is not an array.
+
+Tag values must be existing tag IDs.  Unknown tags are removed during job completion, so create the tags first and copy their IDs from the UI.  See [Tags](tags.md) for details.
+
+### Protected Job Properties
+
+Some internal properties can be inspected by expressions but cannot be changed by custom overrides.  These properties are protected because they identify the job, control its lifecycle, or are managed in separate job-detail storage:
+
+```text
+data, files, input, activity, timelines, output, workflowData, serverData,
+id, state, completed, elapsed, event, category, plugin
+```
+
+Updates to these properties are ignored.  Other top-level properties may be added or replaced by an administrator.
+
+### Distinguish Unavailable Targets from a Full Queue
+
+xyOps normally reports both of these launch failures using the `abort` result code:
+
+- No eligible target servers are available.
+- No eligible servers are available and the configured queue is already full.
+
+An administrator may consider the first case a critical targeting or infrastructure error, while the second case is expected backpressure that only needs a warning.  These rules classify them separately and add searchable tags:
+
+```json
+"job_custom_overrides": [
+	{
+		"expression": "(code == 'abort') && (description == 'No available servers matching targets.')",
+		"updates": {
+			"code": "critical",
+			"push": {
+				"tags": ["targetunavailable"]
+			}
+		}
+	},
+	{
+		"expression": "(code == 'abort') && (description == 'No available servers matching targets, and the queue is full.')",
+		"updates": {
+			"code": "warning",
+			"push": {
+				"tags": ["queuefull"]
+			}
+		}
+	}
+]
+```
+
+Replace `targetunavailable` and `queuefull` with tag IDs defined in your installation.  Exact description comparisons are used here because the two messages share the same prefix.
+
+### Treat a Known No-Op Result as Success
+
+Some tools use a non-zero exit code for a valid no-op result, such as finding that no files or records need to be changed.  This example limits the override to one event and converts that known result into a success:
+
+```json
+"job_custom_overrides": [
+	{
+		"expression": "(event == 'YOUR_EVENT_ID') && (code == 3) && match(description, 'No changes required')",
+		"updates": {
+			"code": 0,
+			"description": "No changes were required."
+		}
+	}
+]
+```
+
+Replace `YOUR_EVENT_ID` with the actual event ID.  Because the final code becomes `0`, success actions fire and error actions do not.
+
+### Promote Partial Output to a Warning
+
+A plugin may exit successfully while reporting a partial result in its structured output data.  Output data is available to expressions through the top-level `data` property:
+
+```json
+"job_custom_overrides": [
+	{
+		"expression": "data && (data.status == 'partial')",
+		"updates": {
+			"code": "warning",
+			"description": "The job completed with partial results.",
+			"push": {
+				"tags": ["partialresult"]
+			}
+		}
+	}
+]
+```
+
+This preserves the plugin's output data while changing how the final job is classified.
+
+### Flag Slow Successful Jobs
+
+The `elapsed` property contains the completed job duration in seconds.  This example keeps a slow job successful, updates its description, and pushes a tag for searching or tag-based actions:
+
+```json
+"job_custom_overrides": [
+	{
+		"expression": "(!code) && (elapsed >= 3600)",
+		"updates": {
+			"description": "The job completed successfully, but took one hour or longer.",
+			"push": {
+				"tags": ["slowjob"]
+			}
+		}
+	}
+]
+```
+
+### Build Rules in Stages
+
+Because later rules see earlier updates, you can separate classification from annotation.  The first rule below converts one result to a warning.  The second rule then adds a tag to every warning, including warnings produced by the first rule:
+
+```json
+"job_custom_overrides": [
+	{
+		"expression": "(event == 'YOUR_EVENT_ID') && (code == 2)",
+		"updates": {
+			"code": "warning"
+		}
+	},
+	{
+		"expression": "code == 'warning'",
+		"updates": {
+			"push": {
+				"tags": ["warningresult"]
+			}
+		}
+	}
+]
+```
+
+### Testing and Troubleshooting
+
+Keep these tips in mind when introducing new rules:
+
+- Start with exact event, plugin, category, or description matches, then broaden the expression after confirming the result.
+- Test rules on a non-production event before applying them across the installation.
+- Check the job meta log for malformed-rule or expression warnings.
+- Remember that all matching rules apply.  Review later rules for expressions that may also match an updated result.
+- Define tag IDs before pushing them, and verify the IDs rather than their display titles.
+- Use the helpers documented in [xyOps Expression Format](xyexp.md), including `match`, `includes`, and `find`, for more advanced conditions.
+
 ## Continuous Jobs
 
 A continuous job is defined as a job that automatically relaunches itself upon completion. This functionality can enhance the efficiency and reliability of job execution in various systems.  To implement a continuous job, follow these steps:
