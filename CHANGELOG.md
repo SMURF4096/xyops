@@ -1,5 +1,18 @@
 # xyOps Changelog
 
+## Version v1.0.94
+
+> August 24, 2026
+
+- [`13f01937`](https://github.com/pixlcore/xyops/commit/13f019372e3ef5da737f3e25c669ffa264dd2625): Version 1.0.94
+- [`90d17501`](https://github.com/pixlcore/xyops/commit/90d17501871d581b0450bf026fe29a511d8ced17): Feature: Allow tags to be dynamically added by title rather than ID (from user code in jobs).
+- [`c183e0ad`](https://github.com/pixlcore/xyops/commit/c183e0ad22ada4fcad591f853186abdd36568cc4): Feature: Add custom job override rules with JEXL expressions.  Fixes #424.
+- [`c31e0427`](https://github.com/pixlcore/xyops/commit/c31e042724e317592dd191cc1fb9be9229697a0e): Bug Fix: Plugin "Push Defaults" fails if any users are currently editing any affected events.  Fixes #426.
+- [`dd254f24`](https://github.com/pixlcore/xyops/commit/dd254f24b939fb128c13cb07ba7a6f213fc533f8): Bug Fix: Show ephemeral sub-jobs as deleted in workflow jobs table.
+- [`f229f8da`](https://github.com/pixlcore/xyops/commit/f229f8da3c95e9039f599ed2088aeebaca309297): Doc: Marketplace: Add section on requiring a minimum xyOps version for plugins.  Ref #422.
+- [`56707730`](https://github.com/pixlcore/xyops/commit/567077305688737e8e16b8c63d4e8c679237c7b1): UI Tweak: Fix wording in ephemeral checkbox caption.
+- [`ac5613c4`](https://github.com/pixlcore/xyops/commit/ac5613c45e85da2158c9d2f96d5266378926aa14): Bug Fix: Cosmetic: Prevent benign warning from hitting workflow meta log when a join controller is used.
+
 ## Version v1.0.93
 
 > August 22, 2026
