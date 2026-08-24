@@ -498,7 +498,7 @@ Page.Plugins = class Plugins extends Page.PageUtils {
 					var user = find_object( app.users, { username: socket.username } ) || { full_name: username };
 					var event = find_object( app.events, { id: loc.query.id } ) || { title: loc.query.id };
 					var thing = (event.type == 'workflow') ? 'workflow' : 'event';
-					lines += `- User **${user.full_name}** is currently editing ${thing} **${event.title}**.`;
+					lines.push(`- User **${user.full_name}** is currently editing ${thing} **${event.title}**.`);
 				}
 			}
 			if (lines.length) {
