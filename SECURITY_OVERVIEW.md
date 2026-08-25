@@ -81,6 +81,7 @@ xyOps protects these in different ways depending on the asset. Some are hashed, 
 | CSRF token | Random token stored inside session | Yes, after login or session resume | Held in runtime memory on the client, not `localStorage`. |
 | API key | Salted SHA-256 hash only | Plaintext shown once at creation | Stored hash is based on the key plus the key ID. |
 | Secret Vault values | AES-256-GCM encrypted record | No, unless an admin explicitly decrypts a secret | Decrypted only in memory when needed. |
+| Literal values in web hook definitions | Plaintext shared configuration | Yes, to authenticated users | Do not place credentials directly in web hook URLs, headers, bodies, titles, or notes. Use a Secret Vault reference instead. |
 | `secret_key` | Config override file with owner-only permissions | No | Also excluded from config APIs. |
 | Satellite auth token | Derived token based on server ID and secret key | No | Used by xySat to authenticate to the conductor. |
 
@@ -278,6 +279,8 @@ xyOps protects secret values at rest, but once a secret is handed to a job or we
 - a plugin can store secret-derived data in its own output
 
 So Secret Vaults protect storage and controlled delivery, not arbitrary downstream behavior.
+
+Literal values placed directly in ordinary configuration are not Secret Vault values. In particular, web hook definitions are shared with authenticated users so they can be listed and selected by other xyOps features. A credential placed directly in a web hook URL, header, body, title, or notes is therefore stored and exposed as ordinary plaintext configuration. Store the credential in a Secret Vault and reference it with an expression such as `{{ secrets.API_TOKEN }}` or `{{ secrets.WEBHOOK_URL }}`.
 
 
 ## The Global Secret Key
@@ -645,7 +648,9 @@ Web hooks are reusable outbound HTTP definitions that can send notifications to 
 
 Important defaults:
 
-- ordinary users cannot create or edit web hooks unless granted that privilege
+- ordinary users cannot create, edit, delete, or test web hooks unless granted the corresponding privilege
+- authenticated users can read web hook definitions because they are shared configuration used by events, alerts, workflows, and other client features
+- literal URL, header, and body values are visible as part of those definitions and must not contain credentials
 - web hooks can use Secret Vault values through template expansion
 - web hook activity is observable and testable
 

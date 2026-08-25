@@ -97,7 +97,7 @@ The most sensitive assets in xyOps are:
 - satellite and peer authentication tokens derived from the secret key
 - mail, storage, SSO, and other credentials stored in config files
 - job logs and uploaded files that may contain credentials or sensitive output
-- administrator-only plugin definitions, web hooks, system hooks, and config overrides
+- administrator-controlled plugin definitions, web hooks, system hooks, and config overrides
 
 ## System Overview
 
@@ -713,7 +713,10 @@ Behavior:
 - Web hooks are outbound HTTP requests triggered by jobs, alerts, or system events.
 - Only appropriately privileged users may create or edit them.
 - Default installs do not grant web hook privileges to basic users.
+- Web hook definitions are shared configuration and are visible to authenticated users. This includes literal values stored in the URL, headers, and body.
+- The web hook privileges control creation, editing, deletion, and testing. They do not establish a read-confidentiality boundary for the definition.
 - Web hook URL, headers, and body support `{{ ... }}` expression expansion using xyOps data context.
+- Sensitive credentials should be stored in a Secret Vault and referenced with expressions such as `{{ secrets.API_TOKEN }}`. Literal credentials placed directly in a web hook definition are not protected as secrets.
 - Optional features include redirects, retries, timeout control, and TLS verification bypass.
 - Hook execution records detailed request/response/timing diagnostics.
 - Notification channels may wrap web hooks as one delivery mechanism among others.
@@ -722,13 +725,15 @@ Threat model implications:
 
 - A web hook that an administrator points at an internal hostname, `localhost`, or metadata IP is not automatically an SSRF vulnerability. It is often the intended purpose of the feature.
 - The correct question is who can configure the destination, and whether outbound restrictions such as airgap are functioning as intended.
+- Authenticated visibility of literal web hook configuration is expected behavior. Secret Vault values remain a separate security boundary and must not be disclosed through definition APIs or routine client data.
 
 Auditor guidance:
 
 - Treat outbound request features as admin-controlled capability surfaces first.
+- Do not treat a literal credential placed directly in a web hook URL, header, or body as a Secret Vault disclosure. Verify whether an actual Secret Vault value crosses an unintended boundary.
 - A real issue would be:
   - non-admin access to hook creation or editing
-  - template evaluation leaking unexpected secrets
+  - template evaluation leaking Secret Vault values to an unauthorized user or client surface
   - privilege bypass allowing a low-privilege user to trigger a privileged hook unexpectedly
   - outbound restriction bypass where policy is supposed to apply
 
@@ -975,7 +980,7 @@ Inspect:
 
 - logs, activity records, and job details for accidental plaintext secret output
 - secret assignment flows for over-broad access
-- web hook diagnostics that may include expanded secret headers or bodies
+- web hook diagnostics that may accidentally include expanded Secret Vault values from headers, URLs, or bodies
 - export/import paths
 
 ### Token scope and replay
