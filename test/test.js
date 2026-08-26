@@ -10,6 +10,7 @@ const assert = require('node:assert/strict');
 const async = require('async');
 const PixlRequest = require("pixl-request");
 const Tools = require('pixl-tools');
+const API = require('../lib/api.js');
 
 // override the overrides with our test overrides
 process.env['XYOPS_config_overrides_file'] = 'test/fixtures/overrides.json';
@@ -107,6 +108,69 @@ module.exports = {
 			assert.ok( !data.code, 'successful api response' );
 			assert.ok( !!data.params, 'found params in response' );
 			assert.ok( data.params.foo === 'bar', 'found our value in params' );
+		},
+		
+		async function test_api_error_redacts_sensitive_headers(test) {
+			// Exercise the centralized error logger directly, so no real credentials
+			// ever have to pass through the test server or reach a log file.
+			var api = new API();
+			var logged_data = null;
+			var response = null;
+			var sensitive_headers = [
+				'x-api-key',
+				'x-session-id',
+				'x-csrf-token',
+				'authorization',
+				'proxy-authorization',
+				'cookie'
+			];
+			var request_headers = {
+				'x-api-key': 'api-secret',
+				'x-session-id': 'session-secret',
+				'x-csrf-token': 'csrf-secret',
+				'authorization': 'Bearer auth-secret',
+				'proxy-authorization': 'Basic proxy-secret',
+				'cookie': 'session_id=cookie-secret',
+				'user-agent': 'xyOps Unit Tester'
+			};
+			var original_headers = Tools.copyHash(request_headers);
+			
+			api.api = {
+				logError(code, msg, data) {
+					logged_data = data;
+				}
+			};
+			api.web = {
+				requests: {
+					test_request: {
+						id: 'test_request',
+						ip: '127.0.0.1',
+						ips: [ '127.0.0.1' ],
+						request: {
+							url: '/api/app/error/v1',
+							headers: request_headers
+						}
+					}
+				},
+				getSelfURL(request, url) {
+					return 'http://localhost' + url;
+				}
+			};
+			
+			function callback(data, http_code) {
+				response = { data, http_code };
+			}
+			callback._req_id = 'test_request';
+			
+			api.doError('api', 'Sensitive header regression test', callback);
+			
+			assert.ok(logged_data && logged_data.headers, 'captured API error log data');
+			sensitive_headers.forEach( function(header) {
+				assert.ok(!(header in logged_data.headers), 'redacted sensitive header: ' + header);
+			} );
+			assert.equal(logged_data.headers['user-agent'], 'xyOps Unit Tester', 'preserved non-sensitive header');
+			assert.deepEqual(request_headers, original_headers, 'did not mutate live request headers');
+			assert.equal(response.http_code, '400', 'returned API validation HTTP status');
 		},
 		
 		async function test_satellite(test) {
