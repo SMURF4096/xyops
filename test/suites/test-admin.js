@@ -17,6 +17,8 @@ function runMockAdminExport(opts) {
 		var finished = 0;
 		var updated = 0;
 		var job = null;
+		var searched = [];
+		var indexed = [];
 		
 		response.setHeader = function() {};
 		response.writeHead = function() {};
@@ -45,8 +47,12 @@ function runMockAdminExport(opts) {
 		};
 		
 		admin.unbase = {
-			indexes: { jobs: {} },
+			indexes: {
+				jobs: { id: 'jobs' },
+				servers: { id: 'servers' }
+			},
 			get(index, id, callback) {
+				indexed.push(index + '/' + id);
 				callback(null, {
 					id: id,
 					log_file_size: 100,
@@ -57,7 +63,8 @@ function runMockAdminExport(opts) {
 		
 		admin.storage = {
 			searchRecords(query, index, callback) {
-				callback(null, { job1: 1 });
+				searched.push(index.id);
+				callback(null, (index.id === 'servers') ? {} : { job1: 1 });
 			},
 			get(key, callback) {
 				fetched.push(key);
@@ -69,14 +76,14 @@ function runMockAdminExport(opts) {
 		
 		try {
 			admin.api_admin_export_data({
-				params: { items: opts.items },
-				query: {},
+				params: opts.params || { items: opts.items },
+				query: opts.query || {},
 				request: { headers: {} },
 				response: response
 			}, function() {
 				callback_count++;
 				setImmediate( function() {
-					resolve({ fetched, callback_count, finished, updated });
+					resolve({ fetched, searched, indexed, callback_count, finished, updated });
 				});
 			});
 		}
@@ -305,6 +312,25 @@ exports.tests = [
     // gzip magic bytes 0x1f 0x8b
     assert.ok(gz[0] === 0x1f && gz[1] === 0x8b, 'buffer looks like gzip');
   },
+
+	async function test_admin_export_data_accepts_scalar_selectors(test) {
+		// HTTP query parsers produce strings for single values and arrays for
+		// repeated values.  All three convenience selectors should accept both.
+		var list_result = await runMockAdminExport({
+			query: { lists: 'roles' }
+		});
+		var index_result = await runMockAdminExport({
+			query: { indexes: 'jobs' }
+		});
+		var extra_result = await runMockAdminExport({
+			query: { extras: 'monitor_data' }
+		});
+		
+		assert.deepEqual(list_result.fetched, [ 'global/roles' ], 'exported scalar list selector');
+		assert.deepEqual(index_result.searched, [ 'jobs' ], 'exported scalar index selector');
+		assert.deepEqual(index_result.indexed, [ 'jobs/job1' ], 'loaded record from scalar index selector');
+		assert.deepEqual(extra_result.searched, [ 'servers' ], 'exported scalar extra selector');
+	},
 
 	async function test_admin_export_data_skips_unrequested_job_logs(test) {
 		// A small log must not bypass either the item.logs or job.output checks.
