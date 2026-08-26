@@ -1,8 +1,12 @@
 # Product Comparisons
 
+These comparisons are written for teams evaluating deployment, licensing, support, and day-to-day operational fit. xyOps prices below use month-to-month billing: **$200/month** for Professional and **$1,000/month** for Enterprise. Annual billing is also available at **$2,000/year** and **$10,000/year**, equivalent to about $167/month and $834/month.
+
+For xyOps details, see the [pricing page](https://xyops.io/), [changelog](https://github.com/pixlcore/xyops/blob/main/CHANGELOG.md), [workflow documentation](https://docs.xyops.io/workflows), [trigger documentation](https://docs.xyops.io/triggers), and [SSO documentation](https://docs.xyops.io/sso).
+
 ## n8n
 
-This comparison focuses on **self-hosted n8n** versus **self-hosted xyOps**. Research was last checked on **May 4, 2026**.
+This comparison focuses on **self-hosted n8n** versus **self-hosted xyOps**. Research was last checked on **August 26, 2026**.
 
 The short version: n8n is a strong workflow automation product with a large integration catalog, a polished visual editor, and serious enterprise features. xyOps overlaps with n8n on workflow automation, scheduling, webhooks, plugins, secrets, users, roles, and self-hosting. But xyOps is not trying to be only an automation canvas. It is a complete operations platform that combines job scheduling, workflow orchestration, server monitoring, alerting, snapshots, ticketing, incident response, and fleet-aware execution in one self-hosted system.
 
@@ -43,7 +47,7 @@ n8n also offers a registered Community Edition license key that currently unlock
 | Plan | xyOps | n8n |
 |------|-------|-----|
 | **Free self-hosted** | All app features, community support, BSD-3-Clause open source | Community Edition, core workflow automation, some features gated |
-| **Mid-tier self-hosted** | Professional Support: $200/month, all app features, private ticketing, 24 hour turnaround | Business: about $783/month, billed annually, 40K production workflow executions, 6 shared projects, SSO/SAML/LDAP, environments, scaling options, Git version control, forum support |
+| **Mid-tier self-hosted** | Professional Support: $200/month, all app features, private ticketing, 24 hour turnaround | Business: €667/month, billed annually, 40K production workflow executions, 6 shared projects, SSO/SAML/LDAP, environments, scaling options, Git version control, forum support |
 | **Enterprise self-hosted** | Enterprise Support: $1,000/month, all app features, SSO setup/support, air-gapped install support, private ticketing, 1 hour turnaround, live chat | Enterprise: contact sales, custom execution volume, unlimited shared projects, 200+ concurrent executions, longer insights retention, external secret store integration, log streaming, extended data retention, dedicated support with SLA |
 
 There is another important self-hosting distinction: n8n Business and Enterprise features require a license key. n8n's pricing FAQ says self-hosted paid license keys must ping n8n's license server daily to stay active, and that this ping includes production execution counts. xyOps paid plans are support subscriptions and do not turn features on or off in the app.
@@ -72,7 +76,7 @@ This is one of the clearer commercial differences. xyOps offers a paid Professio
 | **Incident tickets** | Native ticket system tied to jobs, alerts, files, comments, due dates, and runnable events | Not a built-in incident ticketing system |
 | **Snapshots** | Native point-in-time server/group snapshots for forensic context and alert actions | Not comparable as a native server snapshot system |
 | **Secrets** | Encrypted at rest, assignment to events, categories, plugins, and web hooks, runtime delivery as env vars or templates | Built-in encrypted credentials; external secret stores require Enterprise self-hosted or Enterprise Cloud |
-| **SSO** | Included in the open-source app, with trusted-header SSO patterns and setup guidance | SAML/OIDC SSO is available on Business and Enterprise plans |
+| **SSO** | Included in the open-source app, with a direct OIDC plugin plus trusted-header SSO patterns and group-to-role mapping | SAML and LDAP are available on Business; broader Enterprise identity options depend on the commercial license |
 | **Roles and permissions** | Included in the open-source app, with privileges, roles, category restrictions, and group restrictions | RBAC is available on all plans except Community Edition, with plan-specific project and role limits |
 | **Air-gapped installs** | Supported by documentation, and Enterprise support includes air-gapped installation support | n8n supports self-hosting, but paid feature activation depends on license-server reachability unless separately arranged |
 
@@ -86,7 +90,7 @@ Choose **xyOps** when the main problem is operating infrastructure and productio
 
 - n8n is a strong automation tool, but its free self-hosted tier excludes several team, security, observability, and enterprise operations features.
 - xyOps includes all app features in the open-source version, including SSO, roles, workflows, monitoring, alerting, tickets, plugins, web hooks, buckets, secrets, snapshots, and fleet-aware scheduling.
-- n8n Business is a paid self-hosted feature tier at about $783/month, billed annually, but it still lists forum support.
+- n8n Business is a paid self-hosted feature tier at €667/month, billed annually, but it still lists forum support.
 - xyOps Professional is a $200/month support plan with private ticketing and a 24 hour turnaround.
 - xyOps Enterprise is a $1,000/month support plan with 1 hour turnaround, live chat, SSO setup/support, and air-gapped installation support.
 - The products do not line up exactly. n8n is primarily workflow automation. xyOps is workflow automation plus the surrounding ops control plane.
@@ -111,7 +115,7 @@ Choose **xyOps** when the main problem is operating infrastructure and productio
 
 ## Rundeck
 
-This comparison focuses on **self-hosted Rundeck** and **PagerDuty Runbook Automation Self-Hosted** versus **self-hosted xyOps**. Research was last checked on **May 4, 2026**.
+This comparison focuses on **self-hosted Rundeck** and **PagerDuty Runbook Automation Self-Hosted** versus **self-hosted xyOps**. Research was last checked on **August 26, 2026**.
 
 Rundeck is one of the closest comparisons to xyOps because it is also designed for operations automation, scheduled jobs, self-service runbooks, and controlled execution across infrastructure. It is directly aimed at platform engineering, DevOps, SRE, and IT operations teams.
 
@@ -193,7 +197,7 @@ Rundeck's commercial support is tied to the commercial Runbook Automation licens
 | **Incident tickets** | Native ticket system tied to jobs, alerts, files, comments, due dates, and runnable events | Integrates with tools such as ServiceNow in commercial offerings, but does not provide the same built-in lightweight ticket system |
 | **Snapshots** | Native point-in-time server/group snapshots for forensic context and alert actions | Not comparable as a native server snapshot system |
 | **Secrets** | Encrypted at rest, assignment to events, categories, plugins, and web hooks, runtime delivery as env vars or templates | Key/password encryption and key storage are included in OSS; external or advanced secret integrations depend on commercial context and plugins |
-| **SSO** | Included in the open-source app, with trusted-header SSO patterns and setup guidance | Commercial Runbook Automation feature |
+| **SSO** | Included in the open-source app, with a direct OIDC plugin plus trusted-header SSO patterns and group-to-role mapping | Commercial Runbook Automation feature |
 | **Access control** | Included in the open-source app, with privileges, roles, category restrictions, and group restrictions | Rundeck has ACL policy support; GUI-based ACL builder and evaluator are commercial |
 | **High availability** | Multi-conductor deployment and external storage options documented, with Enterprise support available | High availability clustering, auto takeover, and load-balanced workloads are commercial |
 | **Air-gapped installs** | Supported by documentation, and Enterprise support includes air-gapped installation support | Self-hosted deployments are available, but commercial feature and support access requires a Runbook Automation license |
@@ -227,7 +231,7 @@ Choose **xyOps** when the main problem is operating the automation and the infra
 
 ## Inngest
 
-This comparison focuses on **self-hosted Inngest** versus **self-hosted xyOps**. Research was last checked on **May 4, 2026**.
+This comparison focuses on **self-hosted Inngest** versus **self-hosted xyOps**. Research was last checked on **August 26, 2026**.
 
 Inngest is an event-driven durable execution platform for application developers. It lets teams write TypeScript, Python, or Go functions in their own codebase, then use Inngest for durable steps, retries, scheduling, flow control, events, queues, and observability. This makes it a strong fit for background jobs, AI workflows, product workflows, and serverless-friendly application logic.
 
@@ -267,7 +271,7 @@ The public Inngest pricing page is primarily for the hosted platform, but it doe
 | Plan | xyOps | Inngest |
 |------|-------|---------|
 | **Free self-hosted** | All app features, community support, BSD-3-Clause open source | Self-hosted Inngest source and binaries, community/GitHub issue path, direct support not guaranteed |
-| **Mid-tier self-hosted** | Professional Support: $200/month, all app features, private ticketing, 24 hour turnaround | None published for self-hosting; hosted Pro starts at $75/month |
+| **Mid-tier self-hosted** | Professional Support: $200/month, all app features, private ticketing, 24 hour turnaround | None published for self-hosting; hosted Pro starts at $99/month |
 | **Enterprise self-hosted** | Enterprise Support: $1,000/month, all app features, SSO setup/support, air-gapped install support, private ticketing, 1 hour turnaround, live chat | Contact sales for dedicated self-hosted support or service guarantees |
 
 This is a practical difference for self-hosted buyers. xyOps publishes support pricing and keeps the application feature set the same across free, Professional, and Enterprise usage. Inngest publishes hosted-platform pricing, while self-hosted support and service guarantees point to enterprise contact-sales conversations.
@@ -277,7 +281,7 @@ This is a practical difference for self-hosted buyers. xyOps publishes support p
 | Support path | xyOps | Inngest |
 |--------------|-------|---------|
 | **Community help** | GitHub Discussions, GitHub Issues for bugs, Reddit, Discord, videos, docs | Discord, GitHub issues, support center, docs |
-| **Paid non-enterprise support** | Professional plan includes private ticketing and a 24 hour turnaround | No published self-hosted support tier; hosted Pro starts at $75/month |
+| **Paid non-enterprise support** | Professional plan includes private ticketing and a 24 hour turnaround | No published self-hosted support tier; hosted Pro starts at $99/month |
 | **Enterprise support** | Enterprise plan includes private ticketing, 1 hour turnaround, live chat, SSO setup/support, and air-gapped installation support | Contact sales for dedicated support, dedicated Slack channel, and self-hosted service guarantees |
 | **Published self-hosted price** | $200/month for Professional, $1,000/month for Enterprise | None published |
 
@@ -299,7 +303,7 @@ Inngest's docs are direct about self-hosting support: the support team does not 
 | **Incident tickets** | Native ticket system tied to jobs, alerts, files, comments, due dates, and runnable events | Not a built-in incident ticketing system |
 | **Snapshots** | Native point-in-time server/group snapshots for forensic context and alert actions | Not comparable as a native server snapshot system |
 | **Secrets** | Encrypted at rest, assignment to events, categories, plugins, and web hooks, runtime delivery as env vars or templates | Signing keys, event keys, SDK security patterns, and optional end-to-end encryption middleware |
-| **SSO** | Included in the open-source app, with trusted-header SSO patterns and setup guidance | SAML is listed for Enterprise users |
+| **SSO** | Included in the open-source app, with a direct OIDC plugin plus trusted-header SSO patterns and group-to-role mapping | SAML is listed for Enterprise users |
 | **Roles and permissions** | Included in the open-source app, with privileges, roles, category restrictions, and group restrictions | RBAC is listed under Enterprise plan features |
 | **Air-gapped installs** | Supported by documentation, and Enterprise support includes air-gapped installation support | Self-hosting is available; dedicated self-hosted support and guarantees require enterprise discussion |
 
@@ -314,7 +318,7 @@ Choose **xyOps** when the main problem is operating infrastructure and productio
 - Inngest is a strong developer-first durable execution platform for application workflows, background jobs, event handling, and AI workflows.
 - xyOps is a stronger fit when the workflow engine needs to live beside server monitoring, alerting, incident tickets, snapshots, and fleet-aware job execution.
 - Inngest self-hosting is supported, but the docs say direct support is not guaranteed for self-hosted instances unless dedicated support or service guarantees are arranged through enterprise options.
-- Inngest's public pricing starts at $75/month for hosted Pro, while self-hosted support pricing is not published.
+- Inngest's public pricing starts at $99/month for hosted Pro, while self-hosted support pricing is not published.
 - xyOps publishes self-hosted support pricing at $200/month for Professional and $1,000/month for Enterprise, and all app features are included in the free open-source version.
 - The products do not line up exactly. Inngest is primarily a code-first durable execution engine. xyOps is workflow automation plus the surrounding ops control plane.
 
@@ -332,7 +336,7 @@ Choose **xyOps** when the main problem is operating infrastructure and productio
 
 ## Windmill
 
-This comparison focuses on **self-hosted Windmill** versus **self-hosted xyOps**. Research was last checked on **May 4, 2026**.
+This comparison focuses on **self-hosted Windmill** versus **self-hosted xyOps**. Research was last checked on **August 26, 2026**.
 
 Windmill is an open-source developer and operations automation platform for scripts, workflows, internal apps, triggers, workers, resources, and secrets. It is one of the closer comparisons to xyOps because it is self-hostable, code-friendly, workflow-oriented, and built for teams that need to run operational automation rather than only connect SaaS tools together.
 
@@ -373,7 +377,7 @@ At the same time, Windmill has a substantial Enterprise Edition. The pricing tab
 - **Kafka, NATS, SQS, GCP, and Azure Event Grid triggers:** Enterprise adds these event trigger types.
 - **Private Hub:** Enterprise adds a private internal hub.
 - **Content search:** Enterprise adds content search.
-- **Workspace object storage over 50 MB:** Enterprise adds larger object storage support.
+- **Workspace object storage:** Free self-hosted currently includes a 10 GiB workspace quota; Enterprise removes the published quota.
 - **Multiplayer Web IDE:** Enterprise adds real-time collaboration.
 - **Git sync:** Free self-hosted is limited to up to 2 users; Enterprise removes this limit.
 - **Agent workers:** Enterprise adds remote worker agents.
@@ -434,7 +438,7 @@ Windmill's paid support is tied to Enterprise/product subscriptions, and its Ent
 | **Incident tickets** | Native ticket system tied to jobs, alerts, files, comments, due dates, and runnable events | Not a built-in incident ticketing system |
 | **Snapshots** | Native point-in-time server/group snapshots for forensic context and alert actions | Not comparable as a native server snapshot system |
 | **Secrets** | Encrypted at rest, assignment to events, categories, plugins, and web hooks, runtime delivery as env vars or templates | Variables, resources, secrets, workspace secret encryption, and Enterprise external secret backends |
-| **SSO** | Included in the open-source app, with trusted-header SSO patterns and setup guidance | Free self-hosted includes up to 10 SSO users; uncapped SSO, SAML, and SCIM are Enterprise |
+| **SSO** | Included in the open-source app, with a direct OIDC plugin plus trusted-header SSO patterns and group-to-role mapping | Free self-hosted includes up to 10 SSO users; uncapped SSO, SAML, and SCIM are Enterprise |
 | **Roles and permissions** | Included in the open-source app, with privileges, roles, category restrictions, and group restrictions | Roles, folders, ACLs, groups, and granular permissions, with higher group limits and instance-level roles in Enterprise |
 | **Air-gapped installs** | Supported by documentation, and Enterprise support includes air-gapped installation support | Self-hosted deployment is supported; Enterprise self-hosting uses a license key and usage/subscription reporting |
 
@@ -470,7 +474,7 @@ Choose **xyOps** when the main problem is operating infrastructure and productio
 
 ## Kestra
 
-This comparison focuses on **self-hosted Kestra** versus **self-hosted xyOps**. Research was last checked on **May 4, 2026**.
+This comparison focuses on **self-hosted Kestra** versus **self-hosted xyOps**. Research was last checked on **August 26, 2026**.
 
 Kestra is an open-source declarative orchestration platform for workflows, data pipelines, infrastructure automation, microservices, Python workflows, AI workflows, and event-driven processes. It is a strong fit for teams that want YAML-defined workflows, a large plugin catalog, GitOps-style lifecycle management, and orchestration that can be edited both as code and in a UI.
 
@@ -491,7 +495,7 @@ xyOps overlaps with Kestra around workflow orchestration, scheduling, events, re
 
 The xyOps free tier includes all app features, and the paid Professional and Enterprise plans add support services, not additional product capability. This includes workflows, scheduling, SSO, users, roles, secrets, plugins, web hooks, monitoring, alerts, snapshots, tickets, buckets, APIs, and fleet-aware execution.
 
-Kestra Open Source is broad and production-oriented. The pricing page lists declarative workflows, 1,300+ plugins, event-driven scheduling, business logic in any language, code/UI editing, Git integration and versioning, multi-cloud and air-gapped deployment, unlimited flows, and unlimited executions.
+Kestra Open Source is broad and production-oriented. The pricing page lists declarative workflows, well over 1,000 plugins, event-driven scheduling, business logic in any language, code/UI editing, Git integration and versioning, multi-cloud and air-gapped deployment, unlimited flows, and unlimited executions.
 
 Kestra Enterprise Edition adds the features that matter most for larger teams, regulated environments, and high-availability deployments:
 
@@ -558,7 +562,7 @@ Kestra's published support table lists Standard, Premium, and Platinum. Standard
 | **Incident tickets** | Native ticket system tied to jobs, alerts, files, comments, due dates, and runnable events | Not a built-in incident ticketing system |
 | **Snapshots** | Native point-in-time server/group snapshots for forensic context and alert actions | Not comparable as a native server snapshot system |
 | **Secrets** | Encrypted at rest, assignment to events, categories, plugins, and web hooks, runtime delivery as env vars or templates | Open Source has secrets concepts; Enterprise adds namespace/tenant-level, internal/external, and read-only secret managers |
-| **SSO** | Included in the open-source app, with trusted-header SSO patterns and setup guidance | Enterprise feature |
+| **SSO** | Included in the open-source app, with a direct OIDC plugin plus trusted-header SSO patterns and group-to-role mapping | Enterprise feature |
 | **Roles and permissions** | Included in the open-source app, with privileges, roles, category restrictions, and group restrictions | Enterprise RBAC with user, group, namespace, service account, and SCIM features |
 | **Air-gapped installs** | Supported by documentation, and Enterprise support includes air-gapped installation support | Pricing page lists multi-cloud and air-gapped deployment for both editions; Enterprise can run cloud, on-prem, or air-gapped |
 
@@ -593,7 +597,7 @@ Choose **xyOps** when the main problem is operating infrastructure and productio
 
 ## Trigger.dev
 
-This comparison focuses on **self-hosted Trigger.dev** versus **self-hosted xyOps**. Research was last checked on **May 4, 2026**.
+This comparison focuses on **self-hosted Trigger.dev** versus **self-hosted xyOps**. Research was last checked on **August 26, 2026**.
 
 Trigger.dev is an open-source background jobs framework for developers. It lets teams write long-running tasks and reliable workflows in normal application code, with queues, retries, schedules, delays, observability, Realtime APIs, and dashboard-driven operations. It is especially strong for AI agents, long-running product tasks, serverless-friendly background jobs, and workflows that belong close to an application codebase.
 
@@ -675,7 +679,7 @@ Trigger.dev's self-hosting docs say dedicated support is available on Cloud and 
 | **Incident tickets** | Native ticket system tied to jobs, alerts, files, comments, due dates, and runnable events | Not a built-in incident ticketing system |
 | **Snapshots** | Native point-in-time server/group snapshots for forensic context and alert actions | Not comparable as a native server snapshot system |
 | **Secrets** | Encrypted at rest, assignment to events, categories, plugins, and web hooks, runtime delivery as env vars or templates | Environment variables and deployment configuration patterns for tasks and workers |
-| **SSO** | Included in the open-source app, with trusted-header SSO patterns and setup guidance | Listed as an Enterprise Cloud feature |
+| **SSO** | Included in the open-source app, with a direct OIDC plugin plus trusted-header SSO patterns and group-to-role mapping | Listed as an Enterprise Cloud feature |
 | **Roles and permissions** | Included in the open-source app, with privileges, roles, category restrictions, and group restrictions | Role-based access control is listed as an Enterprise Cloud feature |
 | **Air-gapped installs** | Supported by documentation, and Enterprise support includes air-gapped installation support | Self-hosting is available, but users are responsible for security, uptime, scaling, and reliability |
 
@@ -709,9 +713,11 @@ Choose **xyOps** when the main problem is operating infrastructure and productio
 
 ## Prefect
 
-This comparison focuses on **self-hosted Prefect** versus **self-hosted xyOps**. Research was last checked on **May 4, 2026**.
+This comparison focuses on **self-hosted Prefect** versus **self-hosted xyOps**. Research was last checked on **August 26, 2026**.
 
 Prefect is an Apache-2.0 Python workflow orchestration platform. It is built around Python functions decorated as flows and tasks, with state tracking, retries, schedules, deployments, work pools, workers, automations, logs, events, and a UI. It is especially strong for data engineering, ML workflows, Python automation, background tasks, and teams that want orchestration to stay close to Python code.
+
+In July 2026, Prefect announced that it was acquiring Dagster Labs. Prefect says the two products will remain distinct: Dagster keeps its name and open-source license, while Prefect continues as the dynamic execution-oriented product. This comparison therefore evaluates Prefect itself, not the combined company's full product portfolio.
 
 xyOps overlaps with Prefect around workflows, scheduling, events, retries, concurrency, workers, logs, metrics, APIs, and self-hosting. The difference is operational scope. Prefect is primarily a Python workflow orchestrator and data/platform automation control plane. xyOps is an operations platform that combines job and workflow automation with server monitoring, alerting, snapshots, incident tickets, server targeting, and remediation workflows.
 
@@ -736,14 +742,13 @@ Prefect Cloud and self-hosted Prefect server share a common set of capabilities,
 
 The public Prefect pricing page lists these as paid or Enterprise/Customer Managed features:
 
-- **Users and workspaces:** Hobby is limited to 2 users and 1 workspace; higher Cloud plans increase users and workspaces.
-- **Deployments:** Hobby includes 5 deployments, Starter includes 20, Team includes 100, Pro includes 1,000, and Enterprise/Customer Managed are unlimited.
+- **Users and workspaces:** Hobby is limited to 2 users and 1 workspace; Starter includes 3 users, Team covers 4-8 users, and Enterprise is custom.
+- **Deployments:** Hobby includes 5 deployments, Starter includes 20, Team includes 100, and Enterprise is unlimited.
 - **Custom work pools:** Listed in paid tiers for bringing your own compute and infrastructure control.
 - **Webhooks:** Included beyond the Hobby tier.
 - **Service accounts:** Listed in Team and higher.
 - **Automations:** Hobby includes 5 automations, Team includes 50, and higher tiers increase limits.
-- **SSO:** Listed for Pro and higher.
-- **Basic RBAC:** Listed for Pro.
+- **SSO:** SAML/OIDC is listed for Enterprise and Customer Managed.
 - **RBAC and ACLs:** Listed for Enterprise and Customer Managed.
 - **Directory Sync / SCIM:** Listed for Enterprise and Customer Managed.
 - **Audit log retention:** Hobby has none, Team has 24 hour audit log retention, and higher tiers expand governance features.
@@ -762,7 +767,7 @@ The public Prefect pricing page lists these as paid or Enterprise/Customer Manag
 | **Mid-tier self-hosted** | Professional Support: $200/month, all app features, private ticketing, 24 hour turnaround | None published for self-hosted Open Source; hosted Starter is $100/month and hosted Team is $100/user/month |
 | **Enterprise self-hosted** | Enterprise Support: $1,000/month, all app features, SSO setup/support, air-gapped install support, private ticketing, 1 hour turnaround, live chat | Customer Managed, contact sales, self-hosted Prefect with Enterprise features, deployment assistance, compliance, and support |
 
-Prefect publishes hosted Cloud pricing for Hobby, Starter, Team, Pro, and Enterprise, and lists Customer Managed as a custom-priced self-hosted option. xyOps publishes fixed support pricing and does not place application features behind paid tiers.
+Prefect publishes hosted Cloud pricing for Hobby, Starter, Team, and Enterprise, and lists Customer Managed as a custom-priced self-hosted option. xyOps publishes fixed support pricing and does not place application features behind paid tiers.
 
 ### Support Comparison
 
@@ -791,8 +796,8 @@ Prefect's open-source server is free to self-host, while commercial support and 
 | **Incident tickets** | Native ticket system tied to jobs, alerts, files, comments, due dates, and runnable events | Not a built-in incident ticketing system |
 | **Snapshots** | Native point-in-time server/group snapshots for forensic context and alert actions | Not comparable as a native server snapshot system |
 | **Secrets** | Encrypted at rest, assignment to events, categories, plugins, and web hooks, runtime delivery as env vars or templates | Blocks, variables, work pool configuration, and Cloud/service-account security patterns |
-| **SSO** | Included in the open-source app, with trusted-header SSO patterns and setup guidance | Prefect Cloud Pro/Enterprise and Customer Managed feature |
-| **Roles and permissions** | Included in the open-source app, with privileges, roles, category restrictions, and group restrictions | Prefect Cloud adds basic RBAC on Pro and RBAC plus ACLs on Enterprise/Customer Managed |
+| **SSO** | Included in the open-source app, with a direct OIDC plugin plus trusted-header SSO patterns and group-to-role mapping | Prefect Cloud Enterprise and Customer Managed feature |
+| **Roles and permissions** | Included in the open-source app, with privileges, roles, category restrictions, and group restrictions | Prefect Cloud Enterprise and Customer Managed add RBAC and ACLs |
 | **Air-gapped installs** | Supported by documentation, and Enterprise support includes air-gapped installation support | Prefect OSS is self-hostable; Customer Managed includes on-premises and air-gapped deployment support |
 
 ### Fair Use Cases
@@ -822,10 +827,224 @@ Choose **xyOps** when the main problem is operating infrastructure and productio
 - [Prefect Webhooks](https://docs.prefect.io/latest/guides/webhooks)
 - [Prefect Audit Logs](https://docs.prefect.io/v3/how-to-guides/cloud/manage-users/audit-logs)
 - [Prefect License](https://github.com/PrefectHQ/prefect/blob/main/LICENSE)
+- [Prefect Acquires Dagster](https://www.prefect.io/prefect-acquires-dagster)
+
+## Apache Airflow
+
+This comparison focuses on **self-hosted Apache Airflow** versus **self-hosted xyOps**. Research was last checked on **August 26, 2026**.
+
+Apache Airflow is a mature, code-first platform for developing, scheduling, and monitoring batch-oriented workflows. Workflows are defined as Python DAGs, and Airflow is especially strong for data pipelines that benefit from a large provider ecosystem, dependency-aware scheduling, retries, backfills, task logs, and multiple execution models.
+
+xyOps overlaps with Airflow around scheduling, workflow orchestration, retries, secrets, APIs, plugins, logs, and self-hosting. The products start from different operating models, however. Airflow treats Python-defined DAGs and task execution as the center of the system. xyOps treats operations as the center, combining visual workflows with server inventory, monitoring, alerting, snapshots, tickets, incident response, and fleet-aware execution.
+
+### Positioning
+
+| Area | xyOps | Apache Airflow |
+|------|-------|----------------|
+| **Primary category** | Complete ops platform: scheduling, workflows, monitoring, alerting, tickets, incident response | Code-first batch workflow orchestration platform |
+| **Self-hosting** | Yes | Yes |
+| **Cloud hosting** | No | Not from the Apache Software Foundation; third-party managed services are available |
+| **License posture** | BSD-3-Clause open source, all app features included | Apache-2.0 open source |
+| **Paid plans** | Support-only subscriptions | No commercial tier from the Apache Software Foundation |
+| **Best fit** | Ops teams that want automation, server awareness, alerts, tickets, and runbooks in one place | Data and platform teams that want Python DAGs, rich scheduling, backfills, and a broad provider ecosystem |
+
+### Feature Model
+
+Airflow's core platform is open source under the Apache License 2.0. It does not use an open-core feature matrix or sell an official commercial edition. Organizations that want a managed control plane, bundled support, or a vendor-specific enterprise layer can choose from third-party Airflow services, but those products have their own pricing and feature sets and are outside this direct self-hosted comparison.
+
+Airflow is primarily a workflows-as-code product. DAG authors define tasks, dependencies, schedules, and runtime behavior in Python. The web UI is designed for monitoring and operating DAGs, including graph views, run and task inspection, logs, assets, manual triggers, and backfills. It is not a drag-and-drop workflow authoring canvas.
+
+Airflow 3 also supports event-driven scheduling through assets and asset watchers. This broadens its triggering model, but the project still describes Airflow as a platform for batch workflows rather than continuously running, streaming, or general-purpose infrastructure monitoring.
+
+### Authentication and Access Control
+
+Airflow 3 uses pluggable authentication managers. The default SimpleAuthManager is intended for development and testing, so a production deployment should select and configure an appropriate authentication manager. The Flask AppBuilder provider supports OAuth, OpenID, LDAP, and remote-user authentication, with built-in and custom roles for access control. Other community auth managers are also available.
+
+xyOps includes local users and roles, a direct OIDC plugin, trusted-header SSO patterns, and group-to-role mapping in the open-source application. There is no separate identity feature license.
+
+### Operations and Self-Hosting
+
+A production Airflow deployment commonly includes an API server, scheduler, DAG processor, metadata database, and an executor with any required workers. SQLite is intended for testing rather than production. Airflow supports local execution as well as distributed models such as Celery and Kubernetes executors, and operators can run Python, shell commands, or provider-specific work.
+
+This architecture is powerful, but the operator owns the surrounding platform: database reliability, component scaling, DAG distribution, worker capacity, log storage, upgrades, and authentication configuration. Airflow supports DAG bundles, remote logging, StatsD and OpenTelemetry metrics, callbacks, and notifiers to help teams build that operational environment.
+
+xyOps has a different topology. A central server owns workflows, schedules, monitoring, alerts, snapshots, tickets, and history, while lightweight agents provide inventory, metrics, logs, and remote job execution on managed servers. Airflow workers execute DAG tasks, but they are not server-monitoring agents and do not provide xyOps-style fleet inventory or point-in-time snapshots.
+
+### Feature Comparison
+
+| Capability | xyOps | Apache Airflow |
+|------------|-------|----------------|
+| **Visual workflow authoring** | Yes, with trigger, event, job, action, limit, controller, and note nodes | No; DAGs are authored in Python, while the UI visualizes and operates them |
+| **Workflow replay and recovery** | Replay completed workflows, retry jobs, or suspend and resume from a selected node | Clear and rerun task instances, retry failures, trigger runs, and backfill historical intervals |
+| **Job scheduling** | Manual, schedule, interval, single-shot, Magic Link, keyboard, startup, plugin, catch-up, range, blackout, delay, precision, and quiet options | Cron, timedelta, timetable, dataset/asset, event, and manual scheduling patterns |
+| **Flow control** | Controllers, limits, queues, shared capacity pools, concurrency, retries, target selection, dynamic overrides, and server job weights | DAG dependencies, branching, retries, pools, queues, trigger rules, task mapping, sensors, and executor-level parallelism |
+| **Remote execution** | Agent-based execution across selected servers, groups, and environments | Executors and workers run tasks locally, in queues, containers, or Kubernetes, depending on deployment |
+| **Server inventory** | Native inventory from connected agents | No native infrastructure inventory |
+| **Server metrics and logs** | Native agent metrics, log watching, charts, monitoring, and alerts | Task logs and Airflow component metrics; host monitoring requires separate tooling |
+| **Alerting** | Native monitor alerts, workflow events, ticket integration, plugins, email, web hooks, and APIs | Callbacks and notifiers for task or DAG state; infrastructure alerting depends on external monitoring |
+| **Point-in-time snapshots** | Yes | No equivalent server snapshot system |
+| **Incident tickets** | Native tickets with workflow and alert integration | No native incident-ticket system |
+| **SSO** | Direct OIDC plus trusted-header SSO and group-to-role mapping | Pluggable auth managers; Flask AppBuilder supports OAuth, OpenID, LDAP, and remote-user patterns |
+| **RBAC** | Native users, roles, privileges, groups, and environments | Built-in and custom roles through the configured auth manager |
+| **Secrets** | Native encrypted secrets with environment and role controls | Connections, variables, and pluggable secrets backends |
+| **Extensibility** | Plugins, workflows, APIs, web hooks, shell commands, and Node.js job code | Python operators, hooks, sensors, providers, plugins, callbacks, REST APIs, and shell commands |
+| **Air-gapped operation** | Yes | Yes, when dependencies and providers are supplied inside the environment |
+
+### Support
+
+Airflow support is community-driven through project documentation, GitHub, mailing lists, and community channels. Commercial support is available from third parties rather than as an Apache Software Foundation product.
+
+xyOps is free to self-support. Its optional Professional plan is **$200/month** and adds private ticketing with a 24-hour target. Enterprise is **$1,000/month** and adds SSO and air-gapped installation support, private ticketing with a one-hour target, and live chat. The software itself does not change between plans.
+
+### When Airflow Is the Better Fit
+
+Airflow is likely the better fit when:
+
+- Your workflows are data pipelines naturally expressed as Python DAGs.
+- Backfills, task dependencies, provider integrations, and data-aware scheduling are central requirements.
+- Your team is comfortable operating Airflow's database, scheduler, executors, workers, authentication, and log stack.
+- You want an Apache-licensed project with a large data-orchestration community and no official commercial feature tier.
+
+### When xyOps Is the Better Fit
+
+xyOps is likely the better fit when:
+
+- You want visual workflow authoring alongside code and shell execution.
+- You need server inventory, live metrics, log monitoring, alerts, snapshots, and incident tickets in the same application.
+- Work must target changing groups of servers, with fleet limits, shared capacity pools, and server-aware weighting.
+- Operations staff need to build and run automation without making Python DAG development the primary interface.
+
+### Key Takeaway
+
+Apache Airflow is a strong open-source orchestrator for Python-defined batch and data workflows. xyOps is broader operationally: it joins workflow orchestration to server monitoring, alerting, snapshots, tickets, and incident response. The choice is less about which scheduler has more knobs and more about whether the center of gravity is **data pipeline code** or **day-to-day infrastructure operations**.
+
+### Sources
+
+- [Apache Airflow Documentation](https://airflow.apache.org/docs/apache-airflow/stable/)
+- [Airflow Core Concepts](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/overview.html)
+- [Airflow Production Deployment](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/production-deployment.html)
+- [Airflow Web UI](https://airflow.apache.org/docs/apache-airflow/stable/ui.html)
+- [Airflow Event-Driven Scheduling](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/event-scheduling.html)
+- [Airflow Authentication](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/auth-manager/index.html)
+- [Airflow Flask AppBuilder Authentication](https://airflow.apache.org/docs/apache-airflow-providers-fab/stable/auth-manager/index.html)
+- [Airflow Logging and Monitoring](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/index.html)
+- [Airflow License](https://github.com/apache/airflow/blob/main/LICENSE)
+
+## Dagster
+
+This comparison focuses on **self-hosted Dagster OSS** and **Dagster+** versus **self-hosted xyOps**. Research was last checked on **August 26, 2026**.
+
+Dagster is a code-first data orchestrator built around assets, jobs, schedules, sensors, partitions, lineage, observability, and testability. It is especially strong for data platforms whose teams want to model the data products they produce, understand upstream and downstream dependencies, run partitioned backfills, and keep orchestration definitions in Python.
+
+xyOps overlaps with Dagster around scheduling, workflows, retries, concurrency, logs, alerts, secrets, APIs, and self-hosted execution. The products target different operational layers. Dagster centers on data assets and data-pipeline execution. xyOps centers on infrastructure operations, adding server inventory, live metrics, log monitoring, snapshots, tickets, incident response, and fleet-aware remote execution.
+
+In July 2026, Prefect announced its acquisition of Dagster Labs. Dagster's announcement says Dagster remains a distinct product with the same brand, team, open-source license, Dagster+ service, and existing customer contracts. This comparison therefore treats Dagster as its own product while noting that it is now part of Prefect.
+
+### Positioning
+
+| Area | xyOps | Dagster |
+|------|-------|---------|
+| **Primary category** | Complete ops platform: scheduling, workflows, monitoring, alerting, tickets, incident response | Code-first data orchestration and data-asset platform |
+| **Self-hosting** | Yes | Yes, with Dagster OSS; Dagster+ also supports Hybrid deployments |
+| **Cloud hosting** | No | Yes, through Dagster+ Serverless; Hybrid keeps execution in customer infrastructure |
+| **License posture** | BSD-3-Clause open source, all app features included | Apache-2.0 open-source core, with proprietary Dagster+ services and features |
+| **Paid plans** | Support-only subscriptions | Dagster+ base plans plus usage, with feature and scale differences |
+| **Best fit** | Ops teams that want automation, server awareness, alerts, tickets, and runbooks in one place | Data teams that want software-defined assets, lineage, partitions, tests, and Python orchestration |
+
+### Feature Model
+
+Dagster OSS is a self-managed Apache-2.0 project. It includes the Python programming model, asset and job orchestration, schedules, sensors, partitions, backfills, asset checks, a web UI, and APIs. A production deployment generally requires teams to operate Dagster's webserver, daemon, database, code locations, and run infrastructure.
+
+Dagster+ is the commercial managed product. It adds a hosted control plane, deployment management, authentication and collaboration features, operational insights, alert integrations, audit and security features, branch deployments, and a richer organization-wide catalog. Serverless deployments run code on managed compute, while Hybrid deployments keep user code and execution in the customer's environment and connect them to the Dagster+ control plane.
+
+### Pricing and Plan Differences
+
+Dagster+'s current public pricing uses a base subscription plus usage:
+
+- **Solo: $10/month plus usage.** One user, one code location, and one deployment.
+- **Starter: $100/month plus usage.** Up to three users, five code locations, and one deployment, with additional collaboration and catalog features.
+- **Pro: contact sales.** Adds larger organizations and deployments, SAML SSO, SCIM, audit logs, additional alert integrations, dedicated support, and an SLA.
+
+The pricing page lists separate credit rates by plan and additional serverless compute charges. Actual cost therefore depends on run duration, orchestration activity, deployment model, and plan. Dagster OSS remains free to self-host and self-support.
+
+xyOps uses a simpler model. Every app feature is available in the open-source release. Professional is **$200/month** for private ticketing with a 24-hour target. Enterprise is **$1,000/month** and adds SSO and air-gapped installation support, private ticketing with a one-hour target, and live chat. Neither plan unlocks product features.
+
+### Operations and Self-Hosting
+
+Dagster's UI shows assets, jobs, schedules, sensors, runs, logs, and dependency graphs. The daemon evaluates schedules and sensors and performs other background work. User code is loaded from code locations, and runs execute through infrastructure chosen and operated by the deploying team or supplied by Dagster+.
+
+This gives data teams a strong view of asset lineage, materializations, partitions, checks, and pipeline health. It does not turn Dagster workers or Hybrid agents into infrastructure-monitoring agents. Host inventory, CPU and memory trends, watched server logs, alert-to-ticket workflows, and point-in-time server snapshots remain separate concerns.
+
+xyOps agents are designed for those infrastructure concerns. They report inventory and live metrics, watch logs, execute jobs across selected servers, and feed the same central system used for schedules, alerts, snapshots, tickets, and workflows.
+
+### Feature Comparison
+
+| Capability | xyOps | Dagster |
+|------------|-------|---------|
+| **Visual workflow authoring** | Yes, with trigger, event, job, action, limit, controller, and note nodes | No drag-and-drop authoring; Python definitions are visualized and operated in the UI |
+| **Data assets and lineage** | Workflows can move and transform data, but xyOps is not an asset catalog | Core strength, with software-defined assets, dependency lineage, materializations, partitions, and catalog views |
+| **Data quality checks** | General jobs, workflows, monitors, and alerts can validate systems and data | Native asset checks integrated with asset execution and observability |
+| **Workflow recovery** | Replay completed workflows, retry jobs, or suspend and resume from a selected node | Retry runs or steps, re-execute selected subsets, and launch partition backfills |
+| **Job scheduling** | Manual, schedule, interval, single-shot, Magic Link, keyboard, startup, plugin, catch-up, range, blackout, delay, precision, and quiet options | Schedules, sensors, asset automation, manual launches, and partitioned backfills |
+| **Flow control** | Controllers, limits, queues, shared capacity pools, concurrency, retries, target selection, dynamic overrides, and server job weights | Dependencies, resources, retries, hooks, sensors, partitions, dynamic graphs, concurrency controls, and run queues |
+| **Remote execution** | Agent-based execution across selected servers, groups, and environments | Runs execute through configured self-hosted infrastructure or Dagster+ Serverless/Hybrid deployment models |
+| **Server inventory** | Native inventory from connected agents | No native infrastructure inventory |
+| **Server metrics and logs** | Native agent metrics, log watching, charts, monitoring, and alerts | Run, event, and compute logs plus orchestration insights; host monitoring requires separate tooling |
+| **Alerting** | Native monitor alerts, workflow events, ticket integration, plugins, email, web hooks, and APIs | Dagster OSS sensors/hooks can send alerts; Dagster+ bundles email, Slack, Teams, and plan-dependent integrations |
+| **Point-in-time snapshots** | Yes | No equivalent server snapshot system |
+| **Incident tickets** | Native tickets with workflow and alert integration | No native incident-ticket system |
+| **SSO** | Direct OIDC plus trusted-header SSO and group-to-role mapping | SAML SSO and SCIM are listed for Dagster+ Pro |
+| **RBAC** | Native users, roles, privileges, groups, and environments | Dagster+ includes plan-dependent RBAC; Pro adds broader enterprise identity and governance features |
+| **Audit logs** | Native activity logs and history in the open-source app | Listed for Dagster+ Pro |
+| **Extensibility** | Plugins, workflows, APIs, web hooks, shell commands, and Node.js job code | Python integrations, resources, components, executors, sensors, hooks, GraphQL APIs, and pipes to external compute |
+| **Air-gapped operation** | Yes | Dagster OSS can run air-gapped when dependencies are supplied locally; Dagster+ requires its control-plane connection |
+
+### Support
+
+Dagster OSS users rely on documentation, GitHub, Slack, and the community. Dagster+ customers use the support portal or email, with plan-dependent service. The public pricing page lists a dedicated support channel, premium support, and an SLA for Pro.
+
+xyOps is also free to self-support, but its optional paid plans are purely support subscriptions. Teams do not need a paid tier to obtain SSO, RBAC, audit history, snapshots, alert integrations, or any other app feature.
+
+### When Dagster Is the Better Fit
+
+Dagster is likely the better fit when:
+
+- Data assets, lineage, partitions, materializations, and asset checks are the core operating model.
+- Your team prefers Python-defined orchestration with strong local development and testing workflows.
+- Partitioned backfills and visibility into upstream and downstream data dependencies are central requirements.
+- You want a managed data-orchestration control plane through Dagster+ or are prepared to operate Dagster OSS yourself.
+
+### When xyOps Is the Better Fit
+
+xyOps is likely the better fit when:
+
+- The primary objects are servers, jobs, alerts, tickets, snapshots, and operational runbooks rather than data assets.
+- You want a visual workflow builder that operations staff can use without defining everything in Python.
+- You need live server inventory, metrics, watched logs, remediation workflows, and incident tracking in one application.
+- You want direct OIDC, roles, audit history, and every other app feature in the free self-hosted release.
+
+### Key Takeaway
+
+Dagster is a focused data orchestrator with an excellent asset model, lineage, partitions, checks, and Python developer experience. xyOps is a broader infrastructure-operations platform with visual workflows, fleet-aware execution, monitoring, alerts, snapshots, and tickets. Dagster is the stronger choice when **data assets are the system of record**. xyOps is the stronger choice when **servers and operational incidents are the system of record**.
+
+### Sources
+
+- [Dagster Documentation](https://docs.dagster.io/)
+- [Dagster Deployment Options](https://docs.dagster.io/deployment)
+- [Dagster+ Overview](https://docs.dagster.io/deployment/dagster-plus)
+- [Dagster Webserver and UI](https://docs.dagster.io/guides/operate/webserver)
+- [Dagster Schedules](https://docs.dagster.io/guides/automate/schedules)
+- [Dagster Sensors](https://docs.dagster.io/guides/automate/sensors)
+- [Dagster Asset Checks](https://docs.dagster.io/guides/test/asset-checks)
+- [Dagster Pricing](https://dagster.io/pricing)
+- [Dagster Support](https://dagster.io/support)
+- [Dagster License](https://github.com/dagster-io/dagster/blob/master/LICENSE)
+- [Dagster and Prefect Announcement](https://dagster.io/prefect)
+- [Prefect Acquires Dagster](https://www.prefect.io/prefect-acquires-dagster)
 
 ## Make
 
-This comparison focuses on **Make** versus **self-hosted xyOps**. Research was last checked on **May 4, 2026**.
+This comparison focuses on **Make** versus **self-hosted xyOps**. Research was last checked on **August 26, 2026**.
 
 Make is a cloud-based visual automation platform for connecting apps, building scenarios, orchestrating business processes, and adding AI-driven automation across teams. It is especially strong for no-code and low-code SaaS automation, with a large integration catalog, a polished visual scenario builder, templates, app connections, routers, filters, and team collaboration features.
 
@@ -852,10 +1071,7 @@ The public Make pricing page lists these plan limits and paid features:
 
 - **Credits:** Free includes up to 1,000 credits/month. Paid plans scale by selected monthly credits.
 - **Base paid pricing:** Core starts at $12/month, Pro at $21/month, and Teams at $38/month for 10,000 credits/month. Enterprise is custom pricing.
-- **Active scenarios:** Free is limited to 2 active scenarios; paid plans list unlimited active scenarios.
 - **Scheduling interval:** Free has a 15 minute minimum interval; paid plans support scheduling down to 1 minute.
-- **Scenario execution time:** Free lists a 5 minute maximum execution time; paid plans list 40 minutes.
-- **Execution log storage:** Free lists 7 days, most paid plans list 30 days, and Enterprise lists 60 days.
 - **API access:** Core and higher include access to the Make API, with higher rate limits on higher plans.
 - **Priority execution:** Pro and higher include priority scenario execution.
 - **Custom variables:** Pro and higher include custom variables.
@@ -878,7 +1094,7 @@ The public Make pricing page lists these plan limits and paid features:
 
 | Plan | xyOps | Make |
 |------|-------|------|
-| **Free** | All app features, community support, BSD-3-Clause open source, self-hosted | Free SaaS plan, up to 1,000 credits/month, 2 active scenarios, 15 minute minimum interval |
+| **Free** | All app features, community support, BSD-3-Clause open source, self-hosted | Free SaaS plan, up to 1,000 credits/month, visual workflow builder, 15 minute minimum interval |
 | **Mid-tier** | Professional Support: $200/month, all app features, private ticketing, 24 hour turnaround | Core starts at $12/month, Pro at $21/month, Teams at $38/month for 10,000 credits/month |
 | **Enterprise** | Enterprise Support: $1,000/month, all app features, SSO setup/support, air-gapped install support, private ticketing, 1 hour turnaround, live chat | Enterprise SaaS, custom pricing, advanced security, SSO, audit logs, on-prem agent, 24/7 Enterprise support |
 
@@ -911,7 +1127,7 @@ Make's support is tied to its SaaS plan structure. xyOps support is tied to self
 | **Incident tickets** | Native ticket system tied to jobs, alerts, files, comments, due dates, and runnable events | Not a built-in incident ticketing system |
 | **Snapshots** | Native point-in-time server/group snapshots for forensic context and alert actions | Not comparable as a native server snapshot system |
 | **Secrets** | Encrypted at rest, assignment to events, categories, plugins, and web hooks, runtime delivery as env vars or templates | Managed app connections and credentials inside Make |
-| **SSO** | Included in the open-source app, with trusted-header SSO patterns and setup guidance | Enterprise feature |
+| **SSO** | Included in the open-source app, with a direct OIDC plugin plus trusted-header SSO patterns and group-to-role mapping | Enterprise feature |
 | **Roles and permissions** | Included in the open-source app, with privileges, roles, category restrictions, and group restrictions | Teams and team roles on Teams/Enterprise, role-based access and governance features on Enterprise |
 | **Air-gapped installs** | Supported by documentation, and Enterprise support includes air-gapped installation support | No self-hosted or air-gapped Make deployment; Enterprise on-prem agent can access private networks from the SaaS platform |
 
@@ -942,7 +1158,7 @@ Choose **xyOps** when the main problem is operating infrastructure and productio
 
 ## Zapier
 
-This comparison focuses on **Zapier** versus **self-hosted xyOps**. Research was last checked on **May 4, 2026**.
+This comparison focuses on **Zapier** versus **self-hosted xyOps**. Research was last checked on **August 26, 2026**.
 
 Zapier is a cloud-based automation platform for connecting apps, AI tools, data, forms, tables, chatbots, agents, and business workflows. It is one of the best-known products in the automation category, with a very large app ecosystem, a friendly workflow builder, templates, multi-step Zaps, paths, filters, webhooks, and newer AI automation tools.
 
@@ -968,36 +1184,34 @@ Zapier is a hosted SaaS product. Its public pricing page organizes plans around 
 The public Zapier pricing and Enterprise docs list these plan limits and paid features:
 
 - **Tasks:** Free includes up to 100 tasks/month. Paid plans scale by selected task volume.
-- **Base paid pricing:** Professional starts at $29.99/month for 750 tasks/month. Team starts at $103.50/month for 2,000 tasks/month. Enterprise is custom pricing.
+- **Base paid pricing:** Professional starts at $19.99/month for 750 tasks/month when billed annually. Team starts at $69/month when billed annually. Enterprise is custom pricing.
 - **Zaps:** Free includes unlimited two-step Zaps. Professional and higher include unlimited Premium apps and unlimited multi-step Zaps.
 - **Update time:** Free lists 15 minute update time, Professional lists 2 minute update time, and Team lists 1 minute update time.
 - **Premium apps:** Professional and higher include unlimited Premium apps.
 - **Webhooks:** Professional and higher include webhooks.
 - **Custom logic:** Professional and higher include custom logic with paths, filters, and formatter features.
-- **Zapier Tables:** Free includes 2 tables and 2,500 records; paid plans raise table and record limits.
-- **Zapier Interfaces:** Free includes 2 interfaces and basic components; paid plans raise limits and unlock more options.
-- **Zapier Chatbots:** Free includes 2 chatbots; paid plans raise chatbot limits.
-- **AI-powered Zap steps:** Paid plans raise included AI-powered step limits.
+- **Zapier Tables:** All plans list unlimited tables; Free includes 2,500 records per account, Professional 100,000, and Team 500,000.
+- **Zapier Forms:** All plans list unlimited form projects, with plan-specific page, editor, managed-access, upload, branding, and domain limits.
+- **AI and programmatic access:** Zapier now applies task-based pricing across Zap workflows, MCP, AI steps, code, and related programmatic access, with rates varying by action type.
 - **Error handling:** Professional and higher include Auto-replay and custom error handling.
 - **Seats:** Team includes 25 users. Enterprise is custom.
 - **Shared workspace:** Team and Enterprise include shared workspace features.
 - **Premier support:** Team includes premier support.
-- **Technical Account Manager:** Team includes a Technical Account Manager.
-- **Single Sign-On:** Enterprise includes SAML SSO.
+- **Single Sign-On:** Team and Enterprise include SAML SSO.
 - **SCIM user provisioning:** Enterprise includes SCIM provisioning.
 - **Domain capture:** Enterprise can force users from a company domain into the Enterprise account.
 - **Advanced admin permissions:** Enterprise includes advanced admin and governance controls.
 - **Custom data retention:** Enterprise includes custom data retention controls.
 - **Custom AI usage limits:** Enterprise includes custom AI usage limits.
-- **Designated Technical Support:** Enterprise includes designated technical support.
+- **Technical Account Manager:** Enterprise lists a Technical Account Manager at a qualifying threshold or as an add-on.
 
 ### Paid Tiers
 
 | Plan | xyOps | Zapier |
 |------|-------|--------|
 | **Free** | All app features, community support, BSD-3-Clause open source, self-hosted | Free SaaS plan, up to 100 tasks/month, unlimited two-step Zaps |
-| **Mid-tier** | Professional Support: $200/month, all app features, private ticketing, 24 hour turnaround | Professional starts at $29.99/month for 750 tasks/month; Team starts at $103.50/month for 2,000 tasks/month |
-| **Enterprise** | Enterprise Support: $1,000/month, all app features, SSO setup/support, air-gapped install support, private ticketing, 1 hour turnaround, live chat | Enterprise SaaS, custom pricing, SAML SSO, SCIM, domain capture, advanced admin controls, custom retention, designated support |
+| **Mid-tier** | Professional Support: $200/month, all app features, private ticketing, 24 hour turnaround | Professional starts at $19.99/month for 750 tasks/month; Team starts at $69/month, billed annually |
+| **Enterprise** | Enterprise Support: $1,000/month, all app features, SSO setup/support, air-gapped install support, private ticketing, 1 hour turnaround, live chat | Enterprise SaaS, custom pricing, unlimited users, SCIM, domain capture, advanced admin controls, custom retention, observability, and priority support |
 
 Zapier publishes self-service SaaS pricing for Free, Professional, and Team, plus custom Enterprise pricing. xyOps publishes fixed support pricing for self-hosted installs and does not meter workflow executions or place application features behind paid tiers.
 
@@ -1006,8 +1220,8 @@ Zapier publishes self-service SaaS pricing for Free, Professional, and Team, plu
 | Support path | xyOps | Zapier |
 |--------------|-------|--------|
 | **Community help** | GitHub Discussions, GitHub Issues for bugs, Reddit, Discord, videos, docs | Help Center, Community, docs, learning resources |
-| **Paid non-enterprise support** | Professional plan includes private ticketing and a 24 hour turnaround | Professional includes email and live chat support; Team includes premier support and a Technical Account Manager |
-| **Enterprise support** | Enterprise plan includes private ticketing, 1 hour turnaround, live chat, SSO setup/support, and air-gapped installation support | Enterprise includes designated technical support and Enterprise onboarding/governance resources |
+| **Paid non-enterprise support** | Professional plan includes private ticketing and a 24 hour turnaround | Professional includes email support and live chat at the 2,000-task tier and above; Team includes priority support |
+| **Enterprise support** | Enterprise plan includes private ticketing, 1 hour turnaround, live chat, SSO setup/support, and air-gapped installation support | Enterprise includes priority support with screen sharing; a Technical Account Manager is threshold-based or available as an add-on |
 | **Published self-hosted price** | $200/month for Professional, $1,000/month for Enterprise | No self-hosted product |
 
 Zapier's support is tied to its SaaS plan structure. xyOps support is tied to self-hosted deployments, and paid support does not change the application feature set.
@@ -1017,9 +1231,9 @@ Zapier's support is tied to its SaaS plan structure. xyOps support is tied to se
 | Capability | xyOps | Zapier |
 |------------|-------|--------|
 | **Visual workflows** | Yes, with trigger, event, job, action, limit, controller, and note nodes | Yes, with Zaps, multi-step Zaps, paths, filters, formatter, and AI workflow features |
-| **App integrations** | Plugins, web hooks, APIs, shell jobs, HTTP requests, and custom code | Thousands of app integrations, Premium apps, webhooks, tables, interfaces, chatbots, and AI tools |
+| **App integrations** | Plugins, web hooks, APIs, shell jobs, HTTP requests, and custom code | 9,000+ app integrations, Premium apps, webhooks, Tables, Forms, MCP, and AI tools |
 | **Programming model** | Plugins and jobs can run arbitrary scripts or programs across target servers | Visual Zaps, Code steps, Webhooks, API Request actions, and Zapier Platform for app integrations |
-| **Job scheduling** | Native scheduler with manual, schedule, interval, single-shot, plugin, catch-up, blackout, precision, range, and delay options | Scheduled Zaps, app triggers, webhooks, tables/interfaces triggers, and plan-dependent polling intervals |
+| **Job scheduling** | Native scheduler with manual, schedule, interval, single-shot, plugin, catch-up, blackout, precision, range, and delay options | Scheduled Zaps, app triggers, webhooks, Tables/Forms triggers, and plan-dependent polling intervals |
 | **Flow control** | Workflow controllers, limits, queues, concurrency, retries, target selection, and server job weights | Paths, filters, formatter, delays, loops, sub-Zaps, auto-replay, and custom error handling |
 | **Fleet-aware job execution** | Native server groups, target expressions, server selection algorithms, job weights, per-server concurrency, and worker satellites | Not centered on server inventory or fleet-aware target selection |
 | **Remote agents / runners** | xySat is a zero-dependency remote job runner and metrics collector, installed with one command as a service on Linux, Windows, macOS, or Docker | No self-hosted runner or installable agent. Zapier is cloud-based; Enterprise can connect to on-premises services through VPC peering when the customer's infrastructure is on AWS |
@@ -1028,7 +1242,7 @@ Zapier's support is tied to its SaaS plan structure. xyOps support is tied to se
 | **Incident tickets** | Native ticket system tied to jobs, alerts, files, comments, due dates, and runnable events | Not a built-in incident ticketing system |
 | **Snapshots** | Native point-in-time server/group snapshots for forensic context and alert actions | Not comparable as a native server snapshot system |
 | **Secrets** | Encrypted at rest, assignment to events, categories, plugins, and web hooks, runtime delivery as env vars or templates | Managed app connections and credentials inside Zapier |
-| **SSO** | Included in the open-source app, with trusted-header SSO patterns and setup guidance | Enterprise feature |
+| **SSO** | Included in the open-source app, with a direct OIDC plugin plus trusted-header SSO patterns and group-to-role mapping | SAML SSO is included on Team and Enterprise; SCIM is Enterprise |
 | **Roles and permissions** | Included in the open-source app, with privileges, roles, category restrictions, and group restrictions | Team workspace features on Team; Enterprise adds advanced admin permissions and user provisioning |
 | **Air-gapped installs** | Supported by documentation, and Enterprise support includes air-gapped installation support | No self-hosted or air-gapped Zapier deployment |
 
@@ -1045,7 +1259,7 @@ Choose **xyOps** when the main problem is operating infrastructure and productio
 - xyOps includes all app features in the open-source version, including SSO, roles, workflows, monitoring, alerting, tickets, plugins, web hooks, buckets, secrets, snapshots, and fleet-aware scheduling.
 - Zapier is a stronger fit for business app automation, SaaS integrations, AI workflow helpers, forms, tables, and hosted no-code/low-code teams.
 - xyOps has the advantage when the automation platform must be self-hosted and must also be the monitoring, alerting, ticketing, snapshot, and remediation platform.
-- Zapier Professional starts at $29.99/month for 750 tasks/month, Team starts at $103.50/month for 2,000 tasks/month, and Enterprise is custom pricing. xyOps publishes support pricing at $200/month for Professional and $1,000/month for Enterprise, and does not meter workflow executions.
+- Zapier Professional starts at $19.99/month for 750 tasks/month and Team starts at $69/month when billed annually; Enterprise is custom pricing. xyOps publishes support pricing at $200/month for Professional and $1,000/month for Enterprise, and does not meter workflow executions.
 
 ### Sources
 
