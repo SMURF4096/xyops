@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const async = require('async');
+const fs = require('node:fs');
 const { Writable } = require('node:stream');
 const Admin = require('../../lib/api/admin.js');
 
@@ -223,6 +224,70 @@ exports.tests = [
     assert.ok(data.code === 0 && data.id, 'successful import start with job id');
     await waitForJobGone(this, data.id, { timeoutMs: 30000 });
   },
+
+	async function test_admin_import_reloads_secret_cache(test) {
+		// Create a normal secret so we can capture a valid encrypted storage record.
+		let { data: created } = await this.request.json( this.api_url + '/app/create_secret/v1', {
+			title: 'Imported Cache Test',
+			enabled: true,
+			icon: '',
+			notes: 'Imported by the admin regression test',
+			plugins: ['shellplug'],
+			categories: [],
+			events: [],
+			web_hooks: [],
+			fields: [ { name: 'IMPORTED_CACHE_VALUE', value: 'cache-is-current' } ]
+		});
+		assert.equal( created.code, 0, 'created secret for import regression test' );
+		
+		var secret = created.secret;
+		var encrypted = await new Promise( (resolve, reject) => {
+			this.storage.get( 'secrets/' + secret.id, function(err, record) {
+				if (err) return reject(err);
+				resolve(record);
+			});
+		});
+		
+		// Delete the source record so the in-memory cache matches an empty destination.
+		let { data: deleted } = await this.request.json( this.api_url + '/app/delete_secret/v1', { id: secret.id } );
+		assert.equal( deleted.code, 0, 'deleted source secret before import' );
+		assert.ok( !this.xy.secretCache[secret.id], 'secret cache is empty before import' );
+		
+		var import_file = 'test/temp/data-import-secret-cache.txt';
+		var rows = [
+			{ cmd: 'listDelete', args: ['global/secrets', false] },
+			{ key: 'global/secrets', value: { page_size: 100, first_page: 0, last_page: 0, length: 1, type: 'list' } },
+			{ key: 'global/secrets/0', value: { type: 'list_page', items: [secret] } },
+			{ key: 'secrets/' + secret.id, value: encrypted }
+		];
+		fs.writeFileSync( import_file, rows.map( row => JSON.stringify(row) ).join("\n") + "\n" );
+		
+		try {
+			// Import should make the secret immediately usable without a save or restart.
+			let { data: raw } = await this.request.post(this.api_url + '/app/admin_import_data/v1', {
+				files: { file: import_file }
+			});
+			var body = (typeof raw === 'string') ? raw : raw.toString();
+			var imported = JSON.parse(body);
+			assert.ok( imported.code === 0 && imported.id, 'started secret import job' );
+			await waitForJobGone(this, imported.id, { timeoutMs: 30000 });
+			
+			assert.ok( this.xy.secretCache[secret.id], 'import populated the encrypted secret cache' );
+			var env = this.xy.getSecretsForType('plugins', 'shellplug');
+			assert.equal( env.IMPORTED_CACHE_VALUE, 'cache-is-current', 'runtime resolved imported secret value' );
+			
+			// The direct storage-backed UI path should agree with the runtime cache path.
+			let { data: decrypted } = await this.request.json( this.api_url + '/app/decrypt_secret/v1', { id: secret.id } );
+			assert.equal( decrypted.code, 0, 'UI API decrypted imported secret' );
+			assert.equal( decrypted.fields[0].value, 'cache-is-current', 'UI and runtime secret values agree' );
+		}
+		finally {
+			try { fs.unlinkSync(import_file); } catch (err) {;}
+			if (this.xy.secrets.find( item => item.id == secret.id )) {
+				await this.request.json( this.api_url + '/app/delete_secret/v1', { id: secret.id } );
+			}
+		}
+	},
 
   async function test_admin_export_data_tags(test) {
     // request a transfer token for tags-only export
