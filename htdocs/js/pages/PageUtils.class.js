@@ -2271,7 +2271,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 			content: this.getFormMenuSingle({
 				id: 'fe_eja_web_hook',
 				title: 'Select Web Hook',
-				options: app.web_hooks,
+				options: [ ['', '(None)'] ].concat( app.web_hooks ),
 				value: action.web_hook,
 				default_icon: 'webhook'
 			}),
