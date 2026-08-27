@@ -3520,6 +3520,7 @@ Page.Job = class Job extends Page.PageUtils {
 		
 		var old_state = this.job.state;
 		var old_redraw = this.job.redraw || '';
+		var old_actions = this.job.actions || [];
 		
 		var updates = app.activeJobs[ this.job.id ];
 		if (updates) {
@@ -3546,6 +3547,9 @@ Page.Job = class Job extends Page.PageUtils {
 			if (!this.isWorkflow && this.emptyLogMessage && !this.job.log_file_size) {
 				this.div.find('#d_live_job_log > div.inline_page_message').html( this.getEmptyLogMessageHTML() );
 			}
+			
+			// if actions changed length, redraw
+			if (this.job.actions && (this.job.actions.length != old_actions.length)) this.renderJobActions();
 		}
 		else if ((this.job.state == 'complete') && !this.job.final) {
 			Debug.trace('job', "Job has (presumably) completed, refreshing page");
