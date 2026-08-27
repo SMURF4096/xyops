@@ -40,6 +40,26 @@ async function waitForRemoteJob(ctx, job_id, opts = {}) {
 	throw new Error('Timed out waiting for remote job: ' + job_id);
 }
 
+// helper: poll until a specific job is suspended at the requested lifecycle phase
+async function waitForSuspendedJob(ctx, job_id, opts = {}) {
+	const timeout = opts.timeout || 20000;
+	const interval = opts.interval || 100;
+	const start = performance.now();
+	
+	while (performance.now() - start < timeout) {
+		let { data } = await ctx.request.json(ctx.api_url + '/app/get_active_jobs/v1', { id: job_id });
+		if (data.code !== 0) throw new Error('get_active_jobs failed');
+		let job = data.rows.find(function(row) { return row.id === job_id; });
+		
+		if (job && job.suspended) {
+			if (!('complete' in opts) || (!!job.complete === opts.complete)) return job;
+		}
+		await sleep(interval);
+	}
+	
+	throw new Error('Timed out waiting for suspended job: ' + job_id);
+}
+
 // helper: wait for all jobs, with optional criteria
 async function waitForAllJobs(ctx, opts = {}) {
 	const timeout = opts.timeout || 20000;
@@ -239,6 +259,149 @@ exports.tests = [
 		assert.ok( !!job.data, "job has data object" );
 		assert.ok( !!job.data.secrets, "job data has echoed secrets object" );
 		assert.ok( job.data.secrets.DB_PASS == "CorrectHorseBatteryStaple", "correct secret in job data" );
+	},
+
+	async function test_resume_suspended_job_with_api_data(test) {
+		// Create an isolated event with a start-time suspend action.  Suspend actions
+		// run on the conductor, so the mock satellite does not need to execute a
+		// process in order for this lifecycle to be exercised end-to-end.
+		let { data:create_data } = await this.request.json( this.api_url + '/app/create_event/v1', {
+			title: "Job Resume API Test Event",
+			enabled: true,
+			category: "general",
+			targets: ["main"],
+			algo: "random",
+			plugin: "shellplug",
+			params: { script: "#!/bin/bash\necho hello\n", duration: 1, annotate: false, json: false },
+			limits: [],
+			actions: [{
+				enabled: true,
+				condition: "start",
+				type: "suspend",
+				users: [],
+				email: "",
+				web_hook: "",
+				text: ""
+			}],
+			triggers: [{ type: "manual", enabled: true }],
+			notes: "Created by job resume API unit test"
+		});
+		assert.ok( create_data.code === 0, "successful event creation" );
+		assert.ok( create_data.event && create_data.event.id, "expected event in response" );
+		let event_id = create_data.event.id;
+		
+		// Launch the first simulated job and wait for the conductor-side start
+		// action to suspend it before the mock satellite takes ownership.
+		let { data:start_data } = await this.request.json( this.api_url + '/app/run_event/v1', {
+			id: event_id,
+			input: {
+				data: {
+					preserved: "original-input",
+					replaced: "before-resume"
+				}
+			}
+		});
+		assert.ok( start_data.code === 0, "successful start-suspended job launch" );
+		assert.ok( start_data.id, "expected start-suspended job id" );
+		let start_job_id = start_data.id;
+		let start_job = await waitForSuspendedJob( this, start_job_id, { complete: false } );
+		assert.ok( !start_job.remote, "start-suspended job has not reached the satellite" );
+		
+		// Output injection belongs to completion-time resumes.  A rejected request
+		// must leave the job suspended so the caller can correct and retry it.
+		let { data:wrong_start_data } = await this.request.json( this.api_url + '/app/resume_job/v1', {
+			id: start_job_id,
+			data: { wrong_phase: true }
+		});
+		assert.ok( wrong_start_data.code !== 0, "start-time output injection was rejected" );
+		await waitForSuspendedJob( this, start_job_id, { complete: false } );
+		
+		// Resume with both supported start-time injection types.  The input merge
+		// intentionally includes a collision to verify that injected values win.
+		let { data:start_resume_data } = await this.request.json( this.api_url + '/app/resume_job/v1', {
+			id: start_job_id,
+			params: {
+				injected_param: "start-resume-value"
+			},
+			input: {
+				data: {
+					injected: "start-input-value",
+					replaced: "after-resume"
+				}
+			}
+		});
+		assert.ok( start_resume_data.code === 0, "start-suspended job resumed successfully" );
+		await waitForJob( this, start_job_id );
+		
+		let { data:start_final_data } = await this.request.json( this.api_url + '/app/get_job/v1', { id: start_job_id } );
+		assert.ok( start_final_data.code === 0 && start_final_data.job, "expected completed start-suspended job" );
+		let start_final_job = start_final_data.job;
+		assert.equal( start_final_job.params.injected_param, "start-resume-value", "resume parameters reached the final job" );
+		assert.equal( start_final_job.input.data.preserved, "original-input", "original input data was preserved" );
+		assert.equal( start_final_job.input.data.injected, "start-input-value", "resume input data reached the final job" );
+		assert.equal( start_final_job.input.data.replaced, "after-resume", "resume input data won the shallow-merge collision" );
+		
+		let start_suspend_action = Tools.findObject( start_final_job.actions, { type: 'suspend', code: 0 } );
+		assert.ok( start_suspend_action, "start suspend action completed successfully" );
+		assert.match( start_suspend_action.details, /### User Parameters/, "action details include injected parameters" );
+		assert.match( start_suspend_action.details, /### User Input Data/, "action details include injected input data" );
+		assert.match( start_suspend_action.details, /start-input-value/, "action details include the injected input value" );
+		
+		// Move the dedicated event's suspend action to completion time, then launch
+		// a second simulated job to exercise output-data injection.
+		let { data:update_data } = await this.request.json( this.api_url + '/app/update_event/v1', {
+			id: event_id,
+			actions: [{
+				enabled: true,
+				condition: "complete",
+				type: "suspend",
+				users: [],
+				email: "",
+				web_hook: "",
+				text: ""
+			}]
+		});
+		assert.ok( update_data.code === 0, "event updated for completion-time suspension" );
+		
+		let { data:complete_data } = await this.request.json( this.api_url + '/app/run_event/v1', { id: event_id } );
+		assert.ok( complete_data.code === 0, "successful completion-suspended job launch" );
+		assert.ok( complete_data.id, "expected completion-suspended job id" );
+		let complete_job_id = complete_data.id;
+		let complete_job = await waitForSuspendedJob( this, complete_job_id, { complete: true } );
+		assert.ok( complete_job.state === 'complete', "job reached completion before suspension" );
+		
+		// Input injection belongs to start-time resumes and must not accidentally
+		// resume a completed job when the caller sends it at the wrong phase.
+		let { data:wrong_complete_data } = await this.request.json( this.api_url + '/app/resume_job/v1', {
+			id: complete_job_id,
+			input: { data: { wrong_phase: true } }
+		});
+		assert.ok( wrong_complete_data.code !== 0, "completion-time input injection was rejected" );
+		await waitForSuspendedJob( this, complete_job_id, { complete: true } );
+		
+		// The mock satellite always emits num=42 and several other output fields.
+		// Override num and add a new field to verify a true shallow merge.
+		let { data:complete_resume_data } = await this.request.json( this.api_url + '/app/resume_job/v1', {
+			id: complete_job_id,
+			data: {
+				num: 99,
+				injected: "completion-output-value"
+			}
+		});
+		assert.ok( complete_resume_data.code === 0, "completion-suspended job resumed successfully" );
+		await waitForJob( this, complete_job_id );
+		
+		let { data:complete_final_data } = await this.request.json( this.api_url + '/app/get_job/v1', { id: complete_job_id } );
+		assert.ok( complete_final_data.code === 0 && complete_final_data.job, "expected completed completion-suspended job" );
+		let complete_final_job = complete_final_data.job;
+		assert.equal( complete_final_job.data.num, 99, "resume output won the shallow-merge collision" );
+		assert.equal( complete_final_job.data.injected, "completion-output-value", "resume output reached the final job" );
+		assert.equal( complete_final_job.data.str, "foo", "original mock satellite output was preserved" );
+		
+		let complete_suspend_action = Tools.findObject( complete_final_job.actions, { type: 'suspend', code: 0 } );
+		assert.ok( complete_suspend_action, "completion suspend action completed successfully" );
+		assert.match( complete_suspend_action.details, /### User Output Data/, "action details include injected output data" );
+		assert.match( complete_suspend_action.details, /completion-output-value/, "action details include the injected output value" );
 	},
 	
 	async function test_create_simple_event_for_job(test) {
