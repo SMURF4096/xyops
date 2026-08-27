@@ -1,118 +1,151 @@
 # xyOps™
 
-![xyOps Screenshot](https://pixlcore.com/images/blog/xyops/workflow-edit.webp)
+> Your job scheduler should know what your servers are doing.
 
-xyOps™ is a next-generation system for job scheduling, workflow automation, server monitoring, alerting, and incident response -- all combined into a single, cohesive platform. It's built for developers and operations teams who want to control their automation stack without surrendering data, freedom, or visibility. xyOps doesn't hide features behind paywalls or push telemetry back to anyone. It's open, extensible, and designed to run anywhere.
+**xyOps is the next generation of Cronicle:** a complete, self-hosted platform for job scheduling, visual workflow automation, server monitoring, alerting, and incident response.
 
-## The Idea Behind xyOps
+[Website](https://xyops.io/) | [Install](https://docs.xyops.io/hosting) | [Documentation](https://docs.xyops.io/) | [Cronicle migration](https://docs.xyops.io/cronicle) | [Plugin Marketplace](https://marketplace.xyops.io/) | [Support](https://docs.xyops.io/support)
 
-Most automation platforms focus on workflow orchestration -- they run tasks, but they don't really help you see what's happening behind them. xyOps takes it further. It doesn't just schedule jobs; it connects them to real-time monitoring, alerts, server snapshots, and ticketing, creating a single, integrated feedback loop. When an alert fires, the email includes the running jobs on that server. One click opens a snapshot showing every process, CPU load, and network connection. If a job fails, xyOps can open a ticket with full context -- logs, history, and linked metrics. Everything in xyOps talks to everything else, so you can trace an issue from detection to resolution without ever leaving the system.
+[![xyOps workflow editor](https://pixlcore.com/images/blog/xyops/workflow-edit.webp)](https://xyops.io/)
 
-## Features at a Glance
+**Fully open source. Self-hosted. No telemetry. No feature gates.**
 
-- **Why xyOps?**
-  - Schedule jobs across your fleet, track performance, set alerts, and view everything live, all in one place.
-- **Job Scheduling Reimagined**
-  - xyOps brings superpowers to job scheduling, way beyond cron.
-- **Build Workflows Visually**
-  - Use the graphical workflow editor to connect events, triggers, actions, and monitors into meaningful pipelines.
-- **Monitor Everything**
-  - Define exactly what you want to monitor, and get notified the moment things go wrong.
-- **Smart Alerts**
-  - Rich alerting with full customization and complex triggers.
-- **Built for Fleets**
-  - Whether you have five servers or five thousand, xyOps adapts to your needs.
-- **Developer-Friendly**
-  - Designed with you in mind. Yes, **you**!
-- **Simple Setup**
-  - From download to deployment in minutes.
-- **Licensing**
-  - xyOps is BSD-licensed for maximum flexibility.
+xyOps connects the work you run with the systems it runs on. Schedule jobs across a fleet, build visual workflows, watch jobs and infrastructure together, capture the exact state of a server when an alert fires, and respond without reconstructing the incident across five different tools.
 
-# Installation
+> [!IMPORTANT]
+> **Every xyOps application feature is free and open source, including [Single Sign-On (SSO)](https://docs.xyops.io/sso).** SSO, OIDC integration, group-to-role mapping, multi-conductor scaling, air-gapped operation, workflows, monitoring, alerting, and ticketing are not paid features. Professional and Enterprise plans purchase human support, faster response targets, and hands-on assistance. They do not unlock software.
 
-See our **[Self-Hosting Guide](https://docs.xyops.io/hosting)** for installation details.
+## Why xyOps
 
-## Pricing
+- **Schedule and run anything:** Launch scripts and plugins on one server, a server group, or your entire fleet. Use recurring schedules, cron expressions, intervals, webhooks, priorities, queues, and resource limits.
+- **Orchestrate visually:** Build understandable workflows with branching, parallel execution, joins, human approval, reusable sub-workflows, replay, and data passing.
+- **Observe the real system:** Monitor jobs and servers together with live dashboards, custom metrics, process inspection, network connections, and historical performance.
+- **Respond with context:** Turn failures and alerts into actions. Capture server snapshots, open tickets, call webhooks, block unsafe launches, or start remediation automatically.
 
-### Free Tier
+### From alert to root cause in two clicks
 
-For individuals looking to self-host xyOps:
+When an alert fires, xyOps can freeze the relevant server state at that moment: metrics, processes, network connections, active jobs, and alert data. Open the alert, then open its snapshot. The evidence is already waiting for you.
 
-- All app features
-- Community support
-- Open source forever
+[See alert context in action](https://xyops.io/#alert-context)
 
-If you use xyOps and love it, consider [becoming a sponsor](https://github.com/sponsors/pixlcore) here on GitHub.
+## Cronicle evolved
 
-### Professional Tier
+xyOps is built by the creator of [Cronicle](https://github.com/jhuckaby/Cronicle) and carries its job-scheduling and plugin philosophy forward into a new architecture.
 
-For production installs, we highly recommend our **[Professional Plan](https://xyops.io/pricing)**, which includes:
+Existing Cronicle users can:
 
-- All app features
-- Professional support
-- Private ticketing system
-- 24 hour turnaround on tickets
+- Import Cronicle data through the xyOps interface.
+- Keep compatible plugins and familiar scheduling concepts.
+- Convert multiplexed events into visual workflows.
+- Run jobs through lightweight xySat workers with no Node.js requirement.
+- Enable Cronicle compatibility mode and optionally restore Cronicle branding.
 
-### Enterprise Tier
+[Read the Cronicle migration guide](https://docs.xyops.io/cronicle)
 
-For larger enterprises, sign up for our **[Enterprise Plan](https://xyops.io/pricing)**, which includes:
+## Try xyOps in one command
 
-- All app features
-- Enterprise support
-- SSO setup and support
-- Air-gapped installation support
-- Private ticketing system
-- 1 hour turnaround on tickets
-- Live chat with our team
+If you have Docker, this starts a disposable xyOps conductor with a local worker so you can explore the complete product immediately:
 
-# Documentation
+```bash
+docker run --detach --rm --init \
+	--name xyops-try \
+	--hostname xyops-try \
+	-e XYOPS_masters="xyops-try" \
+	-e XYOPS_xysat_local="true" \
+	-e XYOPS_base_app_url="http://localhost:5522" \
+	-e TZ="America/Los_Angeles" \
+	-p 5522:5522 \
+	ghcr.io/pixlcore/xyops:latest
+```
 
-Check out our official docs site here: **[xyOps Documentation](https://docs.xyops.io)**
+Open [http://localhost:5522/](http://localhost:5522/) and sign in with:
 
-Full documentation is also provided inside the xyOps app.  Just click the "Documentation" link in the sidebar.
+- **Username:** `admin`
+- **Password:** `admin`
 
-# Videos
+This trial is intentionally disposable. Stop it with `docker stop xyops-try`, and Docker will remove the container and its data. Change `TZ` if you want the trial to use a different timezone.
 
-Visit our official YouTube channel for xyOps tutorials: [@PixlCore-Media](https://www.youtube.com/@PixlCore-Media)
+For a persistent or production deployment, continue with the [Self-Hosting Guide](https://docs.xyops.io/hosting).
 
-Watch a quick overview of xyOps to see how the platform helps teams orchestrate workflows, monitor systems, and operate with confidence:
+## Open source without feature gates
 
-[![Watch the video](https://img.youtube.com/vi/NxZKylkKfOg/hqdefault.jpg)](https://www.youtube.com/watch?v=NxZKylkKfOg)
+The complete xyOps application is available under the [BSD 3-Clause license](LICENSE.md). There is no separate commercial build and no vendor cloud control plane required to operate it.
 
-# Community
+Your jobs, logs, metrics, secrets, files, tickets, snapshots, and configuration remain inside your infrastructure. xyOps does not send product telemetry to PixlCore or to any other telemetry service.
 
-## Reddit
+Read more:
 
-Join our subreddit to get help from the xyOps community:
+- [Trust and privacy posture](https://docs.xyops.io/trust)
+- [Single Sign-On](https://docs.xyops.io/sso)
+- [Security Overview](SECURITY_OVERVIEW.md)
+- [Threat Model](THREAT_MODEL.md)
+- [Longevity Pledge](LONGEVITY.md)
 
-https://reddit.com/r/xyOps/
+## Free software, optional paid support
 
-## Discord
+The application is identical at every level. Paid plans fund development and provide a support relationship for teams relying on xyOps in production.
 
-Join our Discord server to chat with community members in real-time:
+### Community
 
-https://discord.gg/FTzqmbGbdd
+- Every application feature, including SSO
+- BSD-licensed source code
+- Community support through GitHub, Reddit, and Discord
 
-## Social Media
+If xyOps helps you, you can also [sponsor PixlCore on GitHub](https://github.com/sponsors/pixlcore).
 
-Follow us on social media:
+### Professional
 
+- Private support tickets
+- One-business-day response target during business hours
+- Deployment and upgrade guidance
+- Prioritized product feedback
+
+### Enterprise
+
+- One-hour response target during business hours
+- Direct access to Joe
+- Architecture and migration guidance
+- Hands-on SSO and air-gap assistance
+- Invoice, wire, ACH, and purchase-order options
+
+Again, **SSO and air-gapped operation are included in the free open-source application**. Enterprise support adds hands-on help configuring and validating those features.
+
+[See transparent Professional and Enterprise pricing](https://xyops.io/#pricing)
+
+## Documentation and videos
+
+- [Official documentation](https://docs.xyops.io/)
+- [Self-hosting and installation](https://docs.xyops.io/hosting)
+- [Plugin Marketplace](https://marketplace.xyops.io/)
+- [YouTube tutorials](https://www.youtube.com/@PixlCore-Media)
+
+Full documentation is also included inside xyOps. Click **Documentation** in the application sidebar.
+
+Watch a quick overview of xyOps:
+
+[![Watch the xyOps overview](https://img.youtube.com/vi/NxZKylkKfOg/hqdefault.jpg)](https://www.youtube.com/watch?v=NxZKylkKfOg)
+
+## Community and support
+
+- [GitHub Discussions](https://github.com/pixlcore/xyops/discussions) for questions and community help
+- [GitHub Issues](https://github.com/pixlcore/xyops/issues) for reproducible bugs and feature requests
+- [Reddit](https://reddit.com/r/xyOps/)
+- [Discord](https://discord.gg/FTzqmbGbdd)
 - [Bluesky](https://pixlcore.bsky.social/)
 - [Mastodon](https://mastodon.social/@pixlcore)
 - [LinkedIn](https://linkedin.com/company/pixlcore)
 
-# Contributing
+## Contributing
 
-Please read our **[Contributing Guide](https://github.com/pixlcore/xyops/blob/main/CONTRIBUTING.md)** before opening a pull request.
+Please read the [Contributing Guide](CONTRIBUTING.md) before opening a pull request.
 
-TL;DR; we do not accept feature PRs, but there are **lots** of other ways you can contribute!  See the guide for details.
+The short version: we do not accept feature pull requests, but there are many other useful ways to contribute. The guide explains where community help is most valuable.
 
-# Development
+## Development
 
-See our **[Development Guide](https://docs.xyops.io/dev)** for local dev setup.  In short, install [Node.js LTS](https://nodejs.org/en/download) and then:
+See the [Development Guide](https://docs.xyops.io/dev) for complete local setup instructions. In short, install [Node.js LTS](https://nodejs.org/en/download), then run:
 
-```sh
+```bash
 git clone https://github.com/pixlcore/xyops.git
 cd xyops
 npm install
@@ -121,28 +154,21 @@ echo '{ "secret_key": "test" }' > conf/overrides.json
 bin/debug.sh
 ```
 
-# Security
+## Security
 
-Read our **[Trust Guide](https://docs.xyops.io/trust)** for xyOps self-hosting, privacy, telemetry, outbound requests, and enterprise security posture.
+Read the [Trust Guide](https://docs.xyops.io/trust) for xyOps self-hosting, privacy, telemetry, outbound requests, and enterprise security posture.
 
-Read our **[Security Guide](https://docs.xyops.io/security)** to learn how to report security vulnerabilities to the xyOps team.
+Read the [Security Guide](https://docs.xyops.io/security) to report a security vulnerability privately. Please do not submit vulnerabilities as public GitHub issues.
 
-Please do **not** submit vulnerabilities as GitHub issues!
-
-# Governance
+## Governance and longevity
 
 The xyOps project exists to empower users and developers through openness, reliability, and fairness.
 
-Our **[Governance Model](https://docs.xyops.io/governance)** is designed to preserve these principles indefinitely.
+- The [Governance Model](https://docs.xyops.io/governance) is designed to preserve these principles.
+- The [Longevity Pledge](LONGEVITY.md) commits xyOps to remaining open-licensed and OSI-approved. No rug pulls.
 
-# Longevity
+## License
 
-Please read our open source **[Longevity Pledge](https://github.com/pixlcore/xyops/blob/main/LONGEVITY.md)**.  The TL;DR; is:
+xyOps™ is licensed under the [BSD 3-Clause License](LICENSE.md).
 
-xyOps will always be open-licensed, and always OSI-approved. No rug pulls.
-
-# License
-
-xyOps™ is licensed under the **BSD-3-Clause** license.
-
-See [LICENSE.md](https://github.com/pixlcore/xyops/blob/main/LICENSE.md) for full license text.
+See [TRADEMARKS.md](TRADEMARKS.md) for trademark usage guidelines.
