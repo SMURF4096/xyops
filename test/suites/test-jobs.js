@@ -93,6 +93,94 @@ async function waitForAllJobs(ctx, opts = {}) {
 
 exports.tests = [
 	
+	async function test_recovered_finishing_job_timeout(test) {
+		// Simulate the in-memory job state restored from _recovery.json after a restart.
+		// This intentionally tests recovery behavior without restarting the test server
+		// or invoking any of the software upgrade / download machinery.
+		const xy = this.xy;
+		const original_active_jobs = xy.activeJobs;
+		const original_job_details = xy.jobDetails;
+		const original_abort_job = xy.abortJob;
+		const timeout = xy.config.get('dead_job_timeout');
+		const old_updated = Tools.timeNow() - timeout - 60;
+		const active_job = {
+			id: 'jrecoveractive',
+			type: 'adhoc',
+			state: 'active',
+			started: old_updated,
+			updated: old_updated,
+			remote: true,
+			actions: [],
+			limits: []
+		};
+		const finishing_job = {
+			id: 'jrecoverfinishing',
+			type: 'adhoc',
+			state: 'finishing',
+			started: old_updated,
+			updated: old_updated,
+			remote: true,
+			complete: true,
+			code: 0,
+			actions: [],
+			limits: []
+		};
+		const aborts = [];
+		
+		try {
+			// Isolate the test from the live unit-test conductor and stub abortJob so
+			// timeout detection cannot launch actions or write a completed job record.
+			xy.activeJobs = {
+				[active_job.id]: active_job,
+				[finishing_job.id]: finishing_job
+			};
+			xy.jobDetails = {
+				[active_job.id]: { activity: [] },
+				[finishing_job.id]: { activity: [] }
+			};
+			xy.abortJob = function(job, reason) {
+				aborts.push({ id: job.id, reason });
+			};
+			
+			// Recovery should give both active and finishing jobs a completely fresh
+			// timeout window, while requiring a subsequent xySat update to restore remote.
+			const recovery_started = Tools.timeNow();
+			xy.prepActiveJobs();
+			
+			assert.equal( active_job.state, 'active', "recovered active job retains its state" );
+			assert.equal( finishing_job.state, 'finishing', "recovered finishing job retains its state" );
+			assert.equal( active_job.remote, false, "recovered active job is no longer marked remote" );
+			assert.equal( finishing_job.remote, false, "recovered finishing job is no longer marked remote" );
+			assert.ok( active_job.updated >= recovery_started, "recovered active job receives a fresh timeout window" );
+			assert.ok( finishing_job.updated >= recovery_started, "recovered finishing job receives a fresh timeout window" );
+			
+			// Neither job should be aborted while its new recovery grace period is fresh.
+			xy.monitorJob(active_job);
+			xy.monitorJob(finishing_job);
+			assert.equal( aborts.length, 0, "freshly recovered jobs are not aborted" );
+			
+			// Move both jobs beyond the deadline without actually sleeping.  This checks
+			// the new finishing-state path and guards the original active-state behavior.
+			active_job.updated = Tools.timeNow() - timeout - 1;
+			finishing_job.updated = Tools.timeNow() - timeout - 1;
+			xy.monitorJob(active_job);
+			xy.monitorJob(finishing_job);
+			
+			assert.deepEqual( aborts.map( item => item.id ).sort(), [ active_job.id, finishing_job.id ].sort(), "stale recovered jobs are aborted" );
+			assert.equal( active_job.retry_ok, true, "stale active job is eligible for retry" );
+			assert.equal( finishing_job.retry_ok, true, "stale finishing job is eligible for retry" );
+			aborts.forEach( function(item) {
+				assert.match( item.reason, /No updates received in last/, "timeout abort includes the stale update reason" );
+			} );
+		}
+		finally {
+			// Always restore the shared conductor state, even if an assertion fails.
+			xy.activeJobs = original_active_jobs;
+			xy.jobDetails = original_job_details;
+			xy.abortJob = original_abort_job;
+		}
+	},
+	
 	async function test_create_web_hook_for_job(test) {
 		// create new web hook that points back to our echo API
 		let { data } = await this.request.json( this.api_url + '/app/create_web_hook/v1', {
