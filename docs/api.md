@@ -2225,7 +2225,7 @@ Notes:
 GET /api/app/get_job_log/v1
 ```
 
-Stream a job's log as plain text. Requires a valid user session (session auth).
+Stream a completed job's log as plain text. Requires a valid user session or API Key.
 
 Parameters:
 
