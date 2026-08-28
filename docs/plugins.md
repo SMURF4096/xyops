@@ -681,6 +681,22 @@ As with all other xyOps APIs, a code of `0` or `false` indicates success, while 
 
 As an advanced tip, you can also include an optional `details` property, which is rendered as Markdown in the details dialog for the action.  This can be useful if your action produces a large amount of output or logs that you want to capture and expose to the user.
 
+Job-related Action Plugins may also include an optional `data` object to add custom data to the current job.  For an **On Start** action, xyOps shallow-merges the properties into [Job.input.data](data.md#job-input), making them available to the job that is about to run.  For all other job conditions, the properties are shallow-merged into the job's output data, making them available to downstream workflow jobs.  Existing properties with the same names are replaced.
+
+```json
+{
+	"xy": 1,
+	"code": 0,
+	"description": "Action success!",
+	"data": {
+		"ticket_id": "ABC-123",
+		"region": "us-west"
+	}
+}
+```
+
+Actions for the same condition run in parallel.  This means another completion action, such as **Run Event**, may launch its job before the Action Plugin has merged its data.  Use a wired downstream workflow job when the data must be available reliably.  The `data` property must be an object, and only applies to job-related Action Plugins.
+
 If your Plugin does not output JSON, no problem.  When no JSON is detected in the output stream, xyOps will assume success or failure based on the process exit code, and display the raw output as plain text, if any.
 
 ### Trigger Plugins
