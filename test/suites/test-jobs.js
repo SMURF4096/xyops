@@ -260,6 +260,59 @@ exports.tests = [
 		assert.ok( !!job.data.secrets, "job data has echoed secrets object" );
 		assert.ok( job.data.secrets.DB_PASS == "CorrectHorseBatteryStaple", "correct secret in job data" );
 	},
+	
+	async function test_run_event_action_copies_input(test) {
+		// Verify that a Run Event action gives the child an independent input
+		// snapshot before reserving data.text for the source job's raw output.
+		const parent_id = 'jrunactioncopytest';
+		const parent_data = {
+			text: 'original structured text',
+			nested: { value: 'parent value' }
+		};
+		const parent_files = [{
+			filename: 'parent.txt',
+			path: 'files/jobs/' + parent_id + '/unit-test/parent.txt'
+		}];
+		const parent_job = {
+			id: parent_id,
+			event: this.event_id,
+			state: 'complete',
+			code: 1,
+			description: 'Intentional test failure'
+		};
+		const action = {
+			enabled: true,
+			condition: 'error',
+			type: 'run_event',
+			event_id: this.event_id,
+			include_output: true
+		};
+		const original_enqueue_launch = this.xy.enqueueLaunch;
+		let child_job = null;
+		
+		this.xy.jobDetails[parent_id] = {
+			data: parent_data,
+			files: parent_files,
+			output: 'raw job output\n'
+		};
+		
+		try {
+			this.xy.enqueueLaunch = function(job, callback) {
+				child_job = job;
+				callback(null, 'jrunactioncopychild');
+			};
+			
+			await new Promise( resolve => this.xy.runJobAction_run_event(parent_job, action, resolve) );
+			assert.equal( child_job.input.data.text, 'raw job output\n', "child input contains the parent job output" );
+			assert.notStrictEqual( child_job.input.data.nested, parent_data.nested, "child input data is a deep copy" );
+			assert.notStrictEqual( child_job.input.files[0], parent_files[0], "child input files are a deep copy" );
+			assert.equal( parent_data.text, 'original structured text', "parent output text was not modified" );
+		}
+		finally {
+			this.xy.enqueueLaunch = original_enqueue_launch;
+			delete this.xy.jobDetails[parent_id];
+		}
+	},
 
 	async function test_resume_suspended_job_with_api_data(test) {
 		// Create an isolated event with a start-time suspend action.  Suspend actions

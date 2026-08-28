@@ -218,7 +218,7 @@ See [Web Hooks](webhooks.md) for more details on web hooks.
 
 ### Run Event
 
-Launch another event as a follow-up action. The new job inherits context, and for job actions you can override the child event's params.
+Launch another event as a follow-up action. The new job inherits context, and for job actions you can override the child event's params or include the source job's captured text output.
 
 Parameters:
 
@@ -226,18 +226,43 @@ Parameters:
 |------|------|----------|-------------|
 | `event_id` | String | Yes | Target [Event.id](data.md#event-id) to run. |
 | `params` | Object | Optional | Override parameters for the launched event. |
+| `include_output` | Boolean | Optional | For job actions, include the source job's inline text output in the launched job's `input.data.text` property.  Defaults to `false`. |
 | `target_server` | Boolean | Optional | For alert actions, this will override the [Event.targets](data.md#event-targets) to point at the server where the alert triggered. |
 | `clear_alert` | Boolean | Optional | For alert actions, this will clear the alert when the job completes.  Useful for signal alerts (e.g. files waiting for pickup). |
+
+#### Including Job Output
+
+Enable **Include Job Output** to pass the source job's captured text output to the launched job.  This is the combined STDOUT and STDERR text shown in the source job's output viewer.  The launched job receives it in [Job.input.data](data.md#job-input) under the `text` property:
+
+```json
+{
+	"input": {
+		"data": {
+			"text": "Captured job output..."
+		}
+	}
+}
+```
+
+When this option is enabled, xyOps reserves `input.data.text` for the captured job output.
+
+Only inline job output is supported.  The output must be smaller than the configured `max_inline_job_log_size`, which defaults to 1 MB.  If the job output exceeds this limit, no log content is passed to the launched job.
+
+Job output is not available for an **On Start** action because the source job has not run yet.  Only enable **Include Job Output** for completion conditions such as **On Complete**, **On Success**, **On Any Error**, **On Warning** or **On Critical**.
+
+> [!WARNING]
+> Job output may contain passwords, tokens or other sensitive information.  Review what your jobs print before forwarding their output to another event, especially when the launched event sends data to an external service.
 
 Example (job warning):
 
 ```json
 {
-    "enabled": true,
-    "condition": "warning",
-    "type": "run_event",
-    "event_id": "postprocess_assets",
-    "params": { "optimize": true, "quality": 80 }
+	"enabled": true,
+	"condition": "warning",
+	"type": "run_event",
+	"event_id": "postprocess_assets",
+	"include_output": true,
+	"params": { "optimize": true, "quality": 80 }
 }
 ```
 

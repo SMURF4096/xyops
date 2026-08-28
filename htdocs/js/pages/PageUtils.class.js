@@ -2348,6 +2348,19 @@ Page.PageUtils = class PageUtils extends Page.Base {
 				caption: 'Optionally clear the alert when the job completes.'
 			});
 		}
+		else {
+			// include job output
+			html += this.getFormRow({
+				id: 'd_eja_job_output',
+				label: 'Extras:',
+				content: this.getFormCheckbox({
+					id: 'fe_eja_job_output',
+					label: 'Include Job Output',
+					checked: !!action.include_output
+				}),
+				caption: 'Optionally include the current job\'s raw output as a text input to the new job. [Learn More](#Docs/actions/including-job-output)'
+			});
+		}
 		
 		// notification channel
 		html += this.getFormRow({
@@ -2542,6 +2555,9 @@ Page.PageUtils = class PageUtils extends Page.Base {
 						action.target_server = $('#fe_eja_target_server').is(':checked');
 						action.clear_alert = $('#fe_eja_clear_alert').is(':checked');
 					}
+					else {
+						action.include_output = $('#fe_eja_job_output').is(':checked');
+					}
 					var event = find_object( app.events, { id: action.event_id } );
 					if (!event) return app.badField('#fe_eja_event', "Event not found.");
 					action.start_delay = parseInt( $('#fe_eja_start_delay').val() );
@@ -2601,7 +2617,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		} ); // Dialog.confirm
 		
 		var change_action_type = function(new_type) {
-			$('#d_eja_email, #d_eja_users, #d_eja_body, #d_eja_web_hook, #d_eja_web_hook_text, #d_eja_run_job, #d_eja_target_server, #d_eja_clear_alert, #d_eja_event_params, #d_eja_start_delay, #d_eja_channel, #d_eja_bucket, #d_eja_bucket_sync, #d_eja_bucket_glob, #d_nt_type, #d_nt_assignees, #d_nt_tags, #d_nt_due_preset, #d_eja_tags, #d_eja_label, #d_eja_suspend_sources, #d_eja_plugin, #d_eja_plugin_params').hide();
+			$('#d_eja_email, #d_eja_users, #d_eja_body, #d_eja_web_hook, #d_eja_web_hook_text, #d_eja_run_job, #d_eja_target_server, #d_eja_clear_alert, #d_eja_event_params, #d_eja_start_delay, #d_eja_job_output, #d_eja_channel, #d_eja_bucket, #d_eja_bucket_sync, #d_eja_bucket_glob, #d_nt_type, #d_nt_assignees, #d_nt_tags, #d_nt_due_preset, #d_eja_tags, #d_eja_label, #d_eja_suspend_sources, #d_eja_plugin, #d_eja_plugin_params').hide();
 			
 			switch (new_type) {
 				case 'email':
@@ -2621,6 +2637,9 @@ Page.PageUtils = class PageUtils extends Page.Base {
 					if (opts.alert) {
 						$('#d_eja_target_server').show();
 						$('#d_eja_clear_alert').show();
+					}
+					else {
+						$('#d_eja_job_output').show();
 					}
 					$('#d_eja_event_params').show();
 					var event = find_object( app.events, { id: $('#fe_eja_event').val() } ) || {};
