@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const async = require('async');
 const fs = require('node:fs');
 const { Writable } = require('node:stream');
+const Tools = require('pixl-tools');
 const Admin = require('../../lib/api/admin.js');
 
 // Run the bulk exporter against a small, synchronous mock.  This gives us a
@@ -201,6 +202,23 @@ exports.tests = [
     let { data } = await this.request.json(this.api_url + '/app/admin_reset_daily_stats/v1', {});
     assert.ok(data.code === 0, 'successful api response');
   },
+
+	async function test_admin_reset_job_rate_limits(test) {
+		// Seed a live bucket, call the real authenticated API, and verify all current
+		// windows are discarded without waiting for their natural expiration.
+		const original_rate_limits = this.xy.jobRateLimits;
+		try {
+			this.xy.jobRateLimits = {
+				'cap:unit-test-api': { count: 2, max: 2, expires: Tools.timeNow(true) + 3600 }
+			};
+			let { data } = await this.request.json(this.api_url + '/app/admin_reset_job_rate_limits/v1', {});
+			assert.ok(data.code === 0, 'successful job rate limit reset response');
+			assert.deepEqual(this.xy.jobRateLimits, {}, 'all job rate limit windows were reset');
+		}
+		finally {
+			this.xy.jobRateLimits = original_rate_limits;
+		}
+	},
 
   async function test_admin_dash_stats_after(test) {
     // verify daily stats were reset (server_add is a good metric to check)

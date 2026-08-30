@@ -2,6 +2,8 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const Tools = require('pixl-tools');
 
+const RATE_TEST_EVENT_ID = 'rate-limit-unit-event';
+
 // helper: sleep
 async function sleep(ms) {
 	await new Promise(res => setTimeout(res, ms));
@@ -91,7 +93,267 @@ async function waitForAllJobs(ctx, opts = {}) {
 	throw new Error('Timed out waiting for all jobs to finish');
 }
 
+// helper: create a minimal synthetic job for deterministic rate limit tests
+function makeRateTestJob(id, opts = {}) {
+	var job_limit = {
+		type: 'job',
+		enabled: true,
+		amount: ('amount' in opts) ? opts.amount : 4,
+		rate: ('rate' in opts) ? opts.rate : 2,
+		window: ('window' in opts) ? opts.window : 60
+	};
+	var job = {
+		id: id,
+		event: opts.event || RATE_TEST_EVENT_ID,
+		type: opts.type || 'adhoc',
+		state: opts.state || 'ready',
+		started: ('started' in opts) ? opts.started : Tools.timeNow(),
+		actions: [],
+		limits: [
+			job_limit,
+			{ type: 'queue', enabled: true, amount: 10 }
+		]
+	};
+	
+	if (opts.cap_key) {
+		job.cap_key = opts.cap_key;
+		job_limit.cap_key = opts.cap_key;
+	}
+	if (opts.workflow) job.workflow = Tools.copyHash(opts.workflow, true);
+	return job;
+}
+
+// helper: install the minimal event record required by checkJobStartLimits()
+function installRateTestEvent(xy) {
+	xy.events = xy.events.concat( [ { id: RATE_TEST_EVENT_ID, title: "Rate Limit Unit Event", enabled: true } ] );
+}
+
 exports.tests = [
+
+	async function test_job_rate_limit_queue_ids(test) {
+		// Rate limits use the same queue identity as concurrency limits.  Exercise
+		// event, workflow and shared capacity-key scopes without launching jobs.
+		const xy = this.xy;
+		const event_a = makeRateTestJob('jratekeya', { event: 'rate-event-a' });
+		const event_b = makeRateTestJob('jratekeyb', { event: 'rate-event-b' });
+		const workflow = makeRateTestJob('jratekeywf', {
+			event: 'ignored-for-workflow-node',
+			workflow: { node: 'node-a', job: 'parent-job-a' }
+		});
+		const shared_a = makeRateTestJob('jratekeycapa', { event: 'rate-event-a', cap_key: 'shared-api' });
+		const shared_b = makeRateTestJob('jratekeycapb', { event: 'rate-event-b', cap_key: 'shared-api' });
+		
+		assert.notEqual( xy.getJobQueueID(event_a), xy.getJobQueueID(event_b), "different events use different rate limit buckets" );
+		assert.equal( xy.getJobQueueID(workflow), 'node-a-parent-job-a-adhoc', "workflow node and parent job scope the rate limit bucket" );
+		assert.equal( xy.getJobQueueID(shared_a), 'cap:shared-api', "capacity key creates a shared rate limit bucket" );
+		assert.equal( xy.getJobQueueID(shared_a), xy.getJobQueueID(shared_b), "capacity key shares rate limits across events" );
+	},
+	
+	async function test_job_rate_limit_admission_and_window_reset(test) {
+		// Exercise the fixed-window boundary directly.  No clock mocking or sleep
+		// is needed because expired and live windows are represented explicitly.
+		const xy = this.xy;
+		const original_active_jobs = xy.activeJobs;
+		const original_job_details = xy.jobDetails;
+		const original_rate_limits = xy.jobRateLimits;
+		const original_events = xy.events;
+		const original_append_meta_log = xy.appendMetaLog;
+		const original_abort_job = xy.abortJob;
+		const job = makeRateTestJob('jrateadmit');
+		const queue_id = xy.getJobQueueID(job);
+		
+		try {
+			xy.activeJobs = {};
+			xy.jobDetails = { [job.id]: { activity: [] } };
+			xy.jobRateLimits = {};
+			installRateTestEvent(xy);
+			xy.appendMetaLog = function() {};
+			xy.abortJob = function() { throw new Error("Rate test unexpectedly aborted a job"); };
+			
+			// The first admission creates a fresh, empty bucket.  Admission checks do
+			// not consume capacity until a server is successfully selected.
+			assert.equal( xy.checkJobStartLimits(job), true, "first job is admitted into a fresh rate window" );
+			assert.equal( xy.jobRateLimits[queue_id].count, 0, "admission check does not increment the rate counter" );
+			assert.equal( xy.jobRateLimits[queue_id].max, 2, "new rate window stores the configured maximum" );
+			
+			// Fill the bucket and confirm that the next job moves into the queue.
+			xy.jobRateLimits[queue_id].count = 2;
+			job.state = 'ready';
+			assert.equal( xy.checkJobStartLimits(job), false, "job is blocked when the rate window is full" );
+			assert.equal( job.state, 'queued', "rate-limited job moves into the queue" );
+			assert.equal( job.position, 1, "first rate-limited job receives queue position one" );
+			
+			// Expire the same bucket manually.  The next admission should reset it
+			// and adopt the job's current settings immediately.
+			job.state = 'ready';
+			delete job.position;
+			job.limits[0].rate = 3;
+			job.limits[0].window = 60;
+			xy.jobRateLimits[queue_id] = { count: 2, max: 2, expires: 0 };
+			var reset_started = Tools.timeNow(true);
+			assert.equal( xy.checkJobStartLimits(job), true, "job is admitted after its fixed window expires" );
+			assert.equal( xy.jobRateLimits[queue_id].count, 0, "expired rate window resets its counter" );
+			assert.equal( xy.jobRateLimits[queue_id].max, 3, "expired rate window adopts the current maximum" );
+			assert.ok( xy.jobRateLimits[queue_id].expires >= reset_started + 60, "expired rate window receives a new duration" );
+		}
+		finally {
+			xy.activeJobs = original_active_jobs;
+			xy.jobDetails = original_job_details;
+			xy.jobRateLimits = original_rate_limits;
+			xy.events = original_events;
+			xy.appendMetaLog = original_append_meta_log;
+			xy.abortJob = original_abort_job;
+		}
+	},
+	
+	async function test_job_rate_limit_successful_start_increment(test) {
+		// checkJobStartLimits() only checks capacity.  monitorJob() consumes one
+		// rate slot after a server is selected, so cover that handoff separately.
+		const xy = this.xy;
+		const original_active_jobs = xy.activeJobs;
+		const original_job_details = xy.jobDetails;
+		const original_rate_limits = xy.jobRateLimits;
+		const original_events = xy.events;
+		const original_choose_job_server = xy.chooseJobServer;
+		const original_run_job_actions = xy.runJobActions;
+		const original_abort_job = xy.abortJob;
+		const job = makeRateTestJob('jratestart');
+		const queue_id = xy.getJobQueueID(job);
+		
+		try {
+			xy.activeJobs = { [job.id]: job };
+			xy.jobDetails = { [job.id]: { activity: [] } };
+			xy.jobRateLimits = {};
+			installRateTestEvent(xy);
+			xy.chooseJobServer = function() { return true; };
+			xy.runJobActions = function() {
+				// Deliberately leave the start action pending so no satellite process or
+				// workflow is launched after the counter has been exercised.
+			};
+			xy.abortJob = function() { throw new Error("Rate start test unexpectedly aborted a job"); };
+			
+			xy.monitorJob(job);
+			assert.equal( job.state, 'starting', "admitted job advances to the starting state" );
+			assert.equal( xy.jobRateLimits[queue_id].count, 1, "successful server selection increments the rate counter once" );
+		}
+		finally {
+			xy.activeJobs = original_active_jobs;
+			xy.jobDetails = original_job_details;
+			xy.jobRateLimits = original_rate_limits;
+			xy.events = original_events;
+			xy.chooseJobServer = original_choose_job_server;
+			xy.runJobActions = original_run_job_actions;
+			xy.abortJob = original_abort_job;
+		}
+	},
+	
+	async function test_job_rate_limit_queued_release(test) {
+		// Build small in-memory queues and verify monitorJobs() honors the tighter
+		// of the concurrency slots and remaining rate allowance.
+		const xy = this.xy;
+		const original_master = xy.master;
+		const original_active_jobs = xy.activeJobs;
+		const original_job_details = xy.jobDetails;
+		const original_rate_limits = xy.jobRateLimits;
+		const original_events = xy.events;
+		const original_check_available_job_server = xy.checkAvailableJobServer;
+		const original_choose_job_server = xy.chooseJobServer;
+		const original_run_job_actions = xy.runJobActions;
+		const original_append_meta_log = xy.appendMetaLog;
+		const original_abort_job = xy.abortJob;
+		
+		function loadQueue(amount, rate, count) {
+			var jobs = {};
+			for (var idx = 0; idx < 5; idx++) {
+				var job = makeRateTestJob('jratequeue' + idx, {
+					state: 'queued',
+					started: 100 + idx,
+					amount: amount,
+					rate: rate
+				});
+				jobs[job.id] = job;
+			}
+			xy.activeJobs = jobs;
+			xy.jobDetails = {};
+			Object.keys(jobs).forEach( function(id) { xy.jobDetails[id] = { activity: [] }; } );
+			var queue_id = xy.getJobQueueID(jobs.jratequeue0);
+			xy.jobRateLimits = { [queue_id]: { count: count, max: rate, expires: Tools.timeNow(true) + 3600 } };
+			return { jobs, queue_id };
+		}
+		
+		try {
+			xy.master = true;
+			installRateTestEvent(xy);
+			xy.checkAvailableJobServer = function() { return true; };
+			xy.chooseJobServer = function() { return true; };
+			xy.runJobActions = function() {};
+			xy.appendMetaLog = function() {};
+			xy.abortJob = function() { throw new Error("Rate queue test unexpectedly aborted a job"); };
+			
+			// Four concurrency slots are open, but only two rate slots remain.
+			var scenario = loadQueue(4, 3, 1);
+			xy.monitorJobs();
+			assert.equal( Tools.findObjects(Object.values(scenario.jobs), { state: 'starting' }).length, 2, "queue releases only the remaining rate allowance" );
+			assert.equal( Tools.findObjects(Object.values(scenario.jobs), { state: 'queued' }).length, 3, "rate allowance leaves excess jobs queued" );
+			assert.equal( xy.jobRateLimits[scenario.queue_id].count, 3, "released jobs consume the remaining rate allowance" );
+			
+			// Ten rate slots are open, but only two concurrent jobs may start.
+			scenario = loadQueue(2, 10, 0);
+			xy.monitorJobs();
+			assert.equal( Tools.findObjects(Object.values(scenario.jobs), { state: 'starting' }).length, 2, "queue releases only the available concurrency slots" );
+			assert.equal( Tools.findObjects(Object.values(scenario.jobs), { state: 'queued' }).length, 3, "concurrency limit leaves excess jobs queued" );
+			assert.equal( xy.jobRateLimits[scenario.queue_id].count, 2, "concurrency-limited starts consume exactly two rate slots" );
+		}
+		finally {
+			xy.master = original_master;
+			xy.activeJobs = original_active_jobs;
+			xy.jobDetails = original_job_details;
+			xy.jobRateLimits = original_rate_limits;
+			xy.events = original_events;
+			xy.checkAvailableJobServer = original_check_available_job_server;
+			xy.chooseJobServer = original_choose_job_server;
+			xy.runJobActions = original_run_job_actions;
+			xy.appendMetaLog = original_append_meta_log;
+			xy.abortJob = original_abort_job;
+		}
+	},
+	
+	async function test_job_rate_limit_expiration_and_recovery(test) {
+		// Cover periodic bucket cleanup and the recovery refund for a job whose
+		// start actions were interrupted after consuming rate capacity.
+		const xy = this.xy;
+		const original_active_jobs = xy.activeJobs;
+		const original_job_details = xy.jobDetails;
+		const original_rate_limits = xy.jobRateLimits;
+		const original_append_meta_log = xy.appendMetaLog;
+		const job = makeRateTestJob('jraterecover', { state: 'starting' });
+		const queue_id = xy.getJobQueueID(job);
+		const now = Tools.timeNow(true);
+		
+		try {
+			xy.jobRateLimits = {
+				expired: { count: 1, max: 1, expires: now - 1 },
+				live: { count: 1, max: 1, expires: now + 3600 }
+			};
+			xy.expireJobRateLimits();
+			assert.equal( 'expired' in xy.jobRateLimits, false, "periodic cleanup removes expired rate windows" );
+			assert.equal( 'live' in xy.jobRateLimits, true, "periodic cleanup preserves live rate windows" );
+			
+			xy.activeJobs = { [job.id]: job };
+			xy.jobDetails = { [job.id]: { activity: [] } };
+			xy.jobRateLimits = { [queue_id]: { count: 1, max: 2, expires: now + 3600 } };
+			xy.appendMetaLog = function() {};
+			xy.prepActiveJobs();
+			assert.equal( job.state, 'ready', "recovered starting job returns to the ready state" );
+			assert.equal( xy.jobRateLimits[queue_id].count, 0, "recovered starting job refunds its consumed rate slot" );
+		}
+		finally {
+			xy.activeJobs = original_active_jobs;
+			xy.jobDetails = original_job_details;
+			xy.jobRateLimits = original_rate_limits;
+			xy.appendMetaLog = original_append_meta_log;
+		}
+	},
 	
 	async function test_recovered_finishing_job_timeout(test) {
 		// Simulate the in-memory job state restored from _recovery.json after a restart.

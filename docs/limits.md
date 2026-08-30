@@ -100,7 +100,7 @@ Example:
 
 ### Max Concurrent Jobs
 
-Limit how many jobs of the same event/workflow may run at once. If the cap is reached, xyOps can queue the job if a `queue` limit allows it; otherwise the job is aborted.
+Limit how many jobs of the same event/workflow may run at once, and optionally limit the rate as well. If the cap is reached, xyOps can queue the job if a `queue` limit allows it; otherwise the job is aborted.
 
 Parameters:
 
@@ -109,7 +109,9 @@ Parameters:
 | `type` | String | Yes | Set to `job` for max concurrent jobs. |
 | `amount` | Number | Yes | Maximum number of concurrent active jobs for the event/workflow. |
 | `weight` | Number | No | Optional job weight, used in server targeting calculations. |
-| `cap_key` | String | No | Optional shared capacity key, used for joining a concurrency pool.  See below. |
+| `rate` | Number | No | Optional non-negative integer that caps how many jobs may start during a rate window.  Set to `0` to disable rate limiting.  See [Rate Limiting](#rate-limiting) below. |
+| `window` | Number | Conditional | Rate limit window duration in seconds.  Required when `rate` is present, and must be `1`, `60`, or `3600`. |
+| `cap_key` | String | No | Optional shared capacity key, used for joining a concurrency pool.  See [Shared Capacity Key](#shared-capacity-key) below. |
 
 Notes:
 
@@ -126,6 +128,38 @@ Example:
 	"amount": 2
 }
 ```
+
+#### Rate Limiting
+
+The Max Concurrent Jobs limit can also restrict how many jobs may **start** during a period of time.  Add the `rate` and `window` properties to the same limit as the concurrency `amount`:
+
+```json
+{
+	"enabled": true,
+	"type": "job",
+	"amount": 2,
+	"rate": 10,
+	"window": 1
+}
+```
+
+This allows up to 2 jobs to run concurrently and up to 10 jobs to start per second.  Concurrency and rate are separate checks, so a job may start only when both have available capacity.
+
+The `rate` must be a non-negative integer.  Set it to `0` to disable rate limiting.  The `window` may only be set to the following values:
+
+| Window | Description |
+|--------|-------------|
+| `1` | Per Second |
+| `60` | Per Minute |
+| `3600` | Per Hour |
+
+Rate limits use simple fixed windows.  A window begins when the pool first needs one and expires after the configured number of seconds.  Windows are not aligned to wall-clock minute, or hour boundaries.
+
+When the rate is exhausted, a [Max Queue Limit](#max-queue-limit) allows additional jobs to wait for the next available window.  Without queue capacity, excess jobs are aborted instead of waiting.
+
+If you configure a [Shared Capacity Key](#shared-capacity-key), the rate allowance is shared along with concurrency capacity.  All members of the shared pool should use identical concurrency, rate, window, and queue settings.
+
+For a complete explanation of fixed windows, queue behavior, shared pools, workflow scope, configuration changes, resets, recovery, and operational caveats, see the [Job Rate Limits Wiki](https://github.com/pixlcore/xyops/wiki/Rate-Limits).
 
 #### Shared Capacity Key
 
@@ -157,6 +191,7 @@ Capacity keys have the following requirements:
 - Keys may be up to 32 characters long.
 - The UI automatically converts keys to lowercase, replaces whitespace with hyphens, and removes unsupported characters.
 - All members of a shared pool must use the same Max Concurrent Jobs amount.  xyOps emits a warning to the job meta log if it detects differing amounts.
+- All members using rate limiting must use the same rate and window.  Members should either all enable the same rate limit or all leave it disabled.  xyOps emits a warning to the job meta log if it detects differing rate settings.
 - Each member must configure its own Max Queue limit if jobs should wait when the shared concurrency pool is full.
 
 All waiting jobs with the same capacity key share one priority-first, FIFO queue.  High-priority jobs are considered first, followed by the oldest waiting job.  A member's Max Queue amount is compared against the total number of jobs already waiting in the shared pool.  For predictable behavior, all members should use the same Max Queue amount.  xyOps emits a warning to the job meta log if it detects differing queue amounts.
@@ -304,7 +339,7 @@ By default, the following abort situations are eligible for retry:
 | `Server is shutting down.` | xySat aborted its active jobs during a non-graceful shutdown. |
 | Runtime limit requested an abort | A **Max Run Time**, **Max Output Size**, **Max Memory Limit**, or **Max CPU Limit** was exceeded and its **Abort Job** option was enabled. |
 
-Other aborts do not retry by default.  For example, a job will not normally retry after `Maximum number of concurrent jobs for event has been reached.` or `Manually aborted by user: x`.  To override this protection, enable **Always Retry on Abort** in the UI, or set `force` to `true` on the retry limit.  This only overrides the special abort restriction.  The job must still have a non-zero result code, an enabled retry limit, and retries remaining.
+Other aborts do not retry by default.  For example, a job will not normally retry after `Maximum number of concurrent jobs...` or `Manually aborted by user: x`.  To override this protection, enable **Always Retry on Abort** in the UI, or set `force` to `true` on the retry limit.  This only overrides the special abort restriction.  The job must still have a non-zero result code, an enabled retry limit, and retries remaining.
 
 > [!TIP]
 > Retry attempts launch immediately when `duration` is omitted or set to `0`.  For temporary conditions such as unavailable target servers, configure a delay so the server has time to reconnect or become eligible before the next attempt.

@@ -1306,6 +1306,19 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		var short_desc = '';
 		var icon = 'gauge';
 		
+		var window_names = {
+			long: {
+				"1": "second",
+				"60": "minute",
+				"3600": "hour"
+			},
+			short: {
+				"1": "sec",
+				"60": "min",
+				"3600": "hr"
+			}
+		};
+		
 		switch (item.type) {
 			case 'mem':
 				nice_title = "Max Memory";
@@ -1338,8 +1351,14 @@ Page.PageUtils = class PageUtils extends Page.Base {
 				nice_title = "Max Jobs";
 				if (!item.amount) nice_desc = short_desc = "Unlimited";
 				else {
-					nice_desc = "Up to " + commify(item.amount) + " concurrent " + pluralize("job", item.amount);
+					nice_desc = "Up to " + commify(item.amount) + " concurrent";
 					short_desc = commify(item.amount) + ' ' + pluralize("job", item.amount);
+					
+					if (item.rate) {
+						nice_desc += ", or " + this.getNiceDashNumber(item.rate) + " per " + window_names.long[item.window];
+						short_desc += " or " + this.getNiceDashNumber(item.rate) + "/" + window_names.short[item.window];
+					}
+					else nice_desc += " " + pluralize("job", item.amount);
 				}
 				icon = 'traffic-light-outline';
 			break;
@@ -1575,6 +1594,22 @@ Page.PageUtils = class PageUtils extends Page.Base {
 			caption: 'Check this box to *always* retry the job, even it was manually aborted.'
 		});
 		
+		// rate limit
+		var window_units = [
+			{ id: '1', title: 'Per Second' },
+			{ id: '60', title: 'Per Minute' },
+			{ id: '3600', title: 'Per Hour' }
+		];
+		html += this.getFormRow({
+			id: 'd_erl_rate_limit',
+			label: 'Rate Limit:',
+			content: '<div class="form_row_duo">' + 
+				'<div>' + this.getFormText({ id: 'fe_erl_rate_limit', type: 'number', min: 0, step: 1, value: limit.rate || 0 }) + '</div>' + 
+				'<div>' + this.getFormMenu({ id: 'fe_erl_rate_window', options: window_units, value: limit.window || 1 }) + '</div>' + 
+			'</div>',
+			caption: 'Optionally set a rate limit to control the job throughput.  Set to `0` for unlimited.'
+		});
+		
 		// cap key
 		html += this.getFormRow({
 			id: 'd_erl_cap_key',
@@ -1587,7 +1622,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 				min: 1,
 				value: limit.cap_key || ''
 			}),
-			caption: 'Optionally set a shared capacity key, which allows multiple events and/or workflow nodes to share a common job concurrency pool.  [Learn More](#Docs/limits/shared-capacity-key)'
+			caption: 'Optionally set a shared capacity key, which allows multiple events and/or workflow nodes to share a common job concurrency and rate pool.  [Learn More](#Docs/limits/shared-capacity-key)'
 		});
 		
 		// job weight
@@ -1792,6 +1827,8 @@ Page.PageUtils = class PageUtils extends Page.Base {
 					limit.weight = parseInt( $('#fe_erl_job_weight').val() );
 					limit.cap_key = $('#fe_erl_cap_key').val().toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').substring(0, 32);
 					if (!limit.cap_key) delete limit.cap_key;
+					limit.rate = parseInt( $('#fe_erl_rate_limit').val() ) || 0;
+					limit.window = parseInt( $('#fe_erl_rate_window').val() ) || 1;
 				break;
 				
 				case 'retry':
@@ -1825,7 +1862,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		} ); // Dialog.confirm
 		
 		var change_limit_type = function(new_type) {
-			$('#d_erl_byte_amount, #d_erl_raw_amount, #d_erl_duration, #d_erl_retry_force, #d_erl_job_weight, #d_erl_cap_key, #d_erl_file_size, #d_erl_file_types, #d_erl_tags, #d_erl_users, #d_erl_email, #d_erl_web_hook, #d_erl_web_hook_text, #d_erl_day_condition, #d_erl_day_amount, #d_erl_actions').hide();
+			$('#d_erl_byte_amount, #d_erl_raw_amount, #d_erl_duration, #d_erl_retry_force, #d_erl_job_weight, #d_erl_rate_limit, #d_erl_cap_key, #d_erl_file_size, #d_erl_file_types, #d_erl_tags, #d_erl_users, #d_erl_email, #d_erl_web_hook, #d_erl_web_hook_text, #d_erl_day_condition, #d_erl_day_amount, #d_erl_actions').hide();
 			
 			if (new_type.match(/^(time|mem|cpu|log)$/)) {
 				$('#d_erl_tags, #d_erl_users, #d_erl_email, #d_erl_web_hook, #d_erl_web_hook_text, #d_erl_actions').show();
@@ -1857,7 +1894,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 				case 'job':
 					$('#d_erl_raw_amount').show();
 					$('#s_erl_raw_amount_cap').html('Enter the maximum number of concurrent jobs to allow.');
-					$('#d_erl_job_weight, #d_erl_cap_key').show();
+					$('#d_erl_job_weight, #d_erl_rate_limit, #d_erl_cap_key').show();
 				break;
 				
 				case 'retry':

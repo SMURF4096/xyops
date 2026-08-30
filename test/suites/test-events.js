@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const Tools = require('pixl-tools');
+const API = require('../../lib/api.js');
 
 // helper: sleep while waiting for an asynchronously launched job
 async function sleep(ms) {
@@ -72,6 +73,47 @@ exports.tests = [
 			"limits": [ { enabled: true, type: 'time', duration: 'nope' } ]
 		});
 		assert.ok( !!data.code, "expected error for invalid limit" );
+	},
+	
+	async function test_api_validate_job_rate_limits(test) {
+		// Exercise rate-specific validation directly so the test does not need to
+		// create and delete several otherwise-valid events.
+		var api = new API();
+		var last_error = '';
+		api.doError = function(code, msg) {
+			last_error = msg;
+			return false;
+		};
+		
+		function validate(rate, window) {
+			last_error = '';
+			var result = api.requireValidLimits({
+				limits: [ { type: 'job', enabled: true, amount: 1, rate: rate, window: window } ]
+			}, function() {});
+			return { result, error: last_error };
+		}
+		
+		// Zero disables the rate while preserving a valid stored window.  All
+		// supported fixed-window durations should pass validation.
+		[ 1, 60, 3600 ].forEach( function(window) {
+			var check = validate(1, window);
+			assert.equal( check.result, true, "accepted fixed rate window: " + window );
+			assert.equal( check.error, '', "valid rate window produced no error: " + window );
+		} );
+		assert.equal( validate(0, 1).result, true, "zero rate is accepted as disabled" );
+		
+		var fractional = validate(1.5, 60);
+		var negative = validate(-1, 60);
+		var zero_window = validate(1, 0);
+		var daily_window = validate(1, 86400);
+		assert.equal( fractional.result, false, "fractional rate is rejected" );
+		assert.match( fractional.error, /non-negative integer/, "fractional rate returns the expected validation error" );
+		assert.equal( negative.result, false, "negative rate is rejected" );
+		assert.match( negative.error, /non-negative integer/, "negative rate returns the expected validation error" );
+		assert.equal( zero_window.result, false, "zero-length rate window is rejected" );
+		assert.match( zero_window.error, /positive number/, "zero-length window returns the expected validation error" );
+		assert.equal( daily_window.result, false, "unsupported daily rate window is rejected" );
+		assert.match( daily_window.error, /1, 60, or 3600/, "unsupported window returns the expected validation error" );
 	},
 
 	async function test_api_create_event_invalid_action(test) {

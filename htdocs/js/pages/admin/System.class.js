@@ -100,8 +100,8 @@ Page.System = class System extends Page.PageUtils {
 		
 		// reset stats
 		html += '<div class="maint_unit">';
-			html += '<div class="button danger" onClick="$P().do_reset_stats()"><i class="mdi mdi-skip-previous-circle-outline">&nbsp;</i>Reset Daily Stats...</div>';
-			html += '<div class="caption">Reset the daily statistic counters displayed on the dashboard.</div>';
+			html += '<div class="button danger" onClick="$P().do_reset_stats()"><i class="mdi mdi-skip-previous-circle-outline">&nbsp;</i>Reset Stats...</div>';
+			html += '<div class="caption">Reset the daily stat counters displayed on the dashboard, or the job rate limit windows.</div>';
 		html += '</div>';
 		
 		// shutdown server
@@ -660,18 +660,48 @@ Page.System = class System extends Page.PageUtils {
 	}
 	
 	do_reset_stats() {
-		// reset daily stats
+		// reset daily stats or job rate limit windows
 		var self = this;
-		var html = "This resets the daily statistics that are displayed on the Dashboard page.  Normally these are reset daily at midnight (local server time), but you can reset them manually if required.";
+		var html = '';
 		
-		Dialog.confirm( 'Reset Daily Stats', html, ['skip-previous-circle', 'Reset Now'], function(result) {
+		html += `<div class="dialog_intro">Use this to reset the daily dashboard stats or current job rate limit windows.  Normally the stats are reset daily at midnight (local server time), and the rate limit windows auto-expire at custom times, but you can reset them manually here if required.</div>`;
+		html += '<div class="dialog_box_content maximize scroll">';
+		
+		html += this.getFormRow({
+			label: 'Reset Selection:',
+			content: this.getFormMenuSingle({
+				id: 'fe_sys_stat_reset',
+				options: [ 
+					{ id: 'daily', title: "Daily Dashboard Stats", icon: 'monitor-dashboard' },
+					{ id: 'rates', title: "Rate Limit Windows", icon: 'traffic-light-outline' }
+				],
+				value: 'daily',
+				'data-shrinkwrap': 1
+			}),
+			caption: "Select which item you would like to reset. Please use extreme caution resetting rate limit windows, as this immediately restores the full rate allowance for every pool, so queued jobs may begin launching on the next scheduler tick."
+		});
+		
+		html += '</div>';
+		Dialog.confirmDanger( 'Reset Stats', html, ['skip-previous-circle', 'Reset Now'], function(result) {
 			if (!result) return;
+			
+			var id = $('#fe_sys_stat_reset').val();
 			Dialog.hide();
 			
-			app.api.post( 'app/admin_reset_daily_stats', {}, function(resp) {
-				app.showMessage('success', "The daily statistics have been reset.");
-			}); // api.post
+			if (id == 'daily') {
+				app.api.post( 'app/admin_reset_daily_stats', {}, function(resp) {
+					app.showMessage('success', "The daily statistics have been reset.");
+				}); // api.post
+			}
+			else if (id == 'rates') {
+				app.api.post( 'app/admin_reset_job_rate_limits', {}, function(resp) {
+					app.showMessage('success', "The job rate limit windows have been reset.");
+				}); // api.post
+			}
 		} ); // confirm
+		
+		SingleSelect.init('#fe_sys_stat_reset');
+		Dialog.autoResize();
 	}
 	
 	do_test_job() {
