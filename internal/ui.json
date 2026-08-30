@@ -1273,7 +1273,7 @@
 		{ "id": "day", "title": "Max Daily Limit", "icon": "calendar-cursor-outline" },
 		{ "id": "file", "title": "Max File Limit", "icon": "file-multiple-outline" },
 		{ "id": "mem", "title": "Max Memory Limit", "icon": "memory" },
-		{ "id": "log", "title": "Max Output Size", "icon": "file-remove-outline" },
+		{ "id": "log", "title": "Max Output Limit", "icon": "file-remove-outline" },
 		{ "id": "queue", "title": "Max Queue Limit", "icon": "tray-full" },
 		{ "id": "retry", "title": "Max Retry Limit", "icon": "redo-variant" },
 		{ "id": "time", "title": "Max Run Time", "icon": "timer-remove-outline" },

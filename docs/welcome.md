@@ -58,7 +58,7 @@ You can write your own plugins in any language. Plugins read a JSON job context 
 
 ## Actions and Limits
 
-- **Limits**: Self-imposed constraints such as Max Run Time, Max Output Size, Max CPU/Memory, Max Jobs Limit, Max Queue, and Max Retries. Limits can apply tags, send notifications, take snapshots, and optionally abort jobs. Limits come from the event/workflow, the category, and universal defaults. See [Limits](limits.md).
+- **Limits**: Self-imposed constraints such as Max Run Time, Max Output Limit, Max CPU/Memory, Max Jobs Limit, Max Queue, and Max Retries. Limits can apply tags, send notifications, take snapshots, and optionally abort jobs. Limits come from the event/workflow, the category, and universal defaults. See [Limits](limits.md).
 - **Actions**: Reactions to job outcomes (start, success, error, warning, critical, abort, or tag match) or to alert state changes. Action types include email, web hook, run job, ticket, snapshot, and more. Actions execute in parallel and deduplicate per target. See [Actions](actions.md).
 
 
