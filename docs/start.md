@@ -336,7 +336,7 @@ See [Actions](actions.md#run-event) for all Run Event options.
 
 ## Add Concurrency And Queue Limits
 
-By default, if a job cannot start because its event is already at the concurrency limit, it will immediately fail with an error.  You should pair **Max Concurrent Jobs** with **Max Queue Limit** when you want jobs to queue.
+By default, if a job cannot start because its event is already at the concurrency limit, it will immediately fail with an error.  You should pair **Max Jobs Limit** with **Max Queue Limit** when you want jobs to queue.
 
 For example, suppose you want an event to run only one job at a time, with up to 25 waiting jobs.
 
@@ -344,7 +344,7 @@ Edit the event:
 
 1. Open the event editor.
 2. Open the **Limits** section.
-3. Add **Max Concurrent Jobs**.
+3. Add **Max Jobs Limit**.
 4. Set the amount to `1`.
 5. Add **Max Queue Limit**.
 6. Set the amount to `25`.
@@ -358,7 +358,7 @@ This means:
 
 This pair is also important when jobs can launch faster than your workers can accept them, such as web hook triggers, repeat workflows, multiplex workflows, or busy schedules.
 
-See [Limits](limits.md#max-concurrent-jobs) and [Limits](limits.md#max-queue-limit) for the full behavior.
+See [Max Jobs Limit](limits.md#max-jobs-limit) and [Max Queue Limit](limits.md#max-queue-limit) for the full behavior.
 
 
 ## Fire A Web Hook When A Job Fails
@@ -436,7 +436,7 @@ The basic shape is:
 +----------------+     +-------------------+     +--------+
 ```
 
-If you attach a **Limit** node, connect it to the event node's South pole.  For example, attach Max Concurrent Jobs and Max Queue Limit to control fan-out.
+If you attach a **Limit** node, connect it to the event node's South pole.  For example, attach Max Jobs Limit and Max Queue Limit to control fan-out.
 
 A few workflow tips:
 

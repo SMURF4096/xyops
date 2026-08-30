@@ -4,7 +4,7 @@
 
 Limits are self-imposed restrictions you can place on your events, to govern resource usage as the job runs, as well as specify options such as max number of retries, or max allowed jobs to queue up.  Limits can be defined at several different levels, including directly on events, attached as workflow nodes, inherited from categories, or inherited from your global configuration file (a.k.a "universal" limits).
 
-In some cases when multiple limits of the same type are present for a job, only one limit will apply.  This is true for [Max Concurrent Jobs](#max-concurrent-jobs), [Max Retry Limit](#max-retry-limit), [Max Queue Limit](#max-queue-limit), and [Max File Limit](#max-file-limit).  For these limits xyOps will pick the first enabled limit it finds of the selected type, with the limits presorted in this order:
+In some cases when multiple limits of the same type are present for a job, only one limit will apply.  This is true for [Max Jobs Limit](#max-jobs-limit), [Max Retry Limit](#max-retry-limit), [Max Queue Limit](#max-queue-limit), and [Max File Limit](#max-file-limit).  For these limits xyOps will pick the first enabled limit it finds of the selected type, with the limits presorted in this order:
 
 - Event defined limits *(highest priority)*
 - Workflow limit nodes
@@ -45,7 +45,7 @@ Minimal example (JSON):
 	- Event/workflow limits first (highest precedence)
 	- Category limits next
 	- Universal limits last
-- xyOps consults the first matching limit by `type` for start-time checks like Max Concurrent Jobs (`job`) and Max Queue (`queue`). 
+- xyOps consults the first matching limit by `type` for start-time checks like Max Jobs Limit (`job`) and Max Queue (`queue`).
 - For running resource checks (`time`, `log`, `mem`, `cpu`), multiple limits can exist, and they all apply, and can perform separate actions.
 
 ## Limit Object
@@ -98,7 +98,7 @@ Example:
 }
 ```
 
-### Max Concurrent Jobs
+### Max Jobs Limit
 
 Limit how many jobs of the same event/workflow may run at once, and optionally limit the rate as well. If the cap is reached, xyOps can queue the job if a `queue` limit allows it; otherwise the job is aborted.
 
@@ -106,7 +106,7 @@ Parameters:
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `type` | String | Yes | Set to `job` for max concurrent jobs. |
+| `type` | String | Yes | Set to `job` for the Max Jobs Limit. |
 | `amount` | Number | Yes | Maximum number of concurrent active jobs for the event/workflow. |
 | `weight` | Number | No | Optional job weight, used in server targeting calculations. |
 | `rate` | Number | No | Optional non-negative integer that caps how many jobs may start during a rate window.  Set to `0` to disable rate limiting.  See [Rate Limiting](#rate-limiting) below. |
@@ -131,7 +131,7 @@ Example:
 
 #### Rate Limiting
 
-The Max Concurrent Jobs limit can also restrict how many jobs may **start** during a period of time.  Add the `rate` and `window` properties to the same limit as the concurrency `amount`:
+The Max Jobs Limit can also restrict how many jobs may **start** during a period of time.  Add the `rate` and `window` properties to the same limit as the concurrency `amount`:
 
 ```json
 {
@@ -163,9 +163,9 @@ For a complete explanation of fixed windows, queue behavior, shared pools, workf
 
 #### Shared Capacity Key
 
-By default, the Max Concurrent Jobs limit only counts similar jobs from the same event or workflow node.  You can optionally set a **Shared Capacity Key** to create a global concurrency pool shared by multiple events and/or workflow nodes.  This is useful when otherwise unrelated jobs all consume the same limited resource, such as an external API, database, or deployment service.
+By default, the Max Jobs Limit only counts similar jobs from the same event or workflow node.  You can optionally set a **Shared Capacity Key** to create a global capacity pool shared by multiple events and/or workflow nodes.  This is useful when otherwise unrelated jobs all consume the same limited resource, such as an external API, database, or deployment service.
 
-For example, several events may call the Salesforce API, but you only want three of those jobs running at once across the entire xyOps cluster.  Configure each event with the same `cap_key` and Max Concurrent Jobs amount:
+For example, several events may call the Salesforce API, but you only want three of those jobs running at once across the entire xyOps cluster.  Configure each event with the same `cap_key` and Max Jobs Limit amount:
 
 ```json
 "limits": [
@@ -190,7 +190,7 @@ Capacity keys have the following requirements:
 - Keys may contain lowercase letters, numbers, underscores, and hyphens.
 - Keys may be up to 32 characters long.
 - The UI automatically converts keys to lowercase, replaces whitespace with hyphens, and removes unsupported characters.
-- All members of a shared pool must use the same Max Concurrent Jobs amount.  xyOps emits a warning to the job meta log if it detects differing amounts.
+- All members of a shared pool must use the same Max Jobs Limit amount.  xyOps emits a warning to the job meta log if it detects differing amounts.
 - All members using rate limiting must use the same rate and window.  Members should either all enable the same rate limit or all leave it disabled.  xyOps emits a warning to the job meta log if it detects differing rate settings.
 - Each member must configure its own Max Queue limit if jobs should wait when the shared concurrency pool is full.
 
@@ -366,7 +366,7 @@ Example:
 ```
 
 > [!IMPORTANT]
-> If you include a max queue limit with a non-zero amount you must also include a [Max Concurrent Jobs](#max-concurrent-jobs) limit.
+> If you include a max queue limit with a non-zero amount you must also include a [Max Jobs Limit](#max-jobs-limit).
 
 ### Max File Limit
 

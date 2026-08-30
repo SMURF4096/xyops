@@ -2785,7 +2785,7 @@ Page.Events = class Events extends Page.PageUtils {
 				// 'data-shrinkwrap': 1
 			}),
 			suffix: '<div class="form_suffix_icon mdi mdi-folder-plus-outline" title="Quick Add Category..." onClick="$P().quickAddCategory()" onMouseDown="event.preventDefault();"></div>',
-			caption: 'Select a category for the event (this may limit the max concurrent jobs, etc.)'
+			caption: 'Select a category for the event (this may apply a Max Jobs Limit, etc.)'
 		});
 		
 		// tags

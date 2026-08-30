@@ -117,7 +117,7 @@ As an example, say you have a job that is particularly "heavy", like a video con
 
 If a new job would exceed the "max jobs" setting on a server, that server is removed from consideration (just as if it was otherwise unavailable or offline).  If a server's "max jobs" is less than the job weight, it will never be chosen for that job.
 
-By default all jobs have a weight of `1`.  To set a job weight higher, edit the [Max Concurrent Jobs](limits.md#max-concurrent-jobs) limit on the event (or attach a [Limit Node](workflows.md#limit-nodes) in your workflow), and in the dialog you will see a new "Server Job Weight" field.  Note that this weight is **only** used for server selection, and does not affect the job's own concurrent maximum setting.
+By default all jobs have a weight of `1`.  To set a job weight higher, edit the [Max Jobs Limit](limits.md#max-jobs-limit) on the event (or attach a [Limit Node](workflows.md#limit-nodes) in your workflow), and in the dialog you will see a new "Server Job Weight" field.  Note that this weight is **only** used for server selection, and does not affect the job's own concurrent maximum setting.
 
 ### Group Priority Targeting
 

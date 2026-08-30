@@ -249,13 +249,13 @@ Back up databases and files to Amazon S3 on a fixed schedule, with optional rete
 - Trigger: Add a `schedule` trigger for 01:00 in your timezone, and enable `catchup` so missed runs replay after outages.
 - Workflow: Use a workflow so you can multiplex the job across multiple DB servers.
   - Multiplex Controller: Attach a job node to run on a group of servers (i.e. "Database" group).
-    - Use the "stagger" option to spread jobs out, or use [Max Concurrent Jobs](limits.md#max-concurrent-jobs) and [Max Queue Limit](limits.md#max-queue-limit) to run them in series.
+    - Use the "stagger" option to spread jobs out, or use [Max Jobs Limit](limits.md#max-jobs-limit) and [Max Queue Limit](limits.md#max-queue-limit) to run them in series.
   - Job node 1: Shell Plugin to create backups on each target DB server. 
     - Examples: `pg_dump` or `mysqldump`, plus `tar` and `gzip` for directories.
 	- Add files to output of job, e.g. `echo '{"xy":1, "code":0, "files":["*.tgz"]}'`;
   - Job node 2, wired via "continue" condition: Upload all input files to S3.
     - Target a server with outbound network access.
-- Limits: Add [Max Run Time](limits.md#max-run-time) and [Max CPU Limit](limits.md#max-cpu-limit) limits to the backup job. Add [Max Concurrent Jobs](limits.md#max-concurrent-jobs) limit to avoid overlapping runs.
+- Limits: Add [Max Run Time](limits.md#max-run-time) and [Max CPU Limit](limits.md#max-cpu-limit) limits to the backup job. Add a [Max Jobs Limit](limits.md#max-jobs-limit) to avoid overlapping runs.
 - Notifications: Add a [Web Hook](actions.md#web-hook) or [Email](actions.md#email) action on `error` and `critical` with links to the job.
 
 ### Notes
@@ -394,7 +394,7 @@ Transcode incoming videos to MP4 H.264 and push the outputs to storage and a CDN
 	- - Add files to output of job, e.g. `{"xy":1, "code":0, "files":["*.mp4"]}`;
   - Continue: After all items complete, continue to a packaging step that generates a manifest or index.
   - Store: On the transcoding node, attach a custom action to upload the MP4 outputs to S3 or other storage.
-- Limits: Attach [Max CPU Limit](limits.md#max-cpu-limit), [Max Memory Limit](limits.md#max-memory-limit), [Max Run Time](limits.md#max-run-time), [Max Concurrent Jobs](limits.md#max-concurrent-jobs) and [Max Queue Limit](limits.md#max-queue-limit) limits to the transcode node to control resource usage and queue depth.
+- Limits: Attach [Max CPU Limit](limits.md#max-cpu-limit), [Max Memory Limit](limits.md#max-memory-limit), [Max Run Time](limits.md#max-run-time), [Max Jobs Limit](limits.md#max-jobs-limit) and [Max Queue Limit](limits.md#max-queue-limit) to the transcode node to control resource usage and queue depth.
 - Notifications: On `success`, fire a Web Hook to your CDN cache purge endpoint. On `error`, send email or post to a channel.
 
 ### Notes

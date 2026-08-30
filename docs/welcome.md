@@ -58,7 +58,7 @@ You can write your own plugins in any language. Plugins read a JSON job context 
 
 ## Actions and Limits
 
-- **Limits**: Self-imposed constraints such as Max Run Time, Max Output Size, Max CPU/Memory, Max Concurrent Jobs, Max Queue, and Max Retries. Limits can apply tags, send notifications, take snapshots, and optionally abort jobs. Limits come from the event/workflow, the category, and universal defaults. See [Limits](limits.md).
+- **Limits**: Self-imposed constraints such as Max Run Time, Max Output Size, Max CPU/Memory, Max Jobs Limit, Max Queue, and Max Retries. Limits can apply tags, send notifications, take snapshots, and optionally abort jobs. Limits come from the event/workflow, the category, and universal defaults. See [Limits](limits.md).
 - **Actions**: Reactions to job outcomes (start, success, error, warning, critical, abort, or tag match) or to alert state changes. Action types include email, web hook, run job, ticket, snapshot, and more. Actions execute in parallel and deduplicate per target. See [Actions](actions.md).
 
 
@@ -99,7 +99,7 @@ Next, try adding a Max Run Time limit and an email action on error. Re-run to se
 1. Go to Workflows → New Workflow.
 2. Add a Trigger node (Manual) and connect it to an Event node referencing the event you just created.
 3. Optionally insert a Controller (e.g., Repeat or Multiplex) between the trigger and event to see parallelism.
-4. Attach a Limit node (e.g., Max Concurrent Jobs) to the event node’s bottom pole.
+4. Attach a Limit node (e.g., Max Jobs Limit) to the event node’s bottom pole.
 5. Click Test Selection or Run, then inspect the parent workflow job and its sub-jobs.
 
 See [Workflows](workflows.md) for node types, controllers, and graph editing tools.
