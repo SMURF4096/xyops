@@ -104,6 +104,15 @@ Page.Base = class Base extends Page {
 		return html;
 	}
 	
+	getNiceCategoryList(cats, link, glue) {
+		// get formatted cat list
+		var self = this;
+		if (!glue) glue = ', ';
+		if (!cats || !cats.length) return '(None)';
+		if (typeof(cats) == 'string') cats = cats.split(/\,\s*/);
+		return cats.map( function(cat) { return self.getNiceCategory(cat, link); } ).join(glue);
+	}
+	
 	getNiceMonitor(item, link) {
 		// get formatted monitor with icon, plus optional link
 		if (typeof(item) == 'string') item = find_object(app.monitors, { id: item });
@@ -381,6 +390,15 @@ Page.Base = class Base extends Page {
 		return html;
 	}
 	
+	getNicePluginList(plugins, link, glue) {
+		// get formatted plugin list
+		var self = this;
+		if (!glue) glue = ', ';
+		if (!plugins || !plugins.length) return '(None)';
+		if (typeof(plugins) == 'string') plugins = plugins.split(/\,\s*/);
+		return plugins.map( function(plugin) { return self.getNicePlugin(plugin, link); } ).join(glue);
+	}
+	
 	getNicePluginType(type) {
 		// get formatted plugin type
 		var icon = '';
@@ -439,6 +457,15 @@ Page.Base = class Base extends Page {
 		
 		html += '</span>';
 		return html;
+	}
+	
+	getNiceEventList(events, link, glue) {
+		// get formatted event list
+		var self = this;
+		if (!glue) glue = ', ';
+		if (!events || !events.length) return '(None)';
+		if (typeof(events) == 'string') events = events.split(/\,\s*/);
+		return events.map( function(event) { return self.getNiceEvent(event, link); } ).join(glue);
 	}
 	
 	getNiceWorkflowJob(workflow, link) {

@@ -68,6 +68,16 @@ Page.Dashboard = class Dashboard extends Page.PageUtils {
 			html += '</div>'; // box_content
 		html += '</div>'; // box
 		
+		// rate limits
+		html += '<div class="box" id="d_dash_rates" style="display:none">';
+			html += '<div class="box_title">';
+				html += 'Rate Limit Pools';
+			html += '</div>';
+			html += '<div class="box_content table">';
+				// html += '<div class="loading_container"><div class="loading"></div></div>';
+			html += '</div>'; // box_content
+		html += '</div>'; // box
+		
 		// internal jobs
 		html += '<div class="box" id="d_dash_internal" style="display:none">';
 			html += '<div class="box_title">';
@@ -137,6 +147,7 @@ Page.Dashboard = class Dashboard extends Page.PageUtils {
 		this.updateDashGrid();
 		this.renderActiveJobs();
 		this.getQueueSummary();
+		this.renderRateSummary();
 		this.renderFavoriteEvents();
 		this.getUpcomingJobs();
 		// this.setupQuickMonitors();
@@ -593,6 +604,8 @@ Page.Dashboard = class Dashboard extends Page.PageUtils {
 				self.div.find('#d_el_jt_status_' + item.id).html( self.getNiceEventStatus(item) );
 			} );
 		}
+		
+		this.updateRateSummary();
 	}
 	
 	jobActiveNav(offset) {
@@ -603,24 +616,12 @@ Page.Dashboard = class Dashboard extends Page.PageUtils {
 	}
 	
 	getQueueSummary() {
-		// fetch summary of queued job counts per event
+		// fetch summary of queued job counts and rate limits
 		var self = this;
 		
-		app.api.get( 'app/get_active_job_summary', { state: 'queued' }, function(resp) {
+		app.api.get( 'app/get_queue_summary', {}, function(resp) {
 			if (!self.active) return; // sanity
-			
-			// convert event summary hash to rows
-			var rows = [];
-			for (var event_id in resp.events) {
-				var info = resp.events[event_id];
-				var event = find_object( app.events, { id: event_id } );
-				if (event) {
-					info.event = event;
-					info.title = event.title; // for sort_by
-					rows.push(info);
-				}
-			}
-			self.queuedJobs = sort_by( rows, 'title', { dir: 1, type: 'string', copy: false } );
+			self.queues = resp.queues || [];
 			self.renderQueueSummary();
 		});
 	}
@@ -632,64 +633,143 @@ Page.Dashboard = class Dashboard extends Page.PageUtils {
 		
 		// make sure page is still active (API may be slow)
 		if (!this.active) return;
-		if (!this.queueOffset) this.queueOffset = 0;
 		
-		if (!this.queuedJobs.length) {
+		if (!this.queues.length) {
 			this.div.find('#d_dash_queued').hide().find('> .box_content').html('');
 			return;
 		}
 		
-		var grid_args = {
-			resp: {
-				rows: this.queuedJobs.slice( this.queueOffset, this.queueOffset + this.args.limit ),
-				list: { length: this.queuedJobs.length }
-			},
-			cols: ['Event', 'Category', 'Plugin', 'Sources', 'Targets', 'Jobs', 'Actions'],
-			data_type: 'queue',
-			offset: this.queueOffset,
-			limit: this.args.limit,
-			class: 'data_grid dash_job_queue_grid',
-			pagination_link: '$P().jobQueueNav'
-		};
-		
-		html += this.getPaginatedGrid( grid_args, function(item, idx) {
-			return [
-				'<b>' + self.getNiceEvent(item.id, true) + '</b>',
-				self.getNiceCategory(item.event.category, true),
-				self.getNicePlugin(item.event.plugin, true),
-				self.getNiceJobSourceList( Object.keys(item.sources).sort() ),
-				self.getNiceTargetList( Object.keys(item.targets).sort(), true ),
-				commify( item.states.queued ),
-				'<button class="link danger" onClick="$P().doFlushQueue(\'' + item.id + '\')"><b>Flush Queue</b></button>'
-			];
+		// sort by id ascending
+		this.queues.sort( function(a, b) {
+			return a.id.toLowerCase().localeCompare( b.id.toLowerCase() );
 		} );
 		
+		var opts = {
+			rows: this.queues,
+			cols: ['Queue ID / Cap Key', 'Events', 'Categories', 'Sources', 'Targets', '# Jobs', 'Actions'],
+			data_type: 'queue',
+			class: 'data_grid dash_job_queue_grid'
+		};
+		
+		html += this.getBasicGrid( opts, function(item) {
+			// { id: queue_id, events: {}, categories: {}, sources: {}, targets: {}, plugins: {}, count: 0 }
+			return [
+				'<span class="nowrap monospace">' + item.id + '</span>',
+				self.getNiceEventList(Object.keys(item.events), true),
+				self.getNiceCategoryList(Object.keys(item.categories), true),
+				// self.getNicePluginList(Object.keys(item.plugins), true),
+				self.getNiceJobSourceList( Object.keys(item.sources).sort() ),
+				self.getNiceTargetList( Object.keys(item.targets).sort(), true ),
+				commify( item.count ),
+				'<button class="link danger" onClick="$P().doFlushQueue(\'' + item.id + '\')"><b>Flush Queue</b></button>'
+			];
+		}); // getBasicGrid
+		
 		this.div.find('#d_dash_queued').show().find('> .box_content').removeClass('loading').html( html );
+	}
+	
+	renderRateSummary() {
+		// render job rate limit window summary
+		var self = this;
+		var html = '';
+		var rates = Object.values(app.jobRateLimits || {});
+		
+		// make sure page is still active (API may be slow)
+		if (!this.active) return;
+		
+		if (!rates.length) {
+			this.div.find('#d_dash_rates').hide().find('> .box_content').html('');
+			return;
+		}
+		
+		// sort by id ascending
+		rates.sort( function(a, b) {
+			return a.id.toLowerCase().localeCompare( b.id.toLowerCase() );
+		} );
+		
+		var opts = {
+			rows: rates,
+			cols: ['Pool ID / Cap Key', 'Event', 'Current Count', 'Max Count', 'Window Size', 'Expires In', 'Actions'],
+			data_type: 'pool',
+			class: 'data_grid dash_job_rate_grid'
+		};
+		
+		html += this.getBasicGrid( opts, function(item) {
+			// { id, count, max, window, expires }
+			var event_id = '';
+			if (item.id.match(/^(e\w+)/)) event_id = RegExp.$1;
+			else if (item.id.match(/^n\w+\-(j\w+)/)) {
+				var job = app.activeJobs[RegExp.$1];
+				if (job) event_id = job.event;
+			}
+			
+			return [
+				'<span class="nowrap monospace">' + item.id + '</span>',
+				event_id ? self.getNiceEvent(event_id, true) : 'n/a',
+				`<span id="s_dash_rate_count_${item.id}">` + commify(item.count) + '</span>',
+				`<span id="s_dash_rate_max_${item.id}">` + commify(item.max) + '</span>',
+				`<span id="s_dash_rate_window_${item.id}">` + get_text_from_seconds(item.window, false, true) + '</span>',
+				`<span id="s_dash_rate_remain_${item.id}">` + get_text_from_seconds_round( Math.max(0, item.expires - app.epoch), false) + '</span>',
+				app.isAdmin() ? `<button class="link danger" onClick="$P().doResetRatePool('${item.id}')"><b>Reset Pool</b></button>` : '-'
+			];
+		}); // getBasicGrid
+		
+		this.div.find('#d_dash_rates').show().find('> .box_content').removeClass('loading').html( html );
+	}
+	
+	updateRateSummary() {
+		// determine if we can do a "quick" update, or a full redraw
+		var old_ids = Object.keys(this.rates || {}).sort().join('|');
+		var new_ids = Object.keys(app.jobRateLimits || {}).sort().join('|');
+		this.rates = app.jobRateLimits;
+		
+		if (old_ids != new_ids) {
+			// rate ids changed, redraw full
+			this.renderRateSummary();
+		}
+		else {
+			// same rate ids, update quickly
+			Object.values(this.rates).forEach( function(item) {
+				$('#s_dash_rate_count_' + CSS.escape(item.id)).html( commify(item.count) );
+				$('#s_dash_rate_remain_' + CSS.escape(item.id)).html( get_text_from_seconds_round( Math.max(0, item.expires - app.epoch), false) );
+				$('#s_dash_rate_max_' + CSS.escape(item.id)).html( commify(item.max) );
+				$('#s_dash_rate_window_' + CSS.escape(item.id)).html( get_text_from_seconds(item.window, false, true) );
+			} );
+		}
 	}
 	
 	doFlushQueue(id) {
 		// flush specific event queue
 		var self = this;
-		var event = find_object( app.events, { id } ) || { title: id };
 		
-		Dialog.confirmDanger( 'Flush Queue', "Are you sure you want to flush the event queue for &ldquo;<b>" + event.title + "</b>&rdquo;?  All pending jobs will be silently deleted without triggering completion actions.", ['trash-can', 'Flush'], function(result) {
+		Dialog.confirmDanger( 'Flush Queue', "Are you sure you want to flush the job queue with ID &ldquo;<b>" + id + "</b>&rdquo;?  All pending jobs will be silently deleted without triggering completion actions.", ['trash-can', 'Flush'], function(result) {
 			if (!result) return;
 			app.clearError();
 			Dialog.showProgress( 1.0, "Flushing Queue..." );
 			
-			app.api.post( 'app/flush_event_queue', { id: id }, function(resp) {
+			app.api.post( 'app/flush_job_queue', { id: id }, function(resp) {
 				app.cacheBust = hires_time_now();
 				Dialog.hideProgress();
-				app.showMessage('success', "The event queue was flushed successfully.");
+				app.showMessage('success', "The job queue was flushed successfully.");
 			} ); // api.post
 		} ); // confirm
 	}
 	
-	jobQueueNav(offset) {
-		// user clicked on queued event pagination nav
-		this.queueOffset = offset;
-		this.div.find('#d_dash_queued > .box_content').addClass('loading');
-		this.renderQueueSummary();
+	doResetRatePool(id) {
+		// reset specific rate limit pool
+		var self = this;
+		
+		Dialog.confirmDanger( 'Reset Rate Pool', "Are you sure you want to reset the job rate limit pool with ID &ldquo;<b>" + id + "</b>&rdquo;?  Please use caution, as this immediately restores the full rate allowance for the selected pool, so queued jobs may begin launching on the next scheduler tick.", ['trash-can', 'Reset'], function(result) {
+			if (!result) return;
+			app.clearError();
+			Dialog.showProgress( 1.0, "Resetting Rate Pool..." );
+			
+			app.api.post( 'app/admin_reset_job_rate_limits', { id: id }, function(resp) {
+				app.cacheBust = hires_time_now();
+				Dialog.hideProgress();
+				app.showMessage('success', "The rate limit pool was reset successfully.");
+			} ); // api.post
+		} ); // confirm
 	}
 	
 	setupQuickMonitors() {
@@ -865,6 +945,8 @@ Page.Dashboard = class Dashboard extends Page.PageUtils {
 		// called when page is deactivated
 		delete this.favoriteEvents;
 		delete this.requestHeavyStatusUpdate;
+		delete this.queues;
+		delete this.rates;
 		
 		// destroy charts if applicable (view page)
 		if (this.charts) {
