@@ -149,10 +149,32 @@ exports.tests = [
 		assert.equal( xy.getJobQueueID(shared_a), xy.getJobQueueID(shared_b), "capacity key shares rate limits across events" );
 	},
 	
-	async function test_job_rate_limit_admission_and_window_reset(test) {
-		// Exercise the fixed-window boundary directly.  No clock mocking or sleep
-		// is needed because expired and live windows are represented explicitly.
+	async function test_job_rate_window_expiration_alignment(test) {
+		// Freeze the clock while exercising each supported window size.  This keeps
+		// the boundary checks exact without introducing sleeps or timing races.
 		const xy = this.xy;
+		const original_time_now = Tools.timeNow;
+		const fixed_now = Tools.getTimeFromArgs({
+			year: 2026, mon: 8, mday: 30, hour: 12, min: 34, sec: 56
+		});
+		
+		try {
+			Tools.timeNow = function() { return fixed_now; };
+			
+			assert.equal( xy.getRateWindowExpiration({ window: 1 }), fixed_now + 1, "one-second rate window expires on the next second" );
+			assert.equal( xy.getRateWindowExpiration({ window: 60 }), fixed_now + 4, "minute rate window expires on the next local minute" );
+			assert.equal( xy.getRateWindowExpiration({ window: 3600 }), fixed_now + 1504, "hour rate window expires on the next local hour" );
+		}
+		finally {
+			Tools.timeNow = original_time_now;
+		}
+	},
+	
+	async function test_job_rate_limit_admission_and_window_reset(test) {
+		// Exercise fresh and expired fixed-window admission with a frozen clock, so
+		// the aligned expiration timestamp can be asserted exactly without sleeps.
+		const xy = this.xy;
+		const original_time_now = Tools.timeNow;
 		const original_active_jobs = xy.activeJobs;
 		const original_job_details = xy.jobDetails;
 		const original_rate_limits = xy.jobRateLimits;
@@ -161,8 +183,12 @@ exports.tests = [
 		const original_abort_job = xy.abortJob;
 		const job = makeRateTestJob('jrateadmit');
 		const queue_id = xy.getJobQueueID(job);
+		const fixed_now = Tools.getTimeFromArgs({
+			year: 2026, mon: 8, mday: 30, hour: 12, min: 34, sec: 56
+		});
 		
 		try {
+			Tools.timeNow = function() { return fixed_now; };
 			xy.activeJobs = {};
 			xy.jobDetails = { [job.id]: { activity: [] } };
 			xy.jobRateLimits = {};
@@ -175,6 +201,7 @@ exports.tests = [
 			assert.equal( xy.checkJobStartLimits(job), true, "first job is admitted into a fresh rate window" );
 			assert.equal( xy.jobRateLimits[queue_id].count, 0, "admission check does not increment the rate counter" );
 			assert.equal( xy.jobRateLimits[queue_id].max, 2, "new rate window stores the configured maximum" );
+			assert.equal( xy.jobRateLimits[queue_id].expires, fixed_now + 4, "new rate window aligns to the next local minute" );
 			
 			// Fill the bucket and confirm that the next job moves into the queue.
 			xy.jobRateLimits[queue_id].count = 2;
@@ -190,13 +217,13 @@ exports.tests = [
 			job.limits[0].rate = 3;
 			job.limits[0].window = 60;
 			xy.jobRateLimits[queue_id] = { count: 2, max: 2, expires: 0 };
-			var reset_started = Tools.timeNow(true);
 			assert.equal( xy.checkJobStartLimits(job), true, "job is admitted after its fixed window expires" );
 			assert.equal( xy.jobRateLimits[queue_id].count, 0, "expired rate window resets its counter" );
 			assert.equal( xy.jobRateLimits[queue_id].max, 3, "expired rate window adopts the current maximum" );
-			assert.ok( xy.jobRateLimits[queue_id].expires >= reset_started + 60, "expired rate window receives a new duration" );
+			assert.equal( xy.jobRateLimits[queue_id].expires, fixed_now + 4, "expired rate window realigns to the next local minute" );
 		}
 		finally {
+			Tools.timeNow = original_time_now;
 			xy.activeJobs = original_active_jobs;
 			xy.jobDetails = original_job_details;
 			xy.jobRateLimits = original_rate_limits;
@@ -251,6 +278,7 @@ exports.tests = [
 		// Build small in-memory queues and verify monitorJobs() honors the tighter
 		// of the concurrency slots and remaining rate allowance.
 		const xy = this.xy;
+		const original_time_now = Tools.timeNow;
 		const original_master = xy.master;
 		const original_active_jobs = xy.activeJobs;
 		const original_job_details = xy.jobDetails;
@@ -261,6 +289,9 @@ exports.tests = [
 		const original_run_job_actions = xy.runJobActions;
 		const original_append_meta_log = xy.appendMetaLog;
 		const original_abort_job = xy.abortJob;
+		const fixed_now = Tools.getTimeFromArgs({
+			year: 2026, mon: 8, mday: 30, hour: 12, min: 34, sec: 56
+		});
 		
 		function loadQueue(amount, rate, count) {
 			var jobs = {};
@@ -282,6 +313,7 @@ exports.tests = [
 		}
 		
 		try {
+			Tools.timeNow = function() { return fixed_now; };
 			xy.master = true;
 			installRateTestEvent(xy);
 			xy.checkAvailableJobServer = function() { return true; };
@@ -303,8 +335,19 @@ exports.tests = [
 			assert.equal( Tools.findObjects(Object.values(scenario.jobs), { state: 'starting' }).length, 2, "queue releases only the available concurrency slots" );
 			assert.equal( Tools.findObjects(Object.values(scenario.jobs), { state: 'queued' }).length, 3, "concurrency limit leaves excess jobs queued" );
 			assert.equal( xy.jobRateLimits[scenario.queue_id].count, 2, "concurrency-limited starts consume exactly two rate slots" );
+			
+			// An expired pool resets before queued jobs are released.  Three rate slots
+			// are available, and the replacement window aligns to the local minute.
+			scenario = loadQueue(4, 3, 3);
+			xy.jobRateLimits[scenario.queue_id].expires = fixed_now - 1;
+			xy.monitorJobs();
+			assert.equal( Tools.findObjects(Object.values(scenario.jobs), { state: 'starting' }).length, 3, "expired rate window releases jobs against its reset allowance" );
+			assert.equal( Tools.findObjects(Object.values(scenario.jobs), { state: 'queued' }).length, 2, "reset rate allowance leaves excess jobs queued" );
+			assert.equal( xy.jobRateLimits[scenario.queue_id].count, 3, "released jobs consume the reset rate allowance" );
+			assert.equal( xy.jobRateLimits[scenario.queue_id].expires, fixed_now + 4, "queued release realigns an expired window to the next local minute" );
 		}
 		finally {
+			Tools.timeNow = original_time_now;
 			xy.master = original_master;
 			xy.activeJobs = original_active_jobs;
 			xy.jobDetails = original_job_details;

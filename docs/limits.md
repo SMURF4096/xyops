@@ -153,7 +153,7 @@ The `rate` must be a non-negative integer.  Set it to `0` to disable rate limiti
 | `60` | Per Minute |
 | `3600` | Per Hour |
 
-Rate limits use simple fixed windows.  A window begins when the pool first needs one and expires after the configured number of seconds.  Windows are not aligned to wall-clock minute, or hour boundaries.
+Rate limits use simple fixed windows aligned to the local system time zone of the server acting as the active conductor.  Per-second windows expire on the next second, per-minute windows expire at the start of the next local minute, and per-hour windows expire at the start of the next local hour.  If a pool is first used partway through a window, it receives its full allowance for the remainder of that window.
 
 When the rate is exhausted, a [Max Queue Limit](#max-queue-limit) allows additional jobs to wait for the next available window.  Without queue capacity, excess jobs are aborted instead of waiting.
 
