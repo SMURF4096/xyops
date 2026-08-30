@@ -1,5 +1,35 @@
 # xyOps Changelog
 
+## Version v1.0.95
+
+> August 30, 2026
+
+- [`c96de35c`](https://github.com/pixlcore/xyops/commit/c96de35c6714b9511182b035b7f15d6be444e193): Version 1.0.95
+- [`1e2b0d31`](https://github.com/pixlcore/xyops/commit/1e2b0d317952621029d4e8a6d4b421fa18bc9a99): Bug Fix: Cosmetic: Tweak code span font size in job meta log rows.
+- [`3cda126b`](https://github.com/pixlcore/xyops/commit/3cda126b0e6d10d7d36b7c134cce970170f5f238): Docs: API: Add docs for new admin_reset_job_rate_limits, flush_job_queue, and get_queue_summary endpoints.
+- [`648f2a2a`](https://github.com/pixlcore/xyops/commit/648f2a2aef363ea98f67fc3d417ca1a99c95d7de): Feature: Add full day rate limit window option.
+- [`e10c83ae`](https://github.com/pixlcore/xyops/commit/e10c83ae6af21ad56974c0021fdc96bbbb2cc0cb): Feature: Align rate limits to the selected time window (second, minute, hour, day), for more deterministic resets.
+- [`1624a89a`](https://github.com/pixlcore/xyops/commit/1624a89ae63dde3d4498f79a4d55b3fb5a5364aa): Feature: Add rate limit viewer and improved queue viewer on dashboard.
+- [`bfa0dc8e`](https://github.com/pixlcore/xyops/commit/bfa0dc8e906a23144738b7b48bcab8a2824e7364): Rename: "Max Run Time" to "Max Time Limit" in the UI.
+- [`b9ff8dba`](https://github.com/pixlcore/xyops/commit/b9ff8dbac23f72f8e467a289140d6cf34ac81db0): Rename: "Max Output Size" to "Max Output Limit" in the UI.
+- [`a1b732ce`](https://github.com/pixlcore/xyops/commit/a1b732ce08735c233f53cdf5f25e0d18c81ecdb2): Rename: "Max Concurrent Jobs" to "Max Jobs Limit" in the UI.
+- [`95ad0b3b`](https://github.com/pixlcore/xyops/commit/95ad0b3b8e6dc61ab729feb49df88d7ede67ee14): Feature: Custom Job Rate Limit System v1
+- [`62697a21`](https://github.com/pixlcore/xyops/commit/62697a21bf3fced96f7cace73e2783b7e0529d29): Sample Config: Tweak job email templates so user content is above the raw job log excerpt.
+- [`76e82d6d`](https://github.com/pixlcore/xyops/commit/76e82d6d0e7a6d8c84e90d60ee08487e8f44b8c8): Bug Fix: get_job_log API now supports jobs with "inline" (non-compressed) logs.  Updated docs as well.
+- [`399d1b49`](https://github.com/pixlcore/xyops/commit/399d1b49060ee68e3de2117d7b61f1cb2a72e2ae): Bug Fix: Properly handle case where jobs are in "finishing" state when xyOps is upgraded.
+- [`cd78c672`](https://github.com/pixlcore/xyops/commit/cd78c672b71250e2186c60847c66b535165fa9c4): Feature: Allow Action Plugins to specify custom data to merge into the current job data.
+- [`260a71ae`](https://github.com/pixlcore/xyops/commit/260a71ae2abb9236020b69c3d6fab1994a56e6e4): Feature: Allow "Run Event" action to include raw job output as a text input to launched job.
+- [`808e21c5`](https://github.com/pixlcore/xyops/commit/808e21c54381aeed0cefeeb47f0ee8a75c9ab191): Feature: Allow resume_job API to inject input or output data into job (shallow-merged).
+- [`ea54e487`](https://github.com/pixlcore/xyops/commit/ea54e48717be515bc90ad325730d8e45c785c3a7): Bug Fix: UI: Prevent suspension actions from duplicating in action table.
+- [`c62aed88`](https://github.com/pixlcore/xyops/commit/c62aed88f97e29ef198e52d74eb9cafb40c2c348): Bug Fix: Suspend Job: Allow web hook to be empty (unset).
+- [`9274dce8`](https://github.com/pixlcore/xyops/commit/9274dce8021944229d752b38dee8aca58b3f29e2): Bug Fix: Add support for retrieving job output in completion state (inline output for jobs under default 1MB limit)
+- [`cd6c6af6`](https://github.com/pixlcore/xyops/commit/cd6c6af65e4dec5343196fe5e4e6f0bc2fc870fe): Docs: Revise README for clarity and structure; enhance feature descriptions and add important notes on open-source features.
+- [`34be5a14`](https://github.com/pixlcore/xyops/commit/34be5a14ac2f9f0ee0808605ebd0e7eec197aab1): Doc: Compare: Update with new research (Aug 2026), and add Airflow and Dagster comparisons.
+- [`3d0e447a`](https://github.com/pixlcore/xyops/commit/3d0e447ace239984d1e4d993861a342f983627f9): Bug Fix: admin_export_data API: Allow single scalar strings for the lists, indexes and extras params.  Ref #432.
+- [`2583d504`](https://github.com/pixlcore/xyops/commit/2583d504ead5d4fbc068e1471b72a35e2ca652cb): Bug Fix: Redact sensitive headers when logging errors.  Fixes #432
+- [`f9909646`](https://github.com/pixlcore/xyops/commit/f9909646d6e05b50cd9742da89bbf73aba1170d8): Bug Fix: Reload secret cache on bulk data import.  Fixes #431
+- [`142e8ca9`](https://github.com/pixlcore/xyops/commit/142e8ca9fb4b425628258593515d34f6eeeec70b): Docs: Clarify web hook configuration visibility
+
 ## Version v1.0.94
 
 > August 24, 2026
