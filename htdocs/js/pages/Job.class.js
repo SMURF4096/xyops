@@ -2284,14 +2284,14 @@ Page.Job = class Job extends Page.PageUtils {
 				nice_server,
 				'<span class="monospace">' + nice_node_id + '</span>',
 				nice_node_type,
-				'<span class="wrap">' + nice_msg + '</span>'
+				'<span class="wrap meta_log_msg">' + nice_msg + '</span>'
 			];
 		} // workflow
 		else {
 			tds = [
 				nice_timestamp,
 				nice_server,
-				'<span class="wrap">' + nice_msg + '</span>'
+				'<span class="wrap meta_log_msg">' + nice_msg + '</span>'
 			];
 		}
 		

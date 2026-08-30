@@ -2187,6 +2187,10 @@ div.progress_bar_container.status > div.progress_bar_status {
 	padding: 0 !important;
 }
 
+.meta_log_msg code {
+	font-size: 12px;
+}
+
 /* Snapshots Page */
 
 div.data_grid > ul.grid_row_header > div.st_col_header {
