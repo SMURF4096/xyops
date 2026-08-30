@@ -95,7 +95,7 @@ exports.tests = [
 		
 		// Zero disables the rate while preserving a valid stored window.  All
 		// supported fixed-window durations should pass validation.
-		[ 1, 60, 3600 ].forEach( function(window) {
+		[ 1, 60, 3600, 86400 ].forEach( function(window) {
 			var check = validate(1, window);
 			assert.equal( check.result, true, "accepted fixed rate window: " + window );
 			assert.equal( check.error, '', "valid rate window produced no error: " + window );
@@ -105,15 +105,15 @@ exports.tests = [
 		var fractional = validate(1.5, 60);
 		var negative = validate(-1, 60);
 		var zero_window = validate(1, 0);
-		var daily_window = validate(1, 86400);
+		var custom_window = validate(1, 300);
 		assert.equal( fractional.result, false, "fractional rate is rejected" );
 		assert.match( fractional.error, /non-negative integer/, "fractional rate returns the expected validation error" );
 		assert.equal( negative.result, false, "negative rate is rejected" );
 		assert.match( negative.error, /non-negative integer/, "negative rate returns the expected validation error" );
 		assert.equal( zero_window.result, false, "zero-length rate window is rejected" );
 		assert.match( zero_window.error, /positive number/, "zero-length window returns the expected validation error" );
-		assert.equal( daily_window.result, false, "unsupported daily rate window is rejected" );
-		assert.match( daily_window.error, /1, 60, or 3600/, "unsupported window returns the expected validation error" );
+		assert.equal( custom_window.result, false, "unsupported custom rate window is rejected" );
+		assert.match( custom_window.error, /1, 60, 3600, or 86400/, "unsupported window returns the expected validation error" );
 	},
 
 	async function test_api_create_event_invalid_action(test) {

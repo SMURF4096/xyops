@@ -664,7 +664,7 @@ Page.System = class System extends Page.PageUtils {
 		var self = this;
 		var html = '';
 		
-		html += `<div class="dialog_intro">Use this to reset the daily dashboard stats or current job rate limit windows.  Normally the stats are reset daily at midnight (local server time), and the rate limit windows auto-expire at custom times, but you can reset them manually here if required.</div>`;
+		html += `<div class="dialog_intro">Use this to reset the daily dashboard stats or current job rate limit windows.  Normally the stats are reset daily at midnight (local server time), and the rate limit windows auto-expire, but you can reset them manually here if required.</div>`;
 		html += '<div class="dialog_box_content maximize scroll">';
 		
 		html += this.getFormRow({

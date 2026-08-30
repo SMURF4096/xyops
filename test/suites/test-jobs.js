@@ -157,6 +157,9 @@ exports.tests = [
 		const fixed_now = Tools.getTimeFromArgs({
 			year: 2026, mon: 8, mday: 30, hour: 12, min: 34, sec: 56
 		});
+		const next_midnight = Tools.getTimeFromArgs({
+			year: 2026, mon: 8, mday: 31, hour: 0, min: 0, sec: 0
+		});
 		
 		try {
 			Tools.timeNow = function() { return fixed_now; };
@@ -164,9 +167,37 @@ exports.tests = [
 			assert.equal( xy.getRateWindowExpiration({ window: 1 }), fixed_now + 1, "one-second rate window expires on the next second" );
 			assert.equal( xy.getRateWindowExpiration({ window: 60 }), fixed_now + 4, "minute rate window expires on the next local minute" );
 			assert.equal( xy.getRateWindowExpiration({ window: 3600 }), fixed_now + 1504, "hour rate window expires on the next local hour" );
+			assert.equal( xy.getRateWindowExpiration({ window: 86400 }), next_midnight, "day rate window expires at the next local midnight" );
 		}
 		finally {
 			Tools.timeNow = original_time_now;
+		}
+	},
+	
+	async function test_job_rate_daily_window_dst_alignment(test) {
+		// Exercise the spring DST boundary in a known server timezone.  The clock
+		// and process timezone are restored synchronously, so no scheduler tick or
+		// real elapsed time can make this test race.
+		const xy = this.xy;
+		const original_time_now = Tools.timeNow;
+		const original_timezone = process.env.TZ;
+		
+		try {
+			process.env.TZ = 'America/Los_Angeles';
+			var fixed_now = Tools.getTimeFromArgs({
+				year: 2026, mon: 3, mday: 7, hour: 23, min: 30, sec: 0
+			});
+			var next_midnight = Tools.getTimeFromArgs({
+				year: 2026, mon: 3, mday: 8, hour: 0, min: 0, sec: 0
+			});
+			Tools.timeNow = function() { return fixed_now; };
+			
+			assert.equal( xy.getRateWindowExpiration({ window: 86400 }), next_midnight, "day rate window uses the next calendar midnight across spring DST" );
+		}
+		finally {
+			Tools.timeNow = original_time_now;
+			if (original_timezone === undefined) delete process.env.TZ;
+			else process.env.TZ = original_timezone;
 		}
 	},
 	

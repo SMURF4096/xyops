@@ -110,7 +110,7 @@ Parameters:
 | `amount` | Number | Yes | Maximum number of concurrent active jobs for the event/workflow. |
 | `weight` | Number | No | Optional job weight, used in server targeting calculations. |
 | `rate` | Number | No | Optional non-negative integer that caps how many jobs may start during a rate window.  Set to `0` to disable rate limiting.  See [Rate Limiting](#rate-limiting) below. |
-| `window` | Number | Conditional | Rate limit window duration in seconds.  Required when `rate` is present, and must be `1`, `60`, or `3600`. |
+| `window` | Number | Conditional | Rate limit window selection encoded in seconds.  Required when `rate` is present, and must be `1`, `60`, `3600`, or `86400`.  The `86400` option represents one local calendar day. |
 | `cap_key` | String | No | Optional shared capacity key, used for joining a concurrency pool.  See [Shared Capacity Key](#shared-capacity-key) below. |
 
 Notes:
@@ -152,8 +152,9 @@ The `rate` must be a non-negative integer.  Set it to `0` to disable rate limiti
 | `1` | Per Second |
 | `60` | Per Minute |
 | `3600` | Per Hour |
+| `86400` | Per Day |
 
-Rate limits use simple fixed windows aligned to the local system time zone of the server acting as the active conductor.  Per-second windows expire on the next second, per-minute windows expire at the start of the next local minute, and per-hour windows expire at the start of the next local hour.  If a pool is first used partway through a window, it receives its full allowance for the remainder of that window.
+Rate limits use simple fixed windows aligned to the local system time zone of the server acting as the active conductor.  Per-second windows expire on the next second, per-minute windows expire at the start of the next local minute, per-hour windows expire at the start of the next local hour, and per-day windows expire at the start of the next local day at midnight.  If a pool is first used partway through a window, it receives its full allowance for the remainder of that window.
 
 When the rate is exhausted, a [Max Queue Limit](#max-queue-limit) allows additional jobs to wait for the next available window.  Without queue capacity, excess jobs are aborted instead of waiting.
 

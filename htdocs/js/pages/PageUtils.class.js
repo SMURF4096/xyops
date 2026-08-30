@@ -1310,12 +1310,14 @@ Page.PageUtils = class PageUtils extends Page.Base {
 			long: {
 				"1": "second",
 				"60": "minute",
-				"3600": "hour"
+				"3600": "hour",
+				"86400": "day"
 			},
 			short: {
 				"1": "sec",
 				"60": "min",
-				"3600": "hr"
+				"3600": "hr",
+				"86400": "day"
 			}
 		};
 		
@@ -1598,7 +1600,8 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		var window_units = [
 			{ id: '1', title: 'Per Second' },
 			{ id: '60', title: 'Per Minute' },
-			{ id: '3600', title: 'Per Hour' }
+			{ id: '3600', title: 'Per Hour' },
+			{ id: '86400', title: 'Per Day' }
 		];
 		html += this.getFormRow({
 			id: 'd_erl_rate_limit',
