@@ -3066,7 +3066,7 @@ Each limit has a `type` property which specifies what it governs.  The different
 
 | Type ID | Title | Description |
 |---------|-------|-------------|
-| `time` | **Max Run Time** | Set a maximum run time for jobs.  The limit should be in a property named `duration`, specified as seconds. |
+| `time` | **Max Time Limit** | Set a maximum run time for jobs.  The maximum should be in a property named `duration`, specified as seconds. |
 | `job` | **Max Jobs Limit** | Set a maximum number of concurrent jobs for the event, and optionally limit the job start rate.  The concurrent maximum should be in a property named `amount`. |
 | `log` | **Max Output Limit** | Set a maximum output size for jobs.  The maximum should be in a property named `amount`, specified as bytes. |
 | `mem` | **Max Memory Limit** | Set a maximum limit for memory usage for jobs (includes all child processes).  The limit should be in a property named `amount`, specified as bytes.  The sustain duration should be in a property named `duration`, specified as seconds. |
@@ -3077,7 +3077,7 @@ Each limit has a `type` property which specifies what it governs.  The different
 | `day` | **Max Daily Limit** | Quietly prevent additional job launches if a specific daily condition count has been reached for the event. |
 | `tag` | **Max Tag Limit** | Set a limit on the number of tags allowed on the job.  This is a soft limit, and does not abort the job (the tags are pruned if limits exceeded). |
 
-The following runtime limits all accept a set of additional parameters that enable special actions when exceeded: **Max Run Time** (`time`), **Max Memory Limit** (`mem`), **Max CPU % Limit** (`cpu`), and **Max Output Limit** (`log`).
+The following runtime limits all accept a set of additional parameters that enable special actions when exceeded: **Max Time Limit** (`time`), **Max Memory Limit** (`mem`), **Max CPU % Limit** (`cpu`), and **Max Output Limit** (`log`).
 
 | Property Name | Type | Description |
 |---------------|------|-------------|

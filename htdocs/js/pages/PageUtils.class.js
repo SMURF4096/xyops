@@ -1335,13 +1335,13 @@ Page.PageUtils = class PageUtils extends Page.Base {
 			break;
 			
 			case 'log':
-				nice_title = "Max Log Size";
+				nice_title = "Max Output";
 				nice_desc = short_desc = get_text_from_bytes(item.amount);
 				icon = 'file-remove-outline';
 			break;
 			
 			case 'time':
-				nice_title = "Max Run Time";
+				nice_title = "Max Time";
 				nice_desc = get_text_from_seconds(item.duration, false, false);
 				short_desc = get_text_from_seconds(item.duration, true, false);
 				icon = 'timer-remove-outline';

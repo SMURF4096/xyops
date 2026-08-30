@@ -11,7 +11,7 @@ In some cases when multiple limits of the same type are present for a job, only 
 - Category inherited limits
 - Universal inherited limits *(lowest priority)*
 
-For other limit types, e.g. [Max Run Time](#max-run-time), [Max Output Limit](#max-output-limit), [Max CPU Limit](#max-cpu-limit) and [Max Memory Limit](#max-memory-limit), when multiple limits are present, all of them are applied.  For example, you may want to emit a warning when a job uses 500MB of memory, but abort the job if the memory usage reaches 1GB.  You can achieve this by adding two separate limits, and they will both be honored.
+For other limit types, e.g. [Max Time Limit](#max-time-limit), [Max Output Limit](#max-output-limit), [Max CPU Limit](#max-cpu-limit) and [Max Memory Limit](#max-memory-limit), when multiple limits are present, all of them are applied.  For example, you may want to emit a warning when a job uses 500MB of memory, but abort the job if the memory usage reaches 1GB.  You can achieve this by adding two separate limits, and they will both be honored.
 
 This document explains how limits work, where they are defined, precedence and inheritance, and details each limit type with parameters and examples.
 
@@ -63,7 +63,7 @@ Additional properties are required based on the limit type.
 
 The following limit types are available. Each section below describes behavior, parameters, and includes an example.
 
-### Max Run Time
+### Max Time Limit
 
 Enforce a soft or hard cap on total job elapsed time. When exceeded, optional actions can be taken (tags, email, web hook, snapshot) and the job can be aborted.
 
@@ -71,7 +71,7 @@ Parameters:
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `type` | String | Yes | Set to `time` for max run time. |
+| `type` | String | Yes | Set to `time` for the Max Time Limit. |
 | `duration` | Number | Yes | Maximum runtime in seconds. |
 | `tags` | Array(String) | Optional | Apply these [Tag.id](data.md#tag-id) values when exceeded. |
 | `users` | Array(String) | Optional | Email these [User.username](data.md#user-username) users. |
@@ -337,7 +337,7 @@ By default, the following abort situations are eligible for retry:
 | `No available servers matching targets, and the queue is full.` | No eligible server was available, and the applicable queue had no remaining capacity. |
 | `No updates received in last x minutes, assuming job is dead.` | The conductor stopped receiving updates from an active job for the configured dead-job timeout. |
 | `Server is shutting down.` | xySat aborted its active jobs during a non-graceful shutdown. |
-| Runtime limit requested an abort | A **Max Run Time**, **Max Output Limit**, **Max Memory Limit**, or **Max CPU Limit** was exceeded and its **Abort Job** option was enabled. |
+| Runtime limit requested an abort | A **Max Time Limit**, **Max Output Limit**, **Max Memory Limit**, or **Max CPU Limit** was exceeded and its **Abort Job** option was enabled. |
 
 Other aborts do not retry by default.  For example, a job will not normally retry after `Maximum number of concurrent jobs...` or `Manually aborted by user: x`.  To override this protection, enable **Always Retry on Abort** in the UI, or set `force` to `true` on the retry limit.  This only overrides the special abort restriction.  The job must still have a non-zero result code, an enabled retry limit, and retries remaining.
 

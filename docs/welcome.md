@@ -58,7 +58,7 @@ You can write your own plugins in any language. Plugins read a JSON job context 
 
 ## Actions and Limits
 
-- **Limits**: Self-imposed constraints such as Max Run Time, Max Output Limit, Max CPU/Memory, Max Jobs Limit, Max Queue, and Max Retries. Limits can apply tags, send notifications, take snapshots, and optionally abort jobs. Limits come from the event/workflow, the category, and universal defaults. See [Limits](limits.md).
+- **Limits**: Self-imposed constraints such as Max Time Limit, Max Output Limit, Max CPU/Memory, Max Jobs Limit, Max Queue, and Max Retries. Limits can apply tags, send notifications, take snapshots, and optionally abort jobs. Limits come from the event/workflow, the category, and universal defaults. See [Limits](limits.md).
 - **Actions**: Reactions to job outcomes (start, success, error, warning, critical, abort, or tag match) or to alert state changes. Action types include email, web hook, run job, ticket, snapshot, and more. Actions execute in parallel and deduplicate per target. See [Actions](actions.md).
 
 
@@ -91,7 +91,7 @@ The final JSON line signals success to xyOps.
 5. Add a Manual trigger and save the event.
 6. Click Run, watch logs stream live, and view the job’s result and metrics.
 
-Next, try adding a Max Run Time limit and an email action on error. Re-run to see how actions and limits behave.
+Next, try adding a Max Time Limit and an email action on error. Re-run to see how actions and limits behave.
 
 
 ## Try It: Your First Workflow
