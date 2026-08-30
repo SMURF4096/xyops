@@ -70,7 +70,7 @@ Action nodes have a single input and connect from event/job nodes.
 
 ### Limit Nodes
 
-Limit nodes attach resource controls to event/job nodes and are merged into the launched sub-job's limits (see [Limits](limits.md)). Examples include Max Jobs, Max Queue Size, CPU/Memory/Time and File inputs.
+Limit nodes attach resource controls to event/job nodes and are merged into the launched sub-job's limits (see [Limits](limits.md)). Examples include Max Jobs, Max Queue, CPU/Memory/Time and File inputs.
 
 A limit node connects via the bottom limit pole on an event/job node.
 
@@ -133,7 +133,7 @@ Any files produced upstream are concatenated and passed along. Join requires exa
 
 The Repeat controller runs the same Event or Job node a fixed number of times. You configure the iteration count on the controller. All runs are launched immediately and will queue or run in parallel based on the limits attached to the target node. Repeat requires exactly one output connection (to the node being repeated). After all iterations complete, use a `continue` wire from the repeated node to define post-processing.
 
-To control the series/parallel run of the repeat jobs, the user simply has to connect limit nodes to the event/job node, e.g. "Max Jobs Limit" and "Max Queue Size".
+To control the series/parallel run of the repeat jobs, the user simply has to connect limit nodes to the event/job node, e.g. "Max Jobs Limit" and "Max Queue Limit".
 
 The repeat controller also offers a "continue percentage" text field, where the user can enter a number from 0-100.  This represents the number of sub-jobs that must complete successfully for the controller to fire the "continue" condition and allow flow to continue (otherwise the workflow will end, assuming no other nodes are active).
 
@@ -141,7 +141,7 @@ The repeat controller also offers a "continue percentage" text field, where the 
 
 The Multiplex controller runs a job across many servers. It expands the target selection from the destination Event/Job into concrete server IDs, filters to currently enabled servers, and applies server alert filters. It then launches one sub-job per server. An optional stagger setting delays starts by a fixed interval per job, which helps avoid thundering herds. Multiplex requires exactly one output connection (to the Event/Job to be run per server).
 
-To control the series/parallel run of the multiplexed jobs, the user simply has to connect limit nodes to the event/job node, e.g. "Max Jobs Limit" and "Max Queue Size".
+To control the series/parallel run of the multiplexed jobs, the user simply has to connect limit nodes to the event/job node, e.g. "Max Jobs Limit" and "Max Queue Limit".
 
 The multiplex controller also offers a "continue percentage" text field, where the user can enter a number from 0-100.  This represents the number of sub-jobs that must complete successfully for the controller to fire the "continue" condition and allow flow to continue (otherwise the workflow will end, assuming no other nodes are active).
 

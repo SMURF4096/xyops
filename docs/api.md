@@ -2142,6 +2142,61 @@ Example response:
 
 This API is used in the UI to summarize (count) queued jobs per workflow node.
 
+### get_queue_summary
+
+```
+GET /api/app/get_queue_summary/v1
+```
+
+Fetch a summary of all job queues visible to the current user.  Queued jobs are grouped by their effective queue ID, so events and workflow nodes that use the same Shared Capacity Key appear together in one queue.  Requires a valid user session or API Key.
+
+No input parameters are required.  Category and server-group restrictions are applied to the queued jobs before the summary is generated.
+
+Example response:
+
+```json
+{
+	"code": 0,
+	"queues": [
+		{
+			"id": "cap:salesforce",
+			"events": {
+				"generate_salesforce_report": 1,
+				"process_customer_data": 1
+			},
+			"categories": {
+				"general": 1
+			},
+			"sources": {
+				"user": 1,
+				"scheduler": 1
+			},
+			"targets": {
+				"main": 1
+			},
+			"plugins": {
+				"shellplug": 1
+			},
+			"count": 4
+		}
+	]
+}
+```
+
+In addition to the [Standard Response Format](#standard-response-format), this includes a `queues` array with the following properties:
+
+| Property Name | Type | Description |
+|---------------|------|-------------|
+| `id` | String | Effective queue ID.  A shared-capacity queue uses the format `cap:CAPACITY_KEY`. |
+| `events` | Object | Set of event IDs represented in the queue.  Each key has the value `1`. |
+| `categories` | Object | Set of category IDs represented in the queue.  Each key has the value `1`. |
+| `sources` | Object | Set of job sources represented in the queue.  Each key has the value `1`. |
+| `targets` | Object | Set of target server or group IDs represented in the queue.  Each key has the value `1`. |
+| `plugins` | Object | Set of plugin IDs represented by non-workflow jobs in the queue.  Each key has the value `1`. |
+| `count` | Number | Total number of visible jobs waiting in the queue. |
+
+Queue IDs should be treated as opaque identifiers.  Pass the returned `id` unchanged to [flush_job_queue](#flush_job_queue) when you need to empty a specific queue.
+
 ### get_job
 
 ```
@@ -2683,6 +2738,41 @@ Example response:
 ```
 
 In addition to the [Standard Response Format](#standard-response-format), this will include a `count` property indicating how many queued jobs were removed.
+
+### flush_job_queue
+
+```
+POST /api/app/flush_job_queue/v1
+```
+
+Flush a job queue by its effective queue ID without triggering job completion actions.  This supports normal event queues, workflow queues, and queues shared through a Shared Capacity Key.  Requires the [abort_jobs](privileges.md#abort_jobs) privilege and a valid user session or API Key.
+
+Parameters:
+
+| Property Name | Type | Description |
+|---------------|------|-------------|
+| `id` | String | **(Required)** Effective queue ID returned by [get_queue_summary](#get_queue_summary). |
+
+Example request:
+
+```json
+{
+	"id": "cap:salesforce"
+}
+```
+
+Example response:
+
+```json
+{
+	"code": 0,
+	"count": 4
+}
+```
+
+In addition to the [Standard Response Format](#standard-response-format), this includes a `count` property indicating how many queued jobs were removed.  Category and server-group restrictions are honored, so a restricted user may remove only the jobs they are permitted to access, even when the queue is shared with other events.
+
+Queued jobs are removed silently and permanently.  Completion actions are not triggered, and the operation cannot be undone.  A valid queue ID with no accessible waiting jobs succeeds with a `count` of `0`.
 
 
 
@@ -5812,6 +5902,44 @@ Example response:
 ```json
 { "code": 0 }
 ```
+
+### admin_reset_job_rate_limits
+
+```
+POST /api/app/admin_reset_job_rate_limits/v1
+```
+
+Reset one active job rate-limit pool, or reset all active pools at once.  Admin only.  Resetting removes the current fixed-window counter and expiration; the next applicable job recreates the pool with a full allowance and a new expiration aligned to the configured window boundary.
+
+Parameters:
+
+| Property Name | Type | Description |
+|---------------|------|-------------|
+| `id` | String | Optional rate-limit pool ID.  Omit this property to reset every active rate-limit pool. |
+
+Example request to reset one pool:
+
+```json
+{
+	"id": "cap:salesforce"
+}
+```
+
+Example request to reset all pools:
+
+```json
+{}
+```
+
+Example response:
+
+```json
+{
+	"code": 0
+}
+```
+
+Use caution when calling this API.  Resetting restores the full rate allowance for the selected pool, or for every pool when `id` is omitted.  Queued jobs may begin launching on the next scheduler tick, subject to their concurrency limits and target-server availability.  This API does not remove queued jobs, change event or workflow configuration, or reset concurrency usage.
 
 ### admin_broadcast_message
 
