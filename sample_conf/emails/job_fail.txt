@@ -25,13 +25,13 @@ The following {{config.client.name}} job has failed with code: **{{job.code}}**
 - [Job Details]({{links.job_details}})
 - [Download Log]({{links.job_log}}) ({{display.log_size}})
 
+### User Content:
+{{user_content}}
+
 ### Job Output:
 ```text
 {{log_excerpt}}
 ```
-
-### User Content:
-{{user_content}}
 
 ### Event Notes:
 {{job.notes}}

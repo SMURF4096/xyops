@@ -24,13 +24,13 @@ The following {{config.client.name}} job has completed successfully:
 ### Job Files:
 {{links.job_files}}
 
+### User Content:
+{{user_content}}
+
 ### Job Output:
 ```text
 {{log_excerpt}}
 ```
-
-### User Content:
-{{user_content}}
 
 ### Event Notes:
 {{job.notes}}
