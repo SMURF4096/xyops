@@ -1708,9 +1708,22 @@ You can chain as many requests together as you like, but note that each request 
 
 #### Using Secrets in Requests
 
-To use secrets in the HTTP Request Plugin, you need to specify them using a custom macro syntax: `[secrets.KEY_NAME]`.  This square-bracket format works in the URL, the request headers, and the request body.
+The HTTP Request Plugin supports a special square-bracket macro syntax for inserting [Secret Vault](secrets.md) variables into requests.  For example, if your event has access to a secret variable named `API_TOKEN`, you can add it to the **Headers** field like this:
 
-Note that the secrets will be printed on the job output screen.
+```http
+Authorization: Bearer [secrets.API_TOKEN]
+```
+
+At job run time, the Plugin replaces `[secrets.API_TOKEN]` with the corresponding secret value before sending the request.  You can use these macros in the **URL**, **Headers**, and **POST Data** fields.  We recommend sending credentials in a header or request body whenever possible, because URLs may be recorded by servers and proxies.
+
+> [!IMPORTANT]
+> Secret variables do not use the normal `{{ mustache }}` [macro syntax](#macro-expansion) in Plugin parameters.  For example, `{{ secrets.API_TOKEN }}` will not work.  Make sure you use square brackets, as in `[secrets.API_TOKEN]`.
+
+The square-bracket syntax performs a simple dot-path lookup against the [Job](data.md#job) object.  It can reference other job properties too, such as `[input.data.account_id]`.  It does not evaluate [xyOps Expressions](xyexp.md), so operators, functions, filters, and other JEXL features are not supported.
+
+For a secret macro to resolve, the Secret must be [granted access](secrets.md#assigning-access) to the event, category, or HTTP Request Plugin.  Workflow jobs can also receive Secrets granted to the parent workflow event.  If the specified property cannot be found, the macro is left unchanged and sent as literal text.  For example, a missing `API_TOKEN` variable would expand to `[secrets.API_TOKEN]`, which will typically result in an authentication error.
+
+Resolved secret values are redacted from the HTTP Request job log and details on a best-effort basis.  However, you should still avoid placing secrets in URLs or returning them in response content.
 
 ### Test Plugin
 

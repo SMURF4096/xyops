@@ -65,6 +65,7 @@ When a job is part of a workflow, secrets assigned to both the sub-event and the
 
 - Jobs: Secret variables are injected into the job's process environment as `NAME=value` pairs just before launch. Variables follow POSIX naming rules (letters, digits and underscores; starting with a letter or underscore is recommended).
 - Web hooks: Secrets are available to the templating system via `{{ secrets.VAR_NAME }}` in hook URL, headers, and body templates.
+- HTTP Request Plugin: Secrets are expanded via a square-bracket macro `[secrets.VAR_NAME]` in the URL, request headers, and POST data fields.  See [Using Secrets in Requests](plugins.md#using-secrets-in-requests).
 - Decryption lifecycle: The encrypted data remains at rest until the exact moment it is needed. xyOps decrypts into memory, uses the values, and never persists them in plaintext.
 
 
