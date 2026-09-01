@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const Tools = require('pixl-tools');
+const Jobs = require('../../lib/job.js');
 
 const RATE_TEST_EVENT_ID = 'rate-limit-unit-event';
 
@@ -129,6 +130,39 @@ function installRateTestEvent(xy) {
 }
 
 exports.tests = [
+
+	async function test_job_plugin_param_defaults(test) {
+		// Exercise launch-time default backfilling without starting a real job.  In
+		// particular, malformed legacy select definitions must never throw.
+		var jobs = new Jobs();
+		var object_default = { enabled: true };
+		var job = { params: { existing: 'keep-me' } };
+		var plugin = {
+			params: [
+				{ id: 'existing', type: 'select', value: 'Replacement [replace]' },
+				{ id: 'missing_select', type: 'select' },
+				{ id: 'null_select', type: 'select', value: null },
+				{ id: 'numeric_select', type: 'select', value: 123 },
+				{ id: 'empty_select', type: 'select', value: '' },
+				{ id: 'format', type: 'select', value: 'JSON [json], CSV [csv]' },
+				{ id: 'settings', type: 'json', value: object_default },
+				{ id: 'no_default', type: 'text' }
+			]
+		};
+		
+		assert.doesNotThrow( function() {
+			jobs.applyPluginParamDefaults(job, plugin);
+		}, 'malformed legacy select defaults do not crash job launch' );
+		assert.equal( job.params.existing, 'keep-me', 'existing event value is preserved' );
+		assert.equal( job.params.empty_select, '', 'empty string select default is preserved' );
+		assert.equal( job.params.format, 'json', 'first select item value becomes the default' );
+		assert.deepEqual( job.params.settings, object_default, 'object default is copied' );
+		assert.notEqual( job.params.settings, object_default, 'object default is deep-cloned' );
+		assert.equal( 'missing_select' in job.params, false, 'missing select default remains absent' );
+		assert.equal( 'null_select' in job.params, false, 'null select default remains absent' );
+		assert.equal( 'numeric_select' in job.params, false, 'non-string select default remains absent' );
+		assert.equal( 'no_default' in job.params, false, 'valueless text parameter remains absent' );
+	},
 
 	async function test_job_rate_limit_queue_ids(test) {
 		// Rate limits use the same queue identity as concurrency limits.  Exercise

@@ -50,6 +50,18 @@ exports.tests = [
         assert.ok( !!data.code, 'expected error for invalid type' );
     },
 
+	async function test_api_create_plugin_select_missing_value(test) {
+		// Select parameters need a string menu definition, even when it is empty.
+		let { data } = await this.request.json( this.api_url + '/app/create_plugin/v1', {
+			title: 'Bad Select Plugin',
+			type: 'event',
+			command: '[shell-plugin]',
+			params: [ { id: 'format', type: 'select', title: 'Format' } ]
+		});
+		assert.ok( !!data.code, 'expected error for select parameter without a value' );
+		assert.match( data.description, /Value must be a string/, 'expected select value validation error' );
+	},
+
     async function test_api_create_plugin(test) {
         // create new plugin
         let { data } = await this.request.json( this.api_url + '/app/create_plugin/v1', {
@@ -57,7 +69,10 @@ exports.tests = [
             enabled: true,
             type: 'event',
             command: '[shell-plugin]',
-            params: [ { id: 'foo', type: 'text', title: 'Foo', value: '' } ],
+            params: [
+				{ id: 'foo', type: 'text', title: 'Foo', value: '' },
+				{ id: 'empty_select', type: 'select', title: 'Empty Select', value: '' }
+			],
             notes: 'Created by unit tests'
         });
         assert.ok( data.code === 0, 'successful api response' );
@@ -73,6 +88,7 @@ exports.tests = [
         assert.ok( data.plugin.title === 'Unit Test Plugin', 'unexpected plugin title' );
         assert.ok( Array.isArray(data.plugin.params), 'expected params array' );
         assert.ok( !!Tools.findObject(data.plugin.params, { id: 'foo' }), 'expected foo param present' );
+		assert.ok( !!Tools.findObject(data.plugin.params, { id: 'empty_select', value: '' }), 'expected empty select value to be accepted' );
     },
 
     async function test_api_update_plugin_missing_id(test) {
@@ -89,6 +105,16 @@ exports.tests = [
         });
         assert.ok( !!data.code, 'expected error for invalid param id' );
     },
+
+	async function test_api_update_plugin_select_invalid_value(test) {
+		// Updates use the same validation and must reject non-string menu data.
+		let { data } = await this.request.json( this.api_url + '/app/update_plugin/v1', {
+			id: this.plugin_id,
+			params: [ { id: 'format', type: 'select', title: 'Format', value: null } ]
+		});
+		assert.ok( !!data.code, 'expected error for select parameter with a null value' );
+		assert.match( data.description, /Value must be a string/, 'expected select value validation error' );
+	},
 
     async function test_api_update_plugin(test) {
         // update our plugin
@@ -134,4 +160,3 @@ exports.tests = [
     }
 
 ];
-
