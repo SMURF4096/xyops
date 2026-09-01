@@ -59,7 +59,28 @@ exports.tests = [
 			params: [ { id: 'format', type: 'select', title: 'Format' } ]
 		});
 		assert.ok( !!data.code, 'expected error for select parameter without a value' );
-		assert.match( data.description, /Value must be a string/, 'expected select value validation error' );
+		assert.match( data.description, /Value property is missing/, 'expected missing value validation error' );
+	},
+
+	async function test_api_create_plugin_invalid_param_values(test) {
+		// All top-level value-bearing parameters use the same schema as tool fields.
+		var cases = [
+			{ param: { id: 'text', type: 'text', title: 'Text' }, error: /Value property is missing/ },
+			{ param: { id: 'check', type: 'checkbox', title: 'Check', value: '' }, error: /Checkbox value must be a boolean/ },
+			{ param: { id: 'json', type: 'json', title: 'JSON', value: '' }, error: /JSON value must be an object/ },
+			{ param: { id: 'number', type: 'text', variant: 'number', title: 'Number', value: '' }, error: /Numeric value must be a number or null/ }
+		];
+		
+		for (var item of cases) {
+			let { data } = await this.request.json( this.api_url + '/app/create_plugin/v1', {
+				title: 'Invalid Value Plugin',
+				type: 'event',
+				command: '[shell-plugin]',
+				params: [ item.param ]
+			});
+			assert.ok( !!data.code, 'expected error for invalid ' + item.param.id + ' value' );
+			assert.match( data.description, item.error, 'expected ' + item.param.id + ' value validation error' );
+		}
 	},
 
     async function test_api_create_plugin(test) {
@@ -71,7 +92,10 @@ exports.tests = [
             command: '[shell-plugin]',
             params: [
 				{ id: 'foo', type: 'text', title: 'Foo', value: '' },
-				{ id: 'empty_select', type: 'select', title: 'Empty Select', value: '' }
+				{ id: 'empty_select', type: 'select', title: 'Empty Select', value: '' },
+				{ id: 'check', type: 'checkbox', title: 'Check', value: false },
+				{ id: 'json', type: 'json', title: 'JSON', value: {} },
+				{ id: 'number', type: 'text', variant: 'number', title: 'Number', value: null }
 			],
             notes: 'Created by unit tests'
         });
@@ -89,6 +113,9 @@ exports.tests = [
         assert.ok( Array.isArray(data.plugin.params), 'expected params array' );
         assert.ok( !!Tools.findObject(data.plugin.params, { id: 'foo' }), 'expected foo param present' );
 		assert.ok( !!Tools.findObject(data.plugin.params, { id: 'empty_select', value: '' }), 'expected empty select value to be accepted' );
+		assert.ok( !!Tools.findObject(data.plugin.params, { id: 'check', value: false }), 'expected false checkbox value to be accepted' );
+		assert.ok( !!Tools.findObject(data.plugin.params, { id: 'json' }), 'expected object JSON value to be accepted' );
+		assert.ok( !!Tools.findObject(data.plugin.params, { id: 'number', value: null }), 'expected null numeric value to be accepted' );
     },
 
     async function test_api_update_plugin_missing_id(test) {
