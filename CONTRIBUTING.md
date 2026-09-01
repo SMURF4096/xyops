@@ -1,78 +1,83 @@
 # Contributing to xyOps
 
-We love open source, and we're thrilled that you want to help make **xyOps** even better!  Please read this document carefully before contributing. It explains how to work effectively with the xyOps team and where your efforts can have the biggest impact.
+Thank you so much for your interest in helping make **xyOps** better! Your ideas, feedback, bug reports, and enthusiasm are genuinely appreciated.
 
-## Before You Open a Pull Request
+## Pull Request Policy
 
-We are **not currently accepting feature pull requests** (PRs), except under special circumstances.  If you have a great idea for a new feature, please:
+**xyOps does not currently accept pull requests of any kind.** This includes pull requests for features, bug fixes, documentation, tests, refactoring, localization, and other changes, no matter how small.
 
-1. [Open a GitHub Issue](https://github.com/pixlcore/xyops/issues/new) to describe your idea.  
-2. Use clear and concise language, including use cases and benefits.  
-3. Encourage others to give your issue a 👍 reaction.
-4. Wait for a **Dev team member to approve the idea** before writing any code.
+Please do not spend time preparing a pull request, as it will be closed without review or merge.
 
-We generally prefer to design and implement new features in-house, but we're **very responsive** and regularly integrate popular feature requests quickly. Your feedback shapes the roadmap!
+This is not a reflection on outside contributors or the quality of their work. xyOps is a very young project that has only just launched, and it is currently developed and maintained by a solo founder. At this stage, there simply is not enough time available to properly review, test, process, merge, and then maintain external contributions. Accepting pull requests without being able to give them the thoughtful attention they deserve would not be fair to contributors or healthy for the project.
 
-## Accepted Contributions
+Open source projects are also seeing a growing volume of "AI slop" pull requests: mass-generated changes submitted without enough understanding, care, testing, or human review. Sorting responsible contributions from these low-effort submissions creates even more work for maintainers. I simply do not have the capacity to perform that screening fairly and thoroughly.
 
-There are plenty of other valuable ways to contribute:
+This policy will change as xyOps grows. For now, the best way to help is to submit issues, feature requests, and share feedback and ideas through the channels below.
 
-### Bug Fixes
+## Ways You Can Help
 
-- Small, well-scoped fixes are welcome.  
-- Your PR should clearly describe the issue and the reasoning behind your change.  
-- All unit tests must pass (`npm test`).  
-- Follow our code style (see the [Development Guide](https://github.com/pixlcore/xyops/blob/main/docs/dev.md)).  
-- Commits must be **signed off (DCO)** and **GPG-signed**.
+### Report Bugs
 
-### Security Issues
+Bug reports are extremely valuable. Please [open a GitHub Issue](https://github.com/pixlcore/xyops/issues/new) with:
 
-Please do **not** open GitHub issues for security vulnerabilities.  Instead, follow the responsible disclosure process described in our [Security Guide](https://github.com/pixlcore/xyops/blob/main/docs/security.md).
+- A clear description of what happened and what you expected instead.
+- Steps that reproduce the problem.
+- Your xyOps and Node.js versions.
+- Any relevant logs, screenshots, or error messages, with sensitive information removed.
 
-### Localization
+Please leave the implementation to the project maintainer rather than opening a pull request with a fix.
 
-We're preparing a formal localization process!  If you speak any languages other than English, we'd love your help translating xyOps once this is ready. Watch for updates in the GitHub Issues area.
+### Suggest Features
 
-### Plugin Development
+Feature ideas are always welcome. Please [open a GitHub Issue](https://github.com/pixlcore/xyops/issues/new) describing the idea, its use cases, and how it would benefit xyOps users. You can also add a reaction to an existing request to help show community interest.
 
-Our biggest need right now is **Plugins**!  xyOps is built around an open plugin architecture, and we would love your contributions here.
+Ideas and feedback help shape the roadmap, even though implementation remains in-house for now.
 
-- See the [Plugin Guide](https://github.com/pixlcore/xyops/blob/main/docs/plugins.md) for full development and publishing details.  
-- Publish your plugin on GitHub, then register it on the [xyOps Plugin Marketplace](https://xyops.io/marketplace).  
-- Plugins should use an **OSI-approved license** and include clear documentation of any security considerations.
+### Report Security Issues
 
-### Documentation Improvements
+Please do not open a public GitHub issue for a security vulnerability. Follow the responsible disclosure process in the [Security Guide](https://docs.xyops.io/security) instead.
 
-We happily accept PRs that improve our docs!  
+### Build Plugins
 
-- All documentation lives in `/docs`.  
-- Follow the writing style in the [Development Guide](https://github.com/pixlcore/xyops/blob/main/docs/dev.md).  
-- Screenshots/diagrams should be **PNG** or **WebP (lossless)** with proper **alt-text**.
+xyOps has an open plugin architecture, and independently developed plugins are a wonderful way to expand the ecosystem without submitting changes to the core project.
 
-### Spread the Word
+- See the [Plugin Guide](https://docs.xyops.io/plugins) for development and publishing details.
+- Publish your plugin in your own GitHub repository, then register it on the [xyOps Plugin Marketplace](https://marketplace.xyops.io).
+- Use an **OSI-approved license** and clearly document any security considerations.
 
-If you enjoy xyOps, help us grow the community:
+Please do not submit plugin code as a pull request to the xyOps repository.
 
-- Mention xyOps on [Bluesky](https://pixlcore.bsky.social/) and [Mastodon](https://mastodon.social/@pixlcore), or boost our posts!  
-- Participate in [GitHub Discussions](https://github.com/pixlcore/xyops/discussions).  Particularly, help out new users!
-- Subscribe to our [YouTube Channel](https://www.youtube.com/@PixlCore-Media) and leave likes on our videos (if you like them).
+### Share Documentation Feedback
 
-## Development Guidelines
+If you find something unclear, incomplete, or incorrect in the documentation, please open an issue describing the improvement. Documentation pull requests are not accepted at this time, but every report is appreciated and helps make the guides better.
+
+### Help the Community
+
+There are several other ways to support xyOps:
+
+- Participate in [GitHub Discussions](https://github.com/pixlcore/xyops/discussions), especially by helping new users.
+- Mention xyOps on [Bluesky](https://pixlcore.bsky.social/) or [Mastodon](https://mastodon.social/@pixlcore), or share project posts.
+- Subscribe to the [YouTube Channel](https://www.youtube.com/@PixlCore-Media) and share videos you find useful.
+- Watch the GitHub Issues area for future localization opportunities.
+
+## Development Reference
+
+If you are exploring the code for your own learning, experiments, or private fork, these references may help:
 
 - Runtime: **Node.js LTS**
 - Language: **Plain JavaScript**, no frameworks
 - Testing: [pixl-unit](https://github.com/jhuckaby/pixl-unit)
-- Code style and setup: see the [Development Guide](https://github.com/pixlcore/xyops/blob/main/docs/dev.md)
+- Code style and setup: [Development Guide](https://docs.xyops.io/dev)
 - License: [BSD-3-Clause](https://github.com/pixlcore/xyops/blob/main/LICENSE.md)
+
+Please remember that work created in a fork cannot currently be submitted back as a pull request.
 
 ## Code of Conduct
 
-All participants are expected to follow our [Code of Conduct](https://github.com/pixlcore/xyops/blob/main/CODE_OF_CONDUCT.md).  By contributing to xyOps, you agree to foster a welcoming, respectful community.
+Everyone participating in the xyOps community is expected to follow the [Code of Conduct](https://github.com/pixlcore/xyops/blob/main/CODE_OF_CONDUCT.md) and help foster a welcoming, respectful environment.
 
 ## Thank You
 
-Your time and effort mean a lot to us.  Even if you're not writing code, every issue, translation, plugin, or mention helps make **xyOps** better for everyone.  
+Thank you for understanding this early-stage limitation. Choosing not to accept pull requests right now allows the project's limited maintainer time to stay focused on building a stable foundation for xyOps.
 
-**Together, we can make xyOps truly awesome.**  
-
--- The PixlCore Team  
+Your reports, ideas, plugins, discussions, and encouragement still make a real difference. Thank you for being part of the community!
