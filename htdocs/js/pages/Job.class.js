@@ -1925,7 +1925,7 @@ Page.Job = class Job extends Page.PageUtils {
 			var $box = this.div.find('#d_job_user_table');
 			$box.show();
 			
-			$box.find('div.box_title > span').html( encode_entities(job.table.title || 'Job Data Table') );
+			$box.find('div.box_title > span').html( encode_entities(job.table.title || 'Custom Table') );
 			
 			var html = '';
 			html += this.getBasicTable({
@@ -1949,7 +1949,7 @@ Page.Job = class Job extends Page.PageUtils {
 			var $html = this.div.find('#d_job_user_html');
 			$html.show();
 			
-			$html.find('div.box_title > span').html( encode_entities(job.html.title || 'Job Custom Data') );
+			$html.find('div.box_title > span').html( encode_entities(job.html.title || 'Custom Content') );
 			
 			var html = '';
 			html += job.html.content;
