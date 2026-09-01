@@ -2805,6 +2805,9 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		plugin.params.forEach( function(param) {
 			var elem_id = 'fe_pp_' + plugin_id + '_' + param.id;
 			var elem_value = (param.id in params) ? params[param.id] : param.value;
+			// Legacy or directly imported definitions may lack values.  Render them as
+			// empty controls instead of stringifying undefined into the UI.
+			if (typeof(elem_value) == 'undefined') elem_value = '';
 			var elem_dis = (param.locked && !app.isAdmin()) ? 'disabled' : undefined; 
 			var elem_icon = config.ui.control_type_icons[param.type];
 			if (param.type == 'hidden') return;
@@ -3947,6 +3950,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		
 		(fields || []).forEach( function(param, idx) {
 			var elem_value = (param.id in params) ? params[param.id] : param.value;
+			if (typeof(elem_value) == 'undefined') elem_value = '';
 			var elem_icon = config.ui.control_type_icons[param.type];
 			var append_html = '';
 			if (param.type == 'hidden') return;
@@ -4798,6 +4802,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 			var nice_label_icon = item.locked ? 'lock' : 'cube-outline';
 			
 			var param = item;
+			var has_value = ('value' in param) && (typeof(param.value) != 'undefined');
 			var pairs = [];
 			switch (param.type) {
 				case 'text':
@@ -4808,36 +4813,41 @@ Page.PageUtils = class PageUtils extends Page.Base {
 							nice_icon = variant.icon;
 						}
 					}
-					if (String(param.value).length && (param.value !== null)) pairs.push([ 'Default', '&ldquo;' + strip_html(param.value) + '&rdquo;' ]);
+					if (has_value && (param.value !== null) && String(param.value).length) pairs.push([ 'Default', '&ldquo;' + strip_html(param.value) + '&rdquo;' ]);
 					else pairs.push([ "(No default)" ]);
 				break;
 				
 				case 'textarea':
-					if (param.value.length) pairs.push([ 'Default', '(' + param.value.length + ' chars)' ]);
+					if (has_value && String(param.value).length) pairs.push([ 'Default', '(' + String(param.value).length + ' chars)' ]);
 					else pairs.push([ "(No default)" ]);
 				break;
 				
 				case 'code':
-					if (param.value.length) pairs.push([ 'Default', '(' + param.value.length + ' chars)' ]);
+					if (has_value && String(param.value).length) pairs.push([ 'Default', '(' + String(param.value).length + ' chars)' ]);
 					else pairs.push([ "(No default)" ]);
 				break;
 				
 				case 'json':
-					var len = JSON.stringify(param.value, null, "\t").length;
-					pairs.push([ 'Default', '(' + len + ' chars)' ]);
+					if (has_value) {
+						var len = JSON.stringify(param.value, null, "\t").length;
+						pairs.push([ 'Default', '(' + len + ' chars)' ]);
+					}
+					else pairs.push([ "(No default)" ]);
 				break;
 				
 				case 'checkbox':
-					pairs.push([ 'Default', param.value ? 'Checked' : 'Unchecked' ]);
+					if (has_value) pairs.push([ 'Default', param.value ? 'Checked' : 'Unchecked' ]);
+					else pairs.push([ "(No default)" ]);
 					if (!param.value) nice_icon = 'checkbox-blank-outline';
 				break;
 				
 				case 'hidden':
-					pairs.push([ 'Value', '&ldquo;' + strip_html(param.value) + '&rdquo;' ]);
+					if (has_value) pairs.push([ 'Value', '&ldquo;' + strip_html(param.value) + '&rdquo;' ]);
+					else pairs.push([ "(No value)" ]);
 				break;
 				
 				case 'select':
-					pairs.push([ 'Items', '(' + strip_html(param.value) + ')' ]);
+					pairs.push([ 'Items', '(' + strip_html(has_value ? param.value : '') + ')' ]);
 					if (param.multiple) nice_type += ' (Multi)';
 				break;
 				
@@ -5627,6 +5637,8 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		fields.forEach( function(param) {
 			var elem_id = 'fe_uf_' + param.id;
 			var elem_value = (param.id in params) ? params[param.id] : param.value;
+			// Keep legacy or directly imported valueless fields blank in the UI.
+			if (typeof(elem_value) == 'undefined') elem_value = '';
 			var elem_dis = (param.locked && !app.isAdmin()) ? 'disabled' : undefined;
 			var elem_icon = config.ui.control_type_icons[param.type];
 			if (param.type == 'hidden') return;

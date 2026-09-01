@@ -95,7 +95,10 @@ Page.Workflows = class Workflows extends Page.Events {
 			var plug_params = {};
 			var plugin = find_object(app.plugins, { id: plug_id }) || {};
 			(plugin.params || []).forEach( function(param) {
-				plug_params[ param.id ] = (typeof(param.value) == 'object') ? deep_copy_object(param.value) : param.value;
+				// Do not seed new workflow nodes with undefined values from no-value
+				// control types or malformed legacy/imported parameter definitions.
+				if (!('value' in param) || (typeof(param.value) == 'undefined')) return;
+				plug_params[ param.id ] = (param.value && (typeof(param.value) == 'object')) ? deep_copy_object(param.value) : param.value;
 			} );
 			
 			var target_ids = [];

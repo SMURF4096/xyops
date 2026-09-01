@@ -2784,6 +2784,7 @@ Page.Base = class Base extends Page {
 		
 		fields.forEach( function(param, idx) {
 			var elem_value = (param.id in params) ? params[param.id] : param.value;
+			if (typeof(elem_value) == 'undefined') elem_value = '';
 			var elem_icon = config.ui.control_type_icons[param.type];
 			var after = '';
 			if (param.type == 'hidden') return;
