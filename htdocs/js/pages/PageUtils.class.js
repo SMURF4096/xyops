@@ -1884,7 +1884,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 				break;
 				
 				case 'cpu':
-					$('#d_erl_raw_amount').show();
+					$('#d_erl_raw_amount').show().find('> .fr_label').html("Max CPU Amount:");
 					$('#s_erl_raw_amount_cap').html('Enter the maximum CPU precentage for the limit (100 = 1 core maxed).');
 					$('#d_erl_duration').show();
 					$('#s_erl_duration_cap').html('Specify the amount of time the CPU must stay over the limit before action is taken.');
@@ -1895,13 +1895,13 @@ Page.PageUtils = class PageUtils extends Page.Base {
 				break;
 				
 				case 'job':
-					$('#d_erl_raw_amount').show();
+					$('#d_erl_raw_amount').show().find('> .fr_label').html("Max Concurrent Jobs:");
 					$('#s_erl_raw_amount_cap').html('Enter the maximum number of concurrent jobs to allow.');
 					$('#d_erl_job_weight, #d_erl_rate_limit, #d_erl_cap_key').show();
 				break;
 				
 				case 'retry':
-					$('#d_erl_raw_amount').show();
+					$('#d_erl_raw_amount').show().find('> .fr_label').html("Max Retries:");
 					$('#s_erl_raw_amount_cap').html('Enter the maximum number of retries to attempt before failing the job.');
 					$('#d_erl_duration').show();
 					$('#s_erl_duration_cap').html('Optionally set a delay to wait between retries.');
@@ -1909,12 +1909,12 @@ Page.PageUtils = class PageUtils extends Page.Base {
 				break;
 				
 				case 'queue':
-					$('#d_erl_raw_amount').show();
+					$('#d_erl_raw_amount').show().find('> .fr_label').html("Max Queue Size:");
 					$('#s_erl_raw_amount_cap').html('Enter the maximum number of queued jobs to allow.');
 				break;
 				
 				case 'file':
-					$('#d_erl_raw_amount').show();
+					$('#d_erl_raw_amount').show().find('> .fr_label').html("Max Files:");
 					$('#s_erl_raw_amount_cap').html('Enter the maximum number of input files to allow.');
 					$('#d_erl_file_size').show();
 					$('#d_erl_file_types').show();
@@ -1926,7 +1926,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 				break;
 				
 				case 'tag':
-					$('#d_erl_raw_amount').show();
+					$('#d_erl_raw_amount').show().find('> .fr_label').html("Max Tags:");
 					$('#s_erl_raw_amount_cap').html('Enter the maximum number of tags to allow on jobs.');
 				break;
 			} // switch new_type
