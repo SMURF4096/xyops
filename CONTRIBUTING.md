@@ -4,13 +4,11 @@ Thank you so much for your interest in helping make **xyOps** better! Your ideas
 
 ## Pull Request Policy
 
-**xyOps does not currently accept pull requests of any kind.** This includes pull requests for features, bug fixes, documentation, tests, refactoring, localization, and other changes, no matter how small.
-
-Please do not spend time preparing a pull request, as it will be closed without review or merge.
+**xyOps does not currently accept pull requests.**
 
 This is not a reflection on outside contributors or the quality of their work. xyOps is a very young project that has only just launched, and it is currently developed and maintained by a solo founder. At this stage, there simply is not enough time available to properly review, test, process, merge, and then maintain external contributions. Accepting pull requests without being able to give them the thoughtful attention they deserve would not be fair to contributors or healthy for the project.
 
-Open source projects are also seeing a growing volume of "AI slop" pull requests: mass-generated changes submitted without enough understanding, care, testing, or human review. Sorting responsible contributions from these low-effort submissions creates even more work for maintainers. I simply do not have the capacity to perform that screening fairly and thoroughly.
+Open source projects are also seeing a growing volume of "AI slop" pull requests: mass-generated changes submitted without enough understanding, care, testing, or human review. Sorting responsible contributions from these low-effort submissions creates even more work for maintainers. We simply do not have the capacity to perform that screening fairly and thoroughly.
 
 This policy will change as xyOps grows. For now, the best way to help is to submit issues, feature requests, and share feedback and ideas through the channels below.
 
@@ -69,8 +67,6 @@ If you are exploring the code for your own learning, experiments, or private for
 - Testing: [pixl-unit](https://github.com/jhuckaby/pixl-unit)
 - Code style and setup: [Development Guide](https://docs.xyops.io/dev)
 - License: [BSD-3-Clause](https://github.com/pixlcore/xyops/blob/main/LICENSE.md)
-
-Please remember that work created in a fork cannot currently be submitted back as a pull request.
 
 ## Code of Conduct
 
