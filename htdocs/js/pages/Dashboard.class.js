@@ -61,7 +61,7 @@ Page.Dashboard = class Dashboard extends Page.PageUtils {
 		// queued jobs
 		html += '<div class="box" id="d_dash_queued" style="display:none">';
 			html += '<div class="box_title">';
-				html += 'Event Queues';
+				html += 'Job Queues';
 			html += '</div>';
 			html += '<div class="box_content table">';
 				// html += '<div class="loading_container"><div class="loading"></div></div>';
