@@ -353,6 +353,13 @@ var cron_aliases = {
 };
 var cron_alias_re = new RegExp("\\b(" + hash_keys_to_array(cron_aliases).join('|') + ")\\b", "g");
 
+function string_hash(str) {
+	// DJB2 algorithm
+	var hash = 5381, i = str.length;
+	while (i) { hash = (hash * 33) ^ str.charCodeAt(--i); }
+	return hash >>> 0;
+};
+
 function parse_crontab_part(trigger, raw, key, min, max, rand_seed) {
 	// parse one crontab part, e.g. 1,2,3,5,20-25,30-35,59
 	// can contain single number, and/or list and/or ranges and/or these things: */5 or 10-50/5
@@ -360,7 +367,7 @@ function parse_crontab_part(trigger, raw, key, min, max, rand_seed) {
 	if (raw == 'h') {
 		// unique value over accepted range, but locked to random seed
 		// https://github.com/jhuckaby/Cronicle/issues/6
-		raw = min + (parseInt( hex_md5(rand_seed), 16 ) % ((max - min) + 1));
+		raw = min + (string_hash(rand_seed) % ((max - min) + 1));
 		raw = '' + raw;
 	}
 	if (!raw.match(/^[\w\-\,\/\*]+$/)) { throw new Error("Invalid crontab format: " + raw); }
