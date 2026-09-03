@@ -2374,6 +2374,7 @@ Parameters:
 | `id` | String | **(Required)** The [Job.id](data.md#job-id). |
 | `token` | String | Optional | A special auth token used by the [magic](#magic) API to stream jobs for the magic landing pages. |
 | `output` | Boolean | Optional | If set to any truthy value, the stream will include live updates from the job's raw text output. |
+| `meta` | Boolean | Optional | If set to any truthy value, the stream will include live updates from the job's meta log. |
 
 The response will be streamed using [Server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events).  The first update will include a JSON document containing the [Job.id](data.md#job.id), followed by multiple updates as the job runs, with a final update when the job completes.  Here is an example raw streaming response (many intermediate updates omitted for brevity):
 
@@ -2416,6 +2417,13 @@ If the `output` parameter is set to a truthy value, the stream will also include
 ```
 event: output
 data: {"xy":1,"type":"output","text":"This was printed to STDOUT from inside the job!"}
+```
+
+If the `meta` parameter is set to a truthy value, the stream will also include special events containing live updates from the job's meta log.  Example:
+
+```
+event: meta
+data: {"xy":1,"type":"meta","row":{"server":"joemax.lan","msg":"Moving job state from {starting} to {active}"}}
 ```
 
 ### update_active_job
