@@ -3345,6 +3345,10 @@ Page.Job = class Job extends Page.PageUtils {
 		var event = find_object( app.events, { id: job.event } );
 		if (!event) return app.doError("The original event could not be found: " + job.event);
 		
+		// copy over base event plugin params in case they changed
+		if (!job.params) job.params = {};
+		merge_hash_into( new_job.params, event.params || {} );
+		
 		// we must reset actions and limits to the event versions, as inherited ones are added server-side
 		new_job.actions = deep_copy_object( event.actions || [] );
 		new_job.limits = deep_copy_object( event.limits || [] );
