@@ -598,7 +598,7 @@ This API is designed to be called from within jobs (i.e. Event Plugin scripts), 
 POST /api/app/upload_bucket_files/v1
 ```
 
-This API allows you to upload files into a storage bucket.  Unlike most of the other APIs, this one handles files, so it requires a `multipart/form-data` style request.  The parameters should be actual HTTP POST parameters, rather than JSON keys.  The [edit_buckets](privileges.md#edit_buckets) privilege is required, as well as a valid user session or API Key.  The input parameters are as follows:
+This API allows you to upload files into a storage bucket.  Unlike most of the other APIs, this one handles files, so it requires a `multipart/form-data` style request.  The `id` should be an actual HTTP POST parameter, or it can be supplied inside a `json` wrapper parameter.  The [edit_buckets](privileges.md#edit_buckets) privilege is required, as well as a valid user session or API Key.  The input parameters are as follows:
 
 | Property Name | Type | Description |
 |---------------|------|-------------|
