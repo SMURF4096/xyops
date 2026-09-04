@@ -538,7 +538,7 @@ Page.Marketplace = class Marketplace extends Page.PageUtils {
 		html += '<div class="box">';
 		
 		html += '<div class="box_content">';
-		html += '<div class="button secondary right" onClick="$P().doVisitRepo()"><i class="mdi mdi-open-in-new">&nbsp;</i>Visit Repo...</div>';
+		html += '<div class="button secondary right mobile_hide tablet_hide" onClick="$P().doVisitRepo()"><i class="mdi mdi-open-in-new">&nbsp;</i>Visit Repo...</div>';
 		html += '<div class="markdown-body doc-body" style="margin-top:0px; margin-bottom:15px;">';
 		
 		html += marked.parse(text, config.ui.marked_config);
