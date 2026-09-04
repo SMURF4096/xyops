@@ -502,7 +502,7 @@ Page.Workflows = class Workflows extends Page.Events {
 			var native = event.originalEvent;
 			if ('button' in native) {
 				// pointer event
-				if (native.button !== 0) return; // only capture left-clicks
+				// if (native.button !== 0) return; // only capture left-clicks
 			}
 			else {
 				// keypress event
@@ -542,13 +542,22 @@ Page.Workflows = class Workflows extends Page.Events {
 			}
 			
 			// prepare for dragging entire selection
-			if ('button' in native) self.prepareForDrag(this, event);
+			if ('button' in native) {
+				if (native.button == 0) self.prepareForDrag(this, event);
+				else if (native.button == 2) self.popupNodeContextMenu(this, event);
+			}
 		} ); // pointerdown (nodes)
 		
 		$cont.find('div.wf_node').on( 'dblclick', function(event) {
 			// check for double-click
 			self.doEditSelection();
 		}); // dblclick (nodes)
+		
+		$cont.find('div.wf_node').on( 'contextmenu', function(event) {
+			// check for right-click
+			event.stopPropagation();
+			event.preventDefault();
+		}); // contextmenu (nodes)
 		
 		// add mouse handler for condition entities
 		$cont.find('div.wf_condition').attr({ role: 'button', tabindex: '0' }).on( 'pointerdown keydown', function(event) {
@@ -619,6 +628,73 @@ Page.Workflows = class Workflows extends Page.Events {
 				self.addState();
 			} // callback
 		}); // popupQuickMenu
+	}
+	
+	popupNodeContextMenu(elem, event) {
+		// popup right-click menu for nodes (or multi-node)
+		var self = this;
+		var native = event.originalEvent;
+		var workflow = this.workflow;
+		var $cont = this.wfGetContainer();
+		var $fade = $cont.find('.wf_fade');
+		var selection = this.wfSelection;
+		var num_sel = num_keys(selection);
+		
+		if (!num_sel) return; // sanity
+		if ($('#d_wf_mouse_tracker').length) return; // sanity
+		
+		// add mouse tracker div
+		var $tracker = $('<div id="d_wf_mouse_tracker"></div>');
+		$fade.append($tracker);
+		
+		// position tracker at exact mouse x/y
+		// get the visible position of the tracker's containing element
+		var rect = $fade[0].getBoundingClientRect();
+		
+		// convert viewport mouse coordinates into local workflow coordinates.
+		// this works independently of which nested element was clicked.
+		var x = (event.clientX - rect.left) / this.wfZoom;
+		var y = (event.clientY - rect.top) / this.wfZoom;
+		
+		$tracker.css({ left: x, top: y });
+		
+		// generate menu items based on selection
+		var items = [];
+		
+		if (num_sel == 1) {
+			items.push({ id: 'edit', title: config.ui.buttons.wf_edit_sel_node, icon: 'note-edit-outline' });
+			
+			var id = first_key(selection);
+			var node = find_object( workflow.nodes, { id } );
+			
+			if (!!this.event.id && (node.type != 'note')) {
+				items.push({ id: 'test', title: config.ui.buttons.wf_test_sel_node, icon: 'test-tube' });
+			}
+		}
+		
+		items.push({ id: 'duplicate', title: config.ui.buttons.wf_dupe_sel, icon: 'content-duplicate' });
+		items.push({ id: 'detach', title: config.ui.buttons.wf_detach_sel, icon: 'soldering-iron' });
+		items.push({ id: 'delete', title: config.ui.buttons.wf_delete_sel, icon: 'selection-remove' });
+		
+		SingleSelect.popupQuickMenu({
+			elem: '#d_wf_mouse_tracker',
+			title: commify(num_sel) + ' ' + pluralize('item', num_sel) + ' selected',
+			items: items,
+			value: '',
+			nocheck: true,
+			
+			callback: function(value) {
+				switch (value) {
+					case 'edit': self.doEditSelection(); break;
+					case 'test': self.doTestSelection(); break;
+					case 'duplicate': self.doDuplicateSelection(); break;
+					case 'detach': self.doDetachSelection(); break;
+					case 'delete': self.doDeleteSelection(); break;
+				}
+			} // callback
+		}); // popupQuickMenu
+		
+		$tracker.remove();
 	}
 	
 	prepareForDrag(elem, event) {
