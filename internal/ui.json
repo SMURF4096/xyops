@@ -864,6 +864,7 @@
 		"edit_workflow_details": "Edit Workflow Details",
 		"test_workflow": "Test Workflow",
 		"workflow_editor": "Workflow Editor",
+		"wf_fullscreen": "ESC to Exit Fullscreen",
 		
 		"wfde_new": "New Event Node",
 		"wfde_edit": "Editing Event Node",
@@ -938,6 +939,7 @@
 		"wf_delete_sel": "Remove selection",
 		"wf_undo": "Undo",
 		"wf_redo": "Redo",
+		"wf_fullscreen": "Toggle fullscreen",
 		"wf_zoom_auto": "Zoom to fit",
 		"wf_zoom_out": "Zoom out",
 		"wf_zoom_in": "Zoom in",
@@ -1039,7 +1041,8 @@
 			"doAddNode": { "keys": ["KeyN"], "title": "Add New Node" },
 			"selectDrawTool": { "keys": ["KeyV"], "title": "Select Draw Tool" },
 			"selectMoveTool": { "keys": ["KeyH"], "title": "Select Move Tool" },
-			"quickSelectMoveTool": { "keys": ["Space"], "title": "Quick-select Move Tool" }
+			"quickSelectMoveTool": { "keys": ["Space"], "title": "Quick-select Move Tool" },
+			"toggleFullscreen": { "keys": ["KeyF"], "title": "Toggle Fullscreen Editor" }
 		},
 		"Job": {
 			"do_confirm_run_again": { "keys": ["KeyR"], "title": "Run Job Again" },

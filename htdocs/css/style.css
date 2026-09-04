@@ -235,6 +235,15 @@ body.dark .button.delete {
 	cursor: default;
 }
 
+.button.toggle_selected {
+	color: var(--theme-color);
+	border: 1px solid var(--theme-color-half);
+	opacity: 1.0;
+}
+.button.toggle_selected:hover {
+	border: 1px solid var(--theme-color);
+}
+
 .button.loaded {
 	color: var(--theme-color);
 	border: 1px solid var(--theme-color-half);

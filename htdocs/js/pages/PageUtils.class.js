@@ -3706,7 +3706,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 	
 	wfGetContainer() {
 		// get ref to outer container div
-		return this.div.find('.wf_container');
+		return $('.wf_container');
 	}
 	
 	wfComputeBounds(use_sel) {

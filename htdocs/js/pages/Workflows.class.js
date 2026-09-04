@@ -169,6 +169,7 @@ Page.Workflows = class Workflows extends Page.Events {
 	
 	cancel_workflow_edit() {
 		// cancel editing wf and return to list
+		if (this.fullscreen) return this.exitFullscreen();
 		$('.button.save').removeClass('primary');
 		if (this.event.id) Nav.go( '#Events?sub=view&id=' + this.event.id );
 		else Nav.go( '#Events?plugin=_workflow' );
@@ -1006,7 +1007,11 @@ Page.Workflows = class Workflows extends Page.Events {
 		var workflow = this.workflow;
 		var $cont = this.wfGetContainer();
 		
-		if (!workflow || !$cont.length || !this.wfSoldering) return;
+		if (!workflow || !$cont.length || !this.wfSoldering) {
+			// not soldering = exit fullscreen
+			this.exitFullscreen();
+			return;
+		}
 		
 		$cont.find('#d_wf_mouse_tracker').remove();
 		$cont.off('.solder');
@@ -2955,17 +2960,56 @@ Page.Workflows = class Workflows extends Page.Events {
 		return html;
 	}
 	
+	toggleFullscreen() {
+		// toggle faux fullscreen for wf editor
+		if (Dialog.active || CodeEditor.active) return;
+		
+		var $cont = $('#d_wf_box_inner');
+		if (!$cont.length) return;
+		
+		$cont.find('.wf_node').removeClass('wf_flash');
+		
+		if (!this.fullscreen) {
+			// enter fullscreen
+			$cont.detach();
+			$cont.addClass('full');
+			$cont.appendTo('body');
+			$('#d_wf_container > .wf_grid_header > .wf_title > span').html( config.ui.titles.wf_fullscreen );
+			$('#d_btn_wf_fs').addClass('toggle_selected');
+			this.fullscreen = true;
+			unscroll();
+		}
+		else {
+			// exit fullscreen
+			$cont.detach();
+			$cont.removeClass('full');
+			$cont.appendTo('#d_wf_box_outer');
+			$('#d_wf_container > .wf_grid_header > .wf_title > span').html( config.ui.titles.workflow_editor );
+			$('#d_btn_wf_fs').removeClass('toggle_selected');
+			this.fullscreen = false;
+			unscroll.reset();
+			app.scrollToBottom();
+		}
+		
+		this.wfZoomAuto();
+	}
+	
+	exitFullscreen() {
+		// exit fullscreen mode
+		if (this.fullscreen) this.toggleFullscreen();
+	}
+	
 	get_wf_editor_html(btns) {
 		// get html for workflow editor
 		var html = '';
 		
 		// workflow editor
-		html += '<div class="box">';
-		html += '<div class="box_content">';
+		html += '<div class="box" id="d_wf_box_outer">';
+		html += '<div class="box_content" id="d_wf_box_inner">';
 		html += '<div class="wf_container" id="d_wf_container" style="height:calc(100vh - 188px);">';
 		
 		html += `<div class="wf_grid_header">
-			<div class="wf_title left" style="display:none"><i class="mdi mdi-clipboard-edit-outline">&nbsp;</i>${config.ui.titles.workflow_editor}</div>
+			<div class="wf_title left" style="display:none"><i class="mdi mdi-clipboard-edit-outline">&nbsp;</i><span>${config.ui.titles.workflow_editor}</span></div>
 			<div class="button secondary left mobile_collapse" id="d_btn_wf_edit" onClick="$P().doEditSelection()" style="display:none" title="${config.ui.tooltips.wf_edit_sel_node}"><i class="mdi mdi-note-edit-outline">&nbsp;</i><span>${config.ui.buttons.wf_edit_sel_node}</span></div>
 			<div class="button secondary left mobile_collapse" id="d_btn_wf_test" onClick="$P().doTestSelection()" style="display:none" title="${config.ui.tooltips.wf_test_sel_node}"><i class="mdi mdi-test-tube">&nbsp;</i><span>${config.ui.buttons.wf_test_sel_node}</span></div>
 			<div class="button icon left mobile_collapse" id="d_btn_wf_dup" onClick="$P().doDuplicateSelection()" style="display:none" title="${config.ui.tooltips.wf_dupe_sel}"><i class="mdi mdi-content-duplicate">&nbsp;</i><span>${config.ui.buttons.wf_dupe_sel}</span></div>
@@ -2984,6 +3028,7 @@ Page.Workflows = class Workflows extends Page.Events {
 			<div class="button icon left mobile_hide" id="d_btn_wf_tool_draw" onClick="$P().selectTool('draw')" title="${config.ui.tooltips.wf_tool_draw}"><i class="mdi mdi-cursor-default-outline"></i></div>
 			<div class="button icon left mobile_hide" id="d_btn_wf_tool_move" onClick="$P().selectTool('move')" title="${config.ui.tooltips.wf_tool_move}"><i class="mdi mdi-cursor-move"></i></div>
 			<div class="wf_button_separator left mobile_hide"></div>
+			<div class="button icon left mobile_hide" id="d_btn_wf_fs" onClick="$P().toggleFullscreen()" title="${config.ui.tooltips.wf_fullscreen}"><i class="mdi mdi-fullscreen"></i></div>
 			<div class="button icon left" onClick="$P().wfZoomAuto()" title="${config.ui.tooltips.wf_zoom_auto}"><i class="mdi mdi-home"></i></div>
 			<div class="button icon left" id="d_btn_wf_zoom_out" onClick="$P().wfZoomOut()" title="${config.ui.tooltips.wf_zoom_out}"><i class="mdi mdi-magnify-minus"></i></div>
 			<div class="button icon left" id="d_btn_wf_zoom_in" onClick="$P().wfZoomIn()" title="${config.ui.tooltips.wf_zoom_in}"><i class="mdi mdi-magnify-plus"></i></div>
@@ -3122,6 +3167,7 @@ Page.Workflows = class Workflows extends Page.Events {
 		this.cleanupBoxButtonFloater();
 		
 		if (this.wfSoldering) this.cancelSolder();
+		if (this.fullscreen) this.exitFullscreen();
 		
 		delete this.event;
 		delete this.workflow;
@@ -3137,12 +3183,11 @@ Page.Workflows = class Workflows extends Page.Events {
 		delete this.wfTool;
 		delete this.wfDrawSelection;
 		delete this.saving;
-		
 		delete this.params;
 		delete this.limits;
 		delete this.actions;
-		
 		delete this.firstBox;
+		delete this.fullscreen;
 		
 		this.div.html('');
 		return true;

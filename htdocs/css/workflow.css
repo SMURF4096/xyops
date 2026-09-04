@@ -795,3 +795,19 @@ body.dark .wf_footer_buttons.floater {
 	animation: wf_flash_kf 2s ease-in-out;
 	animation-fill-mode: forwards;
 }
+
+/* Faux Fullscreen Editor */
+
+#d_wf_box_inner.full {
+	position: fixed;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 499;
+	background: var(--box-background-color);
+}
+
+#d_wf_box_inner.full > .wf_container {
+	height: 100% !important;
+}
