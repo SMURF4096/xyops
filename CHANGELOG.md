@@ -1,5 +1,35 @@
 # xyOps Changelog
 
+## Version v1.0.96
+
+> September 4, 2026
+
+- [`6ee623d0`](https://github.com/pixlcore/xyops/commit/6ee623d076cd68ff4b530555020ba244298e0ffa): Version 1.0.96
+- [`86de8b92`](https://github.com/pixlcore/xyops/commit/86de8b92abec4207ace4c47dcd6b0e14a47c4337): Feature: Show sub-second job elapsed values.
+- [`1af01f23`](https://github.com/pixlcore/xyops/commit/1af01f23be7af58b90fc313b91c5ef9e09f43136): Bug Fix: Ensure job.elapsed is never negative (i.e. clock drift).
+- [`2f418132`](https://github.com/pixlcore/xyops/commit/2f41813285356c6ce95ce312bcc72acc2a6acc85): Feature: Select custom color for ticket search presets (shown when results are non-zero).
+- [`68cc87f2`](https://github.com/pixlcore/xyops/commit/68cc87f25a02edb79a4471dd876a22430dd672d4): Feature: Right-click context menu for workflow nodes.  Fixes #435.
+- [`b96f6a74`](https://github.com/pixlcore/xyops/commit/b96f6a74fec5e1fc56df880be3f49e3c70099103): Feature: Fullscreen mode for workflow editor.  Ref #435
+- [`330be27c`](https://github.com/pixlcore/xyops/commit/330be27c820b72e28f109b2072a36d801d5a9d4c): Bug Fix: Cosmetic: Marketplace: Hide repo button on tablet/mobile to avoid bad content shift.
+- [`322ce3db`](https://github.com/pixlcore/xyops/commit/322ce3db6f4362988e40d2da87321cc6d9f7ee9e): Bug Fix: Shorten job.completed float precision so it isn't a million digits long.
+- [`f7819928`](https://github.com/pixlcore/xyops/commit/f781992841e151706eb236b0f420726b9c4ef3a1): Bug Fix: Run Job Again: Copy over event base params in case they changed.  Fixes #439
+- [`9fd3625c`](https://github.com/pixlcore/xyops/commit/9fd3625c70fe5da0439966e919f7c1752f780963): Bug Fix: upload_bucket_files: Also accept "id" param inside a "json" field wrapper.
+- [`6780c290`](https://github.com/pixlcore/xyops/commit/6780c2909041fbb5c496917185e372a5b07a91ba): Doc: API: Correct get_server_summaries response shape and add more details.
+- [`6305407a`](https://github.com/pixlcore/xyops/commit/6305407a9b9bfea4b73320237492ddac230c6b2f): Feature: API: stream_job: Add optional "meta" param which streams updates from the job's meta log.
+- [`3db11727`](https://github.com/pixlcore/xyops/commit/3db11727a1665d2e8f85eb20134340dd98b14722): Bug FIx: Crontab parser "H" feature was throwing an exception.
+- [`6c42aaf0`](https://github.com/pixlcore/xyops/commit/6c42aaf022f8f59458915af95fb9ca21dd8f96f5): Doc: Contributing: Tweak wording slightly.
+- [`50f7c059`](https://github.com/pixlcore/xyops/commit/50f7c059bcf0db0c59ce044a0165d7b33aefce15): Doc: Plugins: Expand instructions regarding secret variable usage in the HTTP Request Plugin.  Fixes #440
+- [`52e41343`](https://github.com/pixlcore/xyops/commit/52e41343364f8806bafabfdaf01b3730f6f81925): Doc: Contributing: Clarify our stance on PRs (temporary)
+- [`c7ce613c`](https://github.com/pixlcore/xyops/commit/c7ce613c4e34c12e9e44ec3859c2062d12e5c224): UI Tweak: Dashboard: Change box title "Event Queues" to "Job Queues".
+- [`93b4e208`](https://github.com/pixlcore/xyops/commit/93b4e2082b1b9b59b479e0cbed0abf220930f564): UI Tweak: Fix form field labels in edit limit dialog.
+- [`7791fb8d`](https://github.com/pixlcore/xyops/commit/7791fb8db837cd61df8724aa63fa90c09eacf150): Bug Fix: Never display "undefined" in the UI for missing or undefined parameter values.
+- [`900b3350`](https://github.com/pixlcore/xyops/commit/900b33504340becb143a887128d0ad690205dde5): Bug Fix: Harden plugin parameter validation at submit time, so missing values are rejected.
+- [`3b439823`](https://github.com/pixlcore/xyops/commit/3b439823c77a7128591d8fa1a3d57fff8bc5c062): Bug Fix: Add validation for select parameter values in plugin API, and prevent potential crash for missing default select plugin values.
+- [`ba16d5ce`](https://github.com/pixlcore/xyops/commit/ba16d5cef2971b7d90571dc5a3fe07fb875a908c): API: get_multiple: Include current job rate limit pools when jobs are requested.
+- [`cd37ed90`](https://github.com/pixlcore/xyops/commit/cd37ed904fa485dde631961f32b9f6ce89c9797a): UI Tweak: Fix default headers for user content sections, if no titles specified in job.
+- [`714e0fb8`](https://github.com/pixlcore/xyops/commit/714e0fb81407bcd323f64e505eb3db67b48204bf): Feature: Improve logging in startup storage test.
+- [`d477e6a2`](https://github.com/pixlcore/xyops/commit/d477e6a2600546c1fc96ce41a3cc80e75f8535bc): Sample Config: Reduce S3 maxAttempts from 50 to 10, as AWS adds exp backoffs.  Fixes #438
+
 ## Version v1.0.95
 
 > August 30, 2026
