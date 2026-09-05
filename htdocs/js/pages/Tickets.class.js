@@ -374,23 +374,30 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 		// update preset count in sidebar
 		var self = this;
 		if (!callback) callback = function() {};
-		if (!preset.count) return callback();
+		if (!preset.count && !preset.color) return callback();
 		
 		var args = parse_query_string(preset.uri);
 		var query = this.getSearchQuery(args) || '*';
 		
 		app.api.get( 'app/search_tickets', { query, count: 1 }, function(resp) {
 			var count = resp.list.length ? self.getNiceDashNumber(resp.list.length) : "";
-			$(`#d_section_my_ticket_searches > a.section_item[href='#${preset.uri}'] > span.sbs_ticket_search_count`).html( count );
+			var $search = $(`#d_section_my_ticket_searches > a.section_item[href='#${preset.uri}']`);
+			$search.children('.sbs_ticket_search_count').html( preset.count ? count : '' );
+			
+			// Highlight only while results are non-zero, restoring the default styles at zero.
+			if (preset.color) {
+				$search.children('i.mdi, .sbs_ticket_search_label').toggleClass('cat_' + preset.color, !!count);
+				$search.children('.sbs_ticket_search_count').toggleClass('clr_' + preset.color, !!count);
+			}
 			app.ticketCountCache[ preset.uri ] = count;
 			callback();
 		} );
 	}
 	
 	updateAllPresetCounts() {
-		// loop over all user presets with counts enabled, and refresh in series
+		// loop over all user presets with counts or highlights enabled, and refresh in series
 		var self = this;
-		var presets = (app.user.searches || []).filter( preset => preset.count && !!preset.uri.match(/^Tickets/) );
+		var presets = (app.user.searches || []).filter( preset => (preset.count || preset.color) && !!preset.uri.match(/^Tickets/) );
 		if (!presets.length) return;
 		
 		if (this.presetCountsInProgress) return;
@@ -610,7 +617,19 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 				value: preset.icon || '',
 				// 'data-shrinkwrap': 1
 			}),
-			caption: 'Optionally choose an icon for your search preset.'
+			caption: 'Optionally choose an icon for your search preset, which will show in the sidebar.'
+		});
+		
+		// color
+		html += this.getFormRow({
+			label: 'Highlight Color:',
+			content: this.getFormMenuSingle({
+				id: 'fe_sp_color',
+				title: "Select Highlight Color",
+				options: config.ui.category_colors,
+				value: preset.color || ''
+			}),
+			caption: 'Optionally select a highlight color for the preset, which will show only if search results are found.'
 		});
 		
 		// count
@@ -636,8 +655,10 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 			preset.name = $('#fe_sp_name').val().trim();
 			preset.icon = $('#fe_sp_icon').val();
 			preset.count = $('#fe_sp_count').is(':checked');
+			preset.color = $('#fe_sp_color').val();
 			
 			if (!preset.name) return app.badField('#fe_sp_name', "Please enter a name for the search preset before saving.");
+			if (preset.color == 'plain') preset.color = '';
 			
 			var idx = find_object_idx(app.user.searches, { uri: preset.uri });
 			if (idx > -1) {
@@ -670,7 +691,7 @@ Page.Tickets = class Tickets extends Page.PageUtils {
 		} ); // Dialog.confirm
 		
 		if (!preset.name) $('#fe_sp_name').focus();
-		SingleSelect.init( $('#fe_sp_icon') );
+		SingleSelect.init( $('#fe_sp_icon, #fe_sp_color') );
 	}
 	
 	doDeletePreset() {

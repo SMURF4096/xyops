@@ -425,11 +425,22 @@ body.dark .sbs_ticket_search_count {
 	display: none;
 }
 
-/* Selected tabs hide the count. */
+/* Selected tabs override category colors with white text and the theme badge. */
+.sbs_ticket_searches a.section_item.active > .sbs_ticket_search_label,
+.sbs_ticket_searches a.section_item.active > i.mdi {
+	color: #fff;
+}
+
 a.section_item.active > .sbs_ticket_search_count {
-	background: var(--theme-color-highlight);
+	background: var(--theme-color-highlight) !important;
 	color: #fff;
 	box-shadow: 0px 0px 1px inset white;
+}
+
+/* Let category swatches supply the badge colors only on unselected tabs. */
+.sbs_ticket_searches .section_item:not(.active) > .sbs_ticket_search_count[class*="clr_"] {
+	color: var(--link-color);
+	box-shadow: none;
 }
 
 .sidebar_foot_pad {

@@ -609,7 +609,13 @@ app.extend({
 					.prop('id', 'tab_Tickets_' + search.name.replace(/\W+/g, ''))
 					.attr('href', '#' + search.uri)
 					.addClass('section_item')
-					.html( `<i class="mdi mdi-${icon}">&nbsp;</i><span class="sbs_ticket_search_label">${search.name}</span><span class="sbs_ticket_search_count">${cached_value}</span>` );
+					.html( `<i class="mdi mdi-${icon}">&nbsp;</i><span class="sbs_ticket_search_label">${search.name}</span><span class="sbs_ticket_search_count">${search.count ? cached_value : ''}</span>` );
+				
+				// Reuse category colors for cached non-zero results, including presets with hidden counts.
+				if (search.color && cached_value) {
+					$search.children('i.mdi, .sbs_ticket_search_label').addClass('cat_' + search.color);
+					$search.children('.sbs_ticket_search_count').addClass('clr_' + search.color);
+				}
 				$ticket_section.append( $search );
 			} );
 		}
