@@ -502,7 +502,7 @@ Page.Workflows = class Workflows extends Page.Events {
 			var native = event.originalEvent;
 			if ('button' in native) {
 				// pointer event
-				// if (native.button !== 0) return; // only capture left-clicks
+				if (native.button !== 0) return; // only capture left-clicks
 			}
 			else {
 				// keypress event
@@ -542,10 +542,7 @@ Page.Workflows = class Workflows extends Page.Events {
 			}
 			
 			// prepare for dragging entire selection
-			if ('button' in native) {
-				if (native.button == 0) self.prepareForDrag(this, event);
-				else if (native.button == 2) self.popupNodeContextMenu(this, event);
-			}
+			if ('button' in native) self.prepareForDrag(this, event);
 		} ); // pointerdown (nodes)
 		
 		$cont.find('div.wf_node').on( 'dblclick', function(event) {
@@ -554,9 +551,19 @@ Page.Workflows = class Workflows extends Page.Events {
 		}); // dblclick (nodes)
 		
 		$cont.find('div.wf_node').on( 'contextmenu', function(event) {
-			// check for right-click
+			// Cancel the native menu before opening our popup and its full-page overlay.
 			event.stopPropagation();
 			event.preventDefault();
+			
+			// Select the clicked node, preserving multi-selection if it is already selected.
+			var id = this.id.replace(/^d_wfn_/, '');
+			if (!self.wfSelection[id]) {
+				self.wfSelection = {};
+				self.wfSelection[id] = 1;
+				self.updateSelection();
+			}
+			
+			self.popupNodeContextMenu(this, event);
 		}); // contextmenu (nodes)
 		
 		// add mouse handler for condition entities
