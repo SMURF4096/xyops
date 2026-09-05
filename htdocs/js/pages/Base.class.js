@@ -1381,7 +1381,16 @@ Page.Base = class Base extends Page {
 		var now = Math.floor( job.completed || app.epoch );
 		var elapsed = job.elapsed || Math.max( 0, now - Math.floor(job.started) ) || 0;
 		var icon = job.completed ? 'clock-check-outline' : 'progress-clock';
-		return '<i class="mdi mdi-' + icon + '">&nbsp;</i>' + get_text_from_seconds( elapsed, abbrev, no_secondary );
+		var nice_time = '';
+		
+		if (elapsed < 1.0) {
+			nice_time = short_float(elapsed) + ' ' + (abbrev ? 'sec' : 'seconds');
+		}
+		else {
+			nice_time = get_text_from_seconds( elapsed, abbrev, no_secondary );
+		}
+		
+		return '<i class="mdi mdi-' + icon + '">&nbsp;</i>' + nice_time;
 	}
 	
 	getNiceJobProgressBar(job, extra_classes = []) {
