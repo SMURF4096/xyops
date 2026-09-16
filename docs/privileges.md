@@ -11,9 +11,6 @@ Note: Some operations also enforce resource-level access (e.g., category, group,
 ### admin
 Full administrator access; implies all privileges and bypasses normal restrictions.
 
-### bulk_export
-Allow bulk data exports using the [admin_export_data](api.md#admin_export_data) API.
-
 ## Alerts
 
 ### create_alerts
@@ -181,3 +178,9 @@ Delete server or group snapshots from the system.
 
 ### send_emails
 Send custom emails using the [send_email](api.md#send_email) API.
+
+### bulk_export
+Allow bulk data exports using the [admin_export_data](api.md#admin_export_data) API.
+
+### update_state
+Toggle scheduler, update event cursors and stats, and update the sync metadata.
