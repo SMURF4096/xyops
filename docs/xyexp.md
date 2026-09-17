@@ -58,14 +58,45 @@ In addition to the standard JEXL operators, the following custom functions are a
 | `round` | `round(1.2) == 1` | See [Math.round](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round). |
 | `clamp` | `clamp(50, 0, 100) == 50` | Clamps a numerical value between a lower and upper limit. |
 | `count` | `count(array)` | Returns the number of items in an array (as JEXL arrays don't have a `length` inside expressions). |
+| `total` | `total(array, key)` | Returns the sum of an array of numbers, or the numeric values at a specified key or dot path in an array of objects.  The `key` argument is optional. |
+| `average` | `average(array, key)` | Returns the arithmetic mean of an array of numbers, or the numeric values at a specified key or dot path in an array of objects.  The `key` argument is optional. |
+
+The `total` and `average` functions accept an array of numbers directly:
+
+```text
+total([10, 20, 30]) == 60
+average([10, 20, 30]) == 20
+```
+
+For an array of objects, pass the sub-key name or dot path as the second argument.  The value at that key or path in each object is the number totaled or averaged.  For example, to calculate the total or average resident memory usage across processes matching "postgres":
+
+```text
+total( find(processes.list, 'command', 'postgres'), 'memRss' )
+average( find(processes.list, 'command', 'postgres'), 'memRss' )
+```
+
+To select a nested value, use a quoted dot path.  For example, if each object in `items` contains a `stats` object with a numeric `size` property:
+
+```text
+total(items, 'stats.size')
+average(items, 'stats.size')
+```
+
+All array elements, or the values selected by the key or dot path, should be numbers.  Both functions return `0` for an empty array.
 
 ### Searching
 
 | Function | Usage | Description |
 |----------|-------|-------------|
-| `find` | `find(array, key, value)` | Finds objects in an array using a named property and a substring match. |
+| `find` | `find(array, key, value)` | Returns an array of objects whose value at the specified key or dot path contains the given substring. |
 | `includes` | `includes(array, key)` | Find a substring in a string, or an element in an array. |
 | `match` | `match(string, pattern)` | Perform a regex match on a string.  The pattern itself must also be specified as a string. |
+
+The `find` function accepts a plain key, such as `'command'`, or a quoted dot path to a nested property.  For example, to select objects in `items` whose `details.name` value contains "backup":
+
+```text
+find(items, 'details.name', 'backup')
+```
 
 ### String Formatting
 

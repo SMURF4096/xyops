@@ -42,6 +42,7 @@ module.exports = {
 		// load suites
 		this.tests = this.tests.concat( 
 			require('./suites/test-initial.js').tests,
+			require('./suites/test-expressions.js').tests,
 			require('./suites/test-buckets.js').tests,
 			require('./suites/test-categories.js').tests,
 			require('./suites/test-channels.js').tests,
