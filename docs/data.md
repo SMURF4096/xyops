@@ -812,6 +812,7 @@ When the job was launched from another job (custom action or workflow step), thi
 | `event` | String | The [Event.id](#event-id) of the job which launched the current job. |
 | `code` | Mixed | The [Job.code](#job-code) of the job which launched the current job. |
 | `description` | String | The [Job.description](#job-description) of the job which launched the current job. |
+| `params` | Object | Optional copy of the calling workflow's user parameters, supplied by a [Run Event](actions.md#run-event) job action executed by a workflow or one of its sub-jobs. |
 
 ### Job.input
 

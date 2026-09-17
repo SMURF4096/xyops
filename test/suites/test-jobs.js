@@ -2,6 +2,8 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const Tools = require('pixl-tools');
 const Jobs = require('../../lib/job.js');
+const Actions = require('../../lib/action.js');
+const Util = require('../../lib/util.js');
 
 const RATE_TEST_EVENT_ID = 'rate-limit-unit-event';
 
@@ -769,6 +771,103 @@ exports.tests = [
 		finally {
 			this.xy.enqueueLaunch = original_enqueue_launch;
 			delete this.xy.jobDetails[parent_id];
+		}
+	},
+
+	async function test_run_event_action_workflow_params(test) {
+		// Run Event must retain caller workflow parameters in parent.params until
+		// child launch, without adding workflow membership to an ordinary child.
+		// A nested workflow uses its own launch parameters,
+		// rather than those belonging to the workflow that launched it.
+		const params = { bucket: 'source-bucket', object_key: 'uploads/file.csv', nested: { value: 123 } };
+		const workflow_event = {
+			id: 'workflow-action-child', title: 'Child Workflow', enabled: true,
+			type: 'workflow', category: 'general', params: {},
+			fields: [{ id: 'bucket' }, { id: 'object_key' }, { id: 'input_value' }],
+			triggers: [{ id: 'manual', type: 'manual', enabled: true }],
+			workflow: { nodes: [{ id: 'manual', type: 'trigger' }], connections: [] }
+		};
+		const parents = [
+			{ type: 'default', params: { bucket: 'job-bucket' }, workflow: { job: 'outer', node: 'source', params } },
+			{ type: 'workflow', params, workflow: { nodes: [], connections: [] } },
+			{ type: 'workflow', params, workflow: { job: 'outer', node: 'source', params: { bucket: 'outer-bucket' } } },
+			{ type: 'default', params: { bucket: 'job-bucket' } }
+		];
+		
+		// Check both real child workflows and ordinary events, where creating a
+		// workflow object solely for macro context would violate job semantics.
+		for (const type of ['workflow', 'default']) {
+			const event = Tools.copyHash(workflow_event, true);
+			event.type = type;
+			if (type == 'default') {
+				event.plugin = 'test-plugin';
+				delete event.workflow;
+			}
+			
+			for (const parent of parents) {
+				parent.id = 'workflow-action-parent';
+				parent.event = 'workflow-action-caller';
+				let child = null;
+				const action = {
+					type: 'run_event', event_id: event.id,
+					params: {
+						bucket: '{{parent.params.bucket}}',
+						object_key: '{{parent.params.object_key}}',
+						input_value: '{{data.value}}'
+					}
+				};
+				const actions = Object.assign(new Actions(), {
+					events: [event],
+					jobDetails: { [parent.id]: { data: { value: 'forwarded-input' } } },
+					appendMetaLog() {}, logAction() {},
+					enqueueLaunch(job, callback) {
+						child = job;
+						callback(null, 'captured-child');
+					}
+				});
+				
+				await new Promise( resolve => actions.runJobAction_run_event(parent, action, resolve) );
+				assert.equal( child.params.bucket, action.params.bucket, 'macros remain unresolved until child launch' );
+				assert.equal( child.parent.job, parent.id, 'parent job identity is preserved' );
+				assert.equal( child.parent.event, parent.event, 'parent event identity is preserved' );
+				if (event.workflow) {
+					assert.deepEqual( child.workflow, { ...event.workflow, start: 'manual' }, 'child retains only its own workflow definition' );
+				}
+				else {
+					assert.equal( 'workflow' in child, false, 'ordinary child does not gain workflow membership' );
+				}
+				
+				if (parent.workflow) {
+					assert.deepEqual( child.parent.params, params, 'caller workflow parameters are forwarded' );
+					assert.notEqual( child.parent.params, params, 'parameters are an independent snapshot' );
+					assert.notEqual( child.parent.params.nested, params.nested, 'nested parameters are deep-cloned' );
+				}
+				else {
+					assert.equal( 'params' in child.parent, false, 'ordinary caller does not forward workflow parameters' );
+				}
+				
+				// Exercise real launch-time substitution, then stop before scheduling or
+				// starting the child.  The first launch meta log follows macro expansion.
+				const stop = new Error('Stop after macro expansion');
+				const jobs = Object.assign(new Jobs(), {
+					events: [event], plugins: [{ id: 'test-plugin', enabled: true, command: 'noop', params: [] }],
+					categories: [{ id: 'general', enabled: true }],
+					config: { get: () => 0, getPath: () => [] },
+					stats: { currentMinute: {} }, activeJobs: {}, jobDetails: {},
+					deleteJobLaunchContext() {}, messageSub: Util.prototype.messageSub,
+					appendMetaLog() { throw stop; }
+				});
+				
+				assert.throws( () => jobs.launchJob(child, err => { throw err; }), err => err === stop );
+				assert.equal( child.params.bucket, parent.workflow ? params.bucket : '', 'bucket resolves through parent.params' );
+				assert.equal( child.params.object_key, parent.workflow ? params.object_key : '', 'object key resolves through parent.params' );
+				assert.equal( child.params.input_value, 'forwarded-input', 'input data macros still resolve' );
+			}
+			
+			assert.deepEqual( event.params, {}, 'shared event parameter defaults are unchanged' );
+			if (event.workflow) {
+				assert.deepEqual( event.workflow, workflow_event.workflow, 'shared workflow definition is unchanged' );
+			}
 		}
 	},
 

@@ -230,6 +230,12 @@ Parameters:
 | `target_server` | Boolean | Optional | For alert actions, this will override the [Event.targets](data.md#event-targets) to point at the server where the alert triggered. |
 | `clear_alert` | Boolean | Optional | For alert actions, this will clear the alert when the job completes.  Useful for signal alerts (e.g. files waiting for pickup). |
 
+#### Passing Workflow Parameters
+
+When a Run Event job action is executed by a workflow or one of its sub-jobs, the launched job receives a copy of the calling workflow's user parameters in [Job.parent.params](data.md#job-parent).  You can use `{{parent.params.NAME}}` placeholders in the action's **User Parameters** fields to pass these values to another event or workflow.
+
+Run Event actions from ordinary jobs outside workflows, or from alerts, do not populate `parent.params`.
+
 #### Including Job Output
 
 Enable **Include Job Output** to pass the source job's captured text output to the launched job.  This is the combined STDOUT and STDERR text shown in the source job's output viewer.  The launched job receives it in [Job.input.data](data.md#job-input) under the `text` property:
