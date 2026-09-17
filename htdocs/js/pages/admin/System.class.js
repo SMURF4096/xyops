@@ -664,7 +664,7 @@ Page.System = class System extends Page.PageUtils {
 		var self = this;
 		var html = '';
 		
-		html += `<div class="dialog_intro">Use this to reset the daily dashboard stats or current job rate limit windows.  Normally the stats are reset daily at midnight (local server time), and the rate limit windows auto-expire, but you can reset them manually here if required.</div>`;
+		html += `<div class="dialog_intro">Use this to reset the daily dashboard stats, current job rate limit windows, or the sync state flags used by the CLI.  Normally the stats are reset daily at midnight (local server time), and the rate limit windows auto-expire, but you can reset them manually here if required.</div>`;
 		html += '<div class="dialog_box_content maximize scroll">';
 		
 		html += this.getFormRow({
@@ -673,7 +673,8 @@ Page.System = class System extends Page.PageUtils {
 				id: 'fe_sys_stat_reset',
 				options: [ 
 					{ id: 'daily', title: "Daily Dashboard Stats", icon: 'monitor-dashboard' },
-					{ id: 'rates', title: "Rate Limit Windows", icon: 'traffic-light-outline' }
+					{ id: 'rates', title: "Rate Limit Windows", icon: 'traffic-light-outline' },
+					{ id: 'sync', title: "Sync State Flags", icon: 'sync' }
 				],
 				value: 'daily',
 				'data-shrinkwrap': 1
@@ -696,6 +697,11 @@ Page.System = class System extends Page.PageUtils {
 			else if (id == 'rates') {
 				app.api.post( 'app/admin_reset_job_rate_limits', {}, function(resp) {
 					app.showMessage('success', "The job rate limit windows have been reset.");
+				}); // api.post
+			}
+			else if (id == 'sync') {
+				app.api.post( 'app/update_global_state', { sync: {} }, function(resp) {
+					app.showMessage('success', "The sync state flags have been reset.");
 				}); // api.post
 			}
 		} ); // confirm

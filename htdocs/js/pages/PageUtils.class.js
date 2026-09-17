@@ -6650,9 +6650,20 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		return (num_matched == num_crit);
 	}
 	
+	checkUserSyncWarning(thing) {
+		// show warning if object is under remote sync governance
+		if (!this.args || !this.args.id) return;
+		var type = thing.replace(/\W+/g, '_').toLowerCase();
+		var state_key = type + '-' + this.args.id;
+		if (!app.state || !app.state.sync || !app.state.sync[state_key]) return;
+		
+		app.showMessage('warning', `This ${thing} is under remote management, and should not be edited here.`, 0);
+	}
+	
 	checkUserEditWarning(thing) {
 		// see if any other users are on the same page and sub-page, and display a warning
 		var self = this;
+		this.checkUserSyncWarning(thing);
 		if (!app.socketNav) return; // sanity
 		
 		var loc = {
