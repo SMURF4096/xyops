@@ -224,6 +224,46 @@ exports.tests = [
 		assert.equal( data.job.files[0].path, 'files/jobs/' + data.job.id + '/unit-test/run-event-wait.txt', 'output file path is URL-ready' );
 	},
 	
+	async function test_api_magic_204(test) {
+		// Reuse the wait Event to verify empty HTTP 204 responses, both suffix
+		// orders, and the different headers for background and completed Jobs.
+		var base_url = this.api_url + '/app/magic/v1/' + encodeURIComponent(this.wait_magic_key);
+		
+		for (var suffix of ['/204', '/wait/204', '/204/wait']) {
+			var do_wait = suffix.includes('/wait');
+			
+			// A query value containing /wait must remain an ordinary Job param.
+			let { resp, data: raw_data } = await this.request.get(base_url + suffix + '?duration=1&caller=/wait');
+			assert.equal( resp.statusCode, 204, suffix + ': HTTP 204 response' );
+			assert.equal( raw_data.length, 0, suffix + ': empty response body' );
+			
+			var id = resp.headers['x-job-id'];
+			assert.ok( id, suffix + ': Job ID header is present' );
+			
+			if (do_wait) {
+				assert.equal( resp.headers['x-job-code'], '0', suffix + ': successful Job code header' );
+				assert.equal( resp.headers['x-job-description'], 'Unit Test Job Complete', suffix + ': Job description header' );
+				assert.equal( resp.headers['x-stream-token'], undefined, suffix + ': no background stream token' );
+			}
+			else {
+				var stream_token = Tools.digestHex( 'stream' + id + this.xy.config.get('secret_key') );
+				assert.equal( resp.headers['x-stream-token'], stream_token, suffix + ': valid stream token header' );
+				assert.equal( resp.headers['x-job-code'], undefined, suffix + ': no completed Job code' );
+				
+				// Finish the background Job before the shared Event is deleted.
+				await waitForJob(this, id);
+			}
+			
+			// The waiting variants must already have a finalized Job when the
+			// response arrives, and all variants must preserve query parameters.
+			let { data } = await this.request.json( this.api_url + '/app/get_job/v1', { id: id } );
+			assert.equal( data.code, 0, suffix + ': completed Job can be fetched' );
+			assert.equal( data.job.final, true, suffix + ': Job is fully finalized' );
+			assert.equal( data.job.event, this.wait_event_id, suffix + ': expected Event' );
+			assert.equal( data.job.params.caller, '/wait', suffix + ': query parameter was preserved' );
+		}
+	},
+	
 	async function test_api_magic_wait(test) {
 		// Magic Link parameters remain ordinary Event overrides, while /wait is
 		// carried in the URL path and returns the same completed Job shape.

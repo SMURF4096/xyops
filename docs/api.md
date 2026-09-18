@@ -1563,7 +1563,9 @@ In addition to the [Standard Response Format](#standard-response-format), this w
 
 To wait for the Magic Link job to finish, add `/wait` after the token in the URL.  This keeps the HTTP request open and returns a `job` property containing the full completed [Job](data.md#job) record instead of returning an `id` and `stream` token.  The completed record includes output [Job.data](data.md#job-data) and [Job.files](data.md#job-files), when present.  If the launched job is a workflow, the response also includes a top-level `jobs` array containing the full completed Job record for every workflow sub-job.  See the [`run_event` wait response](#run_event) above for the response format, workflow sub-job structure, and output file URL behavior.
 
-The `/wait` suffix is part of the URL path, so it is not passed to the job as an Event parameter.  Query string and POST parameters continue to work normally as Event parameter overrides.
+To receive HTTP `204 No Content` with an empty response body instead of JSON, add `/204` after the token.  The 204 response will include `X-Job-ID` and `X-Stream-Token` headers.  You can also combine the suffixes as `/wait/204` or `/204/wait` to wait for completion and receive `X-Job-ID`, `X-Job-Code`, and `X-Job-Description` headers instead.  A completed job still returns HTTP 204 if it fails; check `X-Job-Code` for the job result.  Authentication and other API errors continue to use the normal error response.
+
+The `/wait` and `/204` suffixes are part of the URL path, so they are not passed to the job as Event parameters.  Query string and POST parameters continue to work normally as Event parameter overrides.
 
 As with `run_event`, the `/wait` form is best suited to jobs that complete within the timeout limits of the calling client and any intervening HTTP proxies.
 
