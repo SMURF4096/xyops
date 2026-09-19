@@ -2387,8 +2387,8 @@ Page.Job = class Job extends Page.PageUtils {
 		$table.append( '<ul class="grid_row"><div>' + this.formatMetaRow(row).join('</div><div>') + '</div></ul>' );
 	}
 	
-	updateLiveJobStats(state_changed) {
-		// update progress and other indicators while job is live
+	updateLiveJobProgress() {
+		// update job progress bar
 		var job = this.job;
 		var bwidth = this.header_bar_width;
 		var $prog_cont = $('#d_live_progress_bar_cont');
@@ -2412,6 +2412,13 @@ Page.Job = class Job extends Page.PageUtils {
 			$prog_bar.css('width', '' + cx + 'px');
 			$prog_pct.html( pct(job.progress, 1.0, true) );
 		}
+	}
+	
+	updateLiveJobStats(state_changed) {
+		// update progress and other indicators while job is live
+		var job = this.job;
+		
+		this.updateLiveJobProgress();
 		
 		this.div.find('#s_live_elapsed').html( this.getNiceJobElapsedTime(job) );
 		this.div.find('#s_live_remain').html( this.getNiceJobRemainingTime(job) );
@@ -3660,7 +3667,7 @@ Page.Job = class Job extends Page.PageUtils {
 				// job progress was updated
 				if (this.live && pdata.progress) {
 					this.job.progress = pdata.progress;
-					this.updateLiveJobStats();
+					this.updateLiveJobProgress();
 				}
 			break;
 			
