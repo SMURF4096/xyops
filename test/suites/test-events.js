@@ -404,8 +404,24 @@ exports.tests = [
 		let plain_key = created.data.plain_key;
 		let original_script = "#!/bin/bash\necho hello\n";
 		let hostile_script = "#!/bin/bash\necho pwned\n";
+		let api_headers = {
+			'X-Session-ID': '',
+			'X-API-Key': plain_key
+		};
 		
 		try {
+			// sparse updates may omit the params object entirely, even though the
+			// existing plugin has administrator-locked parameters to preserve
+			let sparse = await this.request.json( this.api_url + '/app/update_event/v1', {
+				id: this.event_id,
+				notes: 'updated by tests'
+			}, {
+				headers: api_headers
+			} );
+			assert.ok( sparse.data.code === 0, "successful sparse non-admin api response" );
+			assert.ok( sparse.data.event.params.script === original_script, "sparse update should preserve locked script" );
+			assert.ok( sparse.data.event.params.annotate === false, "sparse update should preserve unlocked params too" );
+			
 			// attempt to bypass the admin lock by omitting plugin and sending a new script
 			let { data } = await this.request.json( this.api_url + '/app/update_event/v1', {
 				id: this.event_id,
@@ -416,10 +432,7 @@ exports.tests = [
 					json: false
 				}
 			}, {
-				headers: {
-					'X-Session-ID': '',
-					'X-API-Key': plain_key
-				}
+				headers: api_headers
 			} );
 			assert.ok( data.code === 0, "successful non-admin api response" );
 			assert.ok( data.event && data.event.title === 'UTE v3', "expected unlocked event title update" );
