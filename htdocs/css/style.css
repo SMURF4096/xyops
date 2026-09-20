@@ -1772,6 +1772,10 @@ body.dark .box_buttons.floater {
 	font-size: 11px; */
 	line-height: 16px;
 	background: var(--shadow-color);
+	
+	resize: vertical;
+	min-height: 96px;
+	max-height: 50vh;
 }
 
 .plugin_param_editor_cont input {
@@ -1818,7 +1822,7 @@ body.dark .dialog .plugin_param_editor_cont {
 }
 
 .dialog .plugin_param_editor_cont textarea {
-	resize: none;
+	resize: vertical;
 }
 
 .dialog .plugin_param_editor_cont .multiselect.multi {
