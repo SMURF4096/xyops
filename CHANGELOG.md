@@ -1,5 +1,24 @@
 # xyOps Changelog
 
+## Version v1.1.0
+
+> September 20, 2026
+
+- [`b590e79b`](https://github.com/pixlcore/xyops/commit/b590e79bda667795e66ff07758c62bbf5e22c3eb): Version 1.1.0
+- [`cee66611`](https://github.com/pixlcore/xyops/commit/cee66611a73a5faa82946ac019d3fbbff031b40f): Bug Fix: Crasher on update_event API with sparse request and non-admin API key.  Regression from #316.  Fixes #451.
+- [`c2245016`](https://github.com/pixlcore/xyops/commit/c2245016b6c2966610c1700c59c7278c1b98e732): Feature: Allow all plugin / event param text boxes to resize vertically.
+- [`bf634a27`](https://github.com/pixlcore/xyops/commit/bf634a27eeb8d00f3525d7591997ab9b937e1ea0): Dep: Bump pixl-xyapp to v2.1.44 for automatic dialog recentering on content resize.
+- [`0c5170c1`](https://github.com/pixlcore/xyops/commit/0c5170c1c29d490b6c6bec42f9b7bddefdb95f1f): Docker: Bump Node.js to v24
+- [`b4416111`](https://github.com/pixlcore/xyops/commit/b441611119c271971ac72d24dad2da028806937f): Bug Fix: Prevent occasional flickering of remaining time display with jobs that continually update progress.
+- [`819c3a95`](https://github.com/pixlcore/xyops/commit/819c3a95b9abdbce0141a27bd2685fe0839afb2c): Bug Fix: Show "Notify Me" action in completed job details.
+- [`1acb3980`](https://github.com/pixlcore/xyops/commit/1acb398057e7c38d8373b31fdc41f5ba7b1ed32d): Feature: Optional "HTTP 204 No Content" response for magic trigger URLs.
+- [`58b37d86`](https://github.com/pixlcore/xyops/commit/58b37d86c323801667d8cdc65d5d43a13ce8d222): Feature: Add support for sync engine by detecting edit flags and displaying warnings for items under remote management.
+- [`f5e99c5e`](https://github.com/pixlcore/xyops/commit/f5e99c5ef0c3d3c7d7eb404a615b03bcf7208fd4): Feature: When a workflow invokes a Run Event action, pass along the workflow user parameters in "parent.params".
+- [`694a4191`](https://github.com/pixlcore/xyops/commit/694a41913da8641be011428b7e8fefdade45cf9a): Bug Fix: Prevent HTTP headers and credentials from leaking through system hooks. Fixes #450.
+- [`098854d7`](https://github.com/pixlcore/xyops/commit/098854d769169ce7e1dbc3cbcdcac8847afe64c6): Feature: Add new JEXL helper functions: total and average.
+- [`0c74aa13`](https://github.com/pixlcore/xyops/commit/0c74aa136307e0d56c95cb54976522a946b9338e): Feature: New "update_state" privilege, to separate it from general admin priv.
+- [`bd976c56`](https://github.com/pixlcore/xyops/commit/bd976c5682c485151ad7fcd08c98bc3da7fcab7c): Sample Config: Cleanup legacy data properties from Cronicle.
+
 ## Version v1.0.97
 
 > September 11, 2026
