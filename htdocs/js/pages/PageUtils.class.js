@@ -4929,7 +4929,7 @@ Page.PageUtils = class PageUtils extends Page.Base {
 		} );
 		sort_by( ctypes, 'title' );
 		
-		var html = '<div class="dialog_box_content">';
+		var html = '<div class="dialog_box_content scroll maximize">';
 		
 		// id
 		html += this.getFormRow({
