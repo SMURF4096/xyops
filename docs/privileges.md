@@ -116,17 +116,6 @@ Edit existing plugin definitions and their configuration.
 ### delete_plugins
 Delete plugins from the system.
 
-## Roles
-
-### create_roles
-Create new roles that bundle sets of privileges.
-
-### edit_roles
-Edit existing roles, including titles and assigned privileges.
-
-### delete_roles
-Delete roles from the system.
-
 ## Tags
 
 ### create_tags

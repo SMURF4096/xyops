@@ -3505,7 +3505,7 @@ See [Role](data.md#role) for details on the role properties.
 POST /api/app/create_role/v1
 ```
 
-Create a new user role. The [create_roles](privileges.md#create_roles) privilege is required, as well as a valid user session or API Key. The request must be sent as an HTTP POST with a JSON body.
+Create a new user role. The [Administrator](privileges.md#admin) privilege is required, as well as a valid user session or API Key. The request must be sent as an HTTP POST with a JSON body.
 
 See [Role](data.md#role) for details on the input properties. The `id`, `username`, `created`, `modified` and `revision` properties may be omitted, as they are automatically generated (a unique `id` will be assigned if omitted, and the initial `revision` will be set to `1`). If omitted, `privileges` defaults to an empty object, and `categories`/`groups` default to empty arrays.
 
@@ -3543,7 +3543,7 @@ In addition to the [Standard Response Format](#standard-response-format), this w
 POST /api/app/update_role/v1
 ```
 
-Update an existing user role, specified by its ID. The [edit_roles](privileges.md#edit_roles) privilege is required, as well as a valid user session or API Key. The request must be sent as an HTTP POST with a JSON body.
+Update an existing user role, specified by its ID. The [Administrator](privileges.md#admin) privilege is required, as well as a valid user session or API Key. The request must be sent as an HTTP POST with a JSON body.
 
 See [Role](data.md#role) for details on the input properties. The request is shallow-merged into the existing role, so you can provide a sparse set of properties to update. The `modified` timestamp is updated automatically, and the `revision` is incremented.
 
@@ -3579,7 +3579,7 @@ The above example would update the `title`, `categories` and `enabled` propertie
 POST /api/app/delete_role/v1
 ```
 
-Delete an existing user role, specified by its ID. The [delete_roles](privileges.md#delete_roles) privilege is required, as well as a valid user session or API Key. The request must be sent as an HTTP POST with a JSON body.
+Delete an existing user role, specified by its ID. The [Administrator](privileges.md#admin) privilege is required, as well as a valid user session or API Key. The request must be sent as an HTTP POST with a JSON body.
 
 Parameters:
 
