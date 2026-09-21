@@ -1,5 +1,7 @@
 const assert = require('node:assert/strict');
 const Tools = require('pixl-tools');
+const Actions = require('../../lib/action.js');
+const AlertSystem = require('../../lib/alert.js');
 
 exports.tests = [
 
@@ -27,6 +29,64 @@ exports.tests = [
 		// missing required title
 		let { data } = await this.request.json( this.api_url + '/app/create_channel/v1', { enabled: true } );
 		assert.ok( !!data.code, "expected error for missing title" );
+	},
+
+	async function test_email_only_channel_without_users(test) {
+		// Email-only channels created through the API may omit the users array.
+		// Exercise both channel dispatchers without delivering an actual email.
+		let { data } = await this.request.json( this.api_url + '/app/create_channel/v1', {
+			title: "Unit Test Email-Only Channel",
+			enabled: true,
+			email: "unit-test@example.com"
+		});
+		assert.equal( data.code, 0, "email-only channel was created" );
+		assert.ok( data.channel && data.channel.id, "expected channel in response" );
+		assert.equal( data.channel.users, undefined, "test channel omits users array" );
+		
+		const deliveries = [];
+		const channel = data.channel;
+		const common = {
+			channels: [channel],
+			getDailyCustomStat() { return 0; },
+			updateDailyCustomStat() {}
+		};
+		const actions = Object.assign(new Actions(), common, {
+			appendMetaLog() {},
+			logAction() {},
+			runJobAction_email(job, action, callback) {
+				deliveries.push({ source: 'job', email: action.email });
+				callback();
+			}
+		});
+		const alerts = Object.assign(new AlertSystem(), common, {
+			logAlert() {},
+			runAlertAction_email(action, args, callback) {
+				deliveries.push({ source: 'alert', email: action.email });
+				callback();
+			}
+		});
+		
+		try {
+			await new Promise( resolve => actions.runJobAction_channel(
+				{ id: 'unit-test-job' },
+				{ condition: 'success', channel_id: channel.id },
+				resolve
+			) );
+			await new Promise( resolve => alerts.runAlertAction_channel(
+				{ condition: 'alert_new', channel_id: channel.id },
+				{},
+				resolve
+			) );
+			
+			assert.deepEqual( deliveries, [
+				{ source: 'job', email: 'unit-test@example.com' },
+				{ source: 'alert', email: 'unit-test@example.com' }
+			], "both channel dispatchers processed the email-only channel" );
+		}
+		finally {
+			let { data } = await this.request.json( this.api_url + '/app/delete_channel/v1', { id: channel.id } );
+			assert.equal( data.code, 0, "email-only test channel was deleted" );
+		}
 	},
 
 	async function test_api_create_channel(test) {
@@ -121,4 +181,3 @@ exports.tests = [
 	}
 
 ];
-
