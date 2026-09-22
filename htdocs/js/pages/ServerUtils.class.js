@@ -160,6 +160,7 @@ Page.ServerUtils = class ServerUtils extends Page.PageUtils {
 		
 		// add children
 		var add_children = function(parent, indent) {
+			if (!parent.pid) return;
 			find_objects(list, { parentPid: parent.pid }).forEach( function(proc) {
 				rows.push( merge_objects(proc, { indent }) );
 				add_children( proc, indent + 1 );
@@ -169,6 +170,7 @@ Page.ServerUtils = class ServerUtils extends Page.PageUtils {
 		
 		// add parents
 		var add_parents = function(proc) {
+			if (!proc.parentPid) return;
 			var parent = find_object(list, { pid: proc.parentPid });
 			if (parent) {
 				rows.forEach( function(row) { row.indent = (row.indent || 0) + 1; } );
