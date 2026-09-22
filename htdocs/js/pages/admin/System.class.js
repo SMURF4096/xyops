@@ -682,6 +682,21 @@ Page.System = class System extends Page.PageUtils {
 			caption: "Select which item you would like to reset. Please use extreme caution resetting rate limit windows, as this immediately restores the full rate allowance for every pool, so queued jobs may begin launching on the next scheduler tick."
 		});
 		
+		html += this.getFormRow({
+			id: 'd_sys_stat_mode',
+			label: 'Reset Mode:',
+			content: this.getFormMenuSingle({
+				id: 'fe_sys_stat_mode',
+				options: [ 
+					{ id: 'zero', title: "Reset to Zero", icon: 'numeric-0-circle-outline' },
+					{ id: 'recount', title: "Recount Day", icon: 'database-sync-outline' }
+				],
+				value: 'zero',
+				'data-shrinkwrap': 1
+			}),
+			caption: "Select how to reset the daily stats. Reset to Zero clears all daily counters. Recount Day clears them, then rebuilds the job stats from jobs completed today (server local time)."
+		});
+		
 		html += '</div>';
 		Dialog.confirmDanger( 'Reset Stats', html, ['skip-previous-circle', 'Reset Now'], function(result) {
 			if (!result) return;
@@ -690,8 +705,9 @@ Page.System = class System extends Page.PageUtils {
 			Dialog.hide();
 			
 			if (id == 'daily') {
-				app.api.post( 'app/admin_reset_daily_stats', {}, function(resp) {
-					app.showMessage('success', "The daily statistics have been reset.");
+				var recount = !!( $('#fe_sys_stat_mode').val() == 'recount' );
+				app.api.post( 'app/admin_reset_daily_stats', { recount }, function(resp) {
+					app.showMessage('success', recount ? "The daily statistics are being recounted in the background." : "The daily statistics have been reset.");
 				}); // api.post
 			}
 			else if (id == 'rates') {
@@ -706,7 +722,11 @@ Page.System = class System extends Page.PageUtils {
 			}
 		} ); // confirm
 		
-		SingleSelect.init('#fe_sys_stat_reset');
+		$('#fe_sys_stat_reset').on('change', function() {
+			$('#d_sys_stat_mode').toggle( $(this).val() == 'daily' );
+		});
+		
+		SingleSelect.init('#fe_sys_stat_reset, #fe_sys_stat_mode');
 		Dialog.autoResize();
 	}
 	

@@ -5945,9 +5945,21 @@ In addition to the [Standard Response Format](#standard-response-format), this i
 POST /api/app/admin_reset_daily_stats/v1
 ```
 
-Reset daily statistics counters (dashboard day graphs). Admin only. This also pushes the current stats snapshot into historical storage and broadcasts refreshed stats to connected users.
+Reset daily statistics counters (dashboard day graphs). Admin only. Manual resets do not save a historical stats snapshot. The request is rejected if jobs or internal database jobs are running.
 
-No input parameters.
+Parameters:
+
+| Property Name | Type | Description |
+|---------------|------|-------------|
+| `recount` | Boolean | Optional. If `true`, reset the counters and recount completed jobs from the current day (server local time) in the background, excluding retried attempts. If omitted or `false`, simply reset the counters to zero. |
+
+During a recount, the scheduler is temporarily disabled if it was enabled, then restored when the recount finishes. The API responds immediately while the recount continues as an internal job.
+
+Example request:
+
+```json
+{ "recount": true }
+```
 
 Example response:
 
