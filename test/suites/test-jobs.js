@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const fs = require('fs');
+const vm = require('vm');
 const Tools = require('pixl-tools');
 const Jobs = require('../../lib/job.js');
 const Actions = require('../../lib/action.js');
@@ -133,6 +134,115 @@ function installRateTestEvent(xy) {
 
 exports.tests = [
 
+	async function test_job_stats_ignore_test_action_filter(test) {
+		// Test condition choices control actions, but every completed job still counts.
+		const counts = {};
+		const hooks = [];
+		const job = { id: 'jteststats', code: 1, test: true, test_conditions: ['complete'], actions: [] };
+		const actions = Object.assign(new Actions(), {
+			shut: false,
+			logAction() {},
+			getJobHookData() { return {}; },
+			fireSystemHook(condition) { hooks.push(condition); },
+			updateDailyStat(key, delta) { counts[key] = (counts[key] || 0) + delta; },
+			updateDailyCustomStat() {}
+		});
+		const conditions = Jobs.prototype.getCompletedJobConditions.call({}, job);
+		
+		await new Promise( resolve => actions.runJobActions(job, conditions, resolve) );
+		
+		assert.deepEqual( counts, { job_complete: 1, job_error: 1, job_user: 1 }, 'all outcome counters include the failed test job' );
+		assert.deepEqual( hooks, ['job_complete'], 'test condition selection still filters actions and hooks' );
+	},
+	
+	async function test_job_retry_keeps_test_conditions(test) {
+		// Retrying a test job must retain its action condition selection.
+		var retry_job = null;
+		var jobs = Object.assign(new Jobs(), {
+			appendMetaLog() {},
+			logJob() {},
+			launchJob(job, callback) {
+				retry_job = job;
+				callback(null, 'jretrytest');
+			}
+		});
+		var job = {
+			id: 'joriginaltest', code: 1, test: true, test_conditions: ['complete'],
+			actions: [], limits: [{ type: 'retry', enabled: true, amount: 1 }]
+		};
+		
+		jobs.checkRetryJob(job);
+		
+		assert.ok( job.retried, 'original attempt is marked as retried' );
+		assert.deepEqual( retry_job.test_conditions, ['complete'], 'retry retains selected test conditions' );
+		assert.notEqual( retry_job.test_conditions, job.test_conditions, 'retry has its own condition array' );
+		assert.deepEqual( jobs.getCompletedJobConditions(job), [], 'intermediate attempt has no completion counters' );
+	},
+	
+	async function test_job_retry_skips_aggregate_stats(test) {
+		// Intermediate attempts must not inflate averages for the final outcome.
+		var totals = {};
+		var jobs = Object.assign(new Jobs(), {
+			jobDetails: {},
+			stats: {},
+			applyJobCustomOverrides() {},
+			prepJobLog(job, callback) { job.log_file_size = 128; callback(); },
+			runJobActions(job, conditions, callback) { callback(); },
+			appendMetaLog() {},
+			calcAvgDiskNet() {},
+			updateDailyStat(key, amount) { totals[key] = (totals[key] || 0) + amount; },
+			doUserBroadcastAll() {},
+			unbase: { insert() {} }
+		});
+		
+		function finish(id, retried) {
+			var job = {
+				id, type: 'adhoc', code: retried ? 1 : 0, retried,
+				started: Tools.timeNow() - 5, tags: [], limits: [], files: [{ path: 'test-file' }]
+			};
+			jobs.jobDetails[id] = {};
+			jobs.finishJob(job);
+			return job;
+		}
+		
+		finish('jintermediate', true);
+		assert.deepEqual( totals, {}, 'intermediate attempt adds no aggregate stats' );
+		
+		var final_job = finish('jfinal', false);
+		assert.equal( totals.job_log_file_size, 128, 'final job output is counted' );
+		assert.equal( totals.job_elapsed, final_job.elapsed, 'final job elapsed time is counted' );
+		assert.equal( totals.job_files, 1, 'final job files are counted' );
+	},
+	
+	async function test_job_run_again_keeps_test_conditions(test) {
+		// Exercise the real browser handler with a captured API request.
+		var payload = null;
+		var context = {
+			Page: { PageUtils: class {} },
+			app: {
+				events: [{ id: 'etest', params: {}, actions: [], limits: [] }],
+				api: { post(name, data) { payload = data; } }
+			},
+			Dialog: { showProgress() {} },
+			deep_copy_object: value => Tools.copyHash(value, true),
+			find_object: (items, criteria) => Tools.findObject(items, criteria),
+			merge_hash_into: Tools.mergeHashInto,
+			num_keys: Tools.numKeys
+		};
+		vm.runInNewContext( fs.readFileSync('htdocs/js/pages/Job.class.js', 'utf8'), context );
+		
+		var page = new context.Page.Job();
+		page.job = {
+			id: 'jprevious', event: 'etest', type: 'default', test: true,
+			test_conditions: ['complete'], params: {}, tags: [], code: 1
+		};
+		page.do_run_again();
+		
+		assert.ok( payload, 'run-again sends a job to the API' );
+		assert.deepEqual( payload.test_conditions, ['complete'], 'run-again retains selected test conditions' );
+		assert.equal( payload.id, 'etest', 'run-again targets the original event' );
+	},
+	
 	async function test_job_plugin_param_defaults(test) {
 		// Exercise launch-time default backfilling without starting a real job.  In
 		// particular, malformed legacy select definitions must never throw.
@@ -1083,6 +1193,35 @@ exports.tests = [
 		
 		// Save one general-category job for the positional authorization test.
 		this.simple_job_id = job_ids[0];
+	},
+	
+	async function test_delete_job_keeps_daily_stats(test) {
+		// Deleting retained history must not undo a job that ran today.
+		var result = await this.request.json( this.api_url + '/app/run_event/v1', {
+			id: this.simple_event_id,
+			params: { duration: 1 }
+		});
+		assert.equal( result.data.code, 0, 'test job started' );
+		await waitForJob( this, result.data.id );
+		
+		var trans = this.xy.stats.currentDay.transactions;
+		var before = {
+			job_complete: trans.job_complete,
+			job_success: trans.job_success,
+			job_elapsed: trans.job_elapsed,
+			job_log_file_size: trans.job_log_file_size
+		};
+		
+		var deleted = await this.request.json( this.api_url + '/app/delete_job/v1', { id: result.data.id } );
+		assert.equal( deleted.data.code, 0, 'completed job was deleted' );
+		
+		trans = this.xy.stats.currentDay.transactions;
+		assert.deepEqual({
+			job_complete: trans.job_complete,
+			job_success: trans.job_success,
+			job_elapsed: trans.job_elapsed,
+			job_log_file_size: trans.job_log_file_size
+		}, before, 'deleting job history leaves daily execution stats intact' );
 	},
 	
 	async function test_get_jobs_preserves_forbidden_positions(test) {
