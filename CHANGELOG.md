@@ -1,5 +1,22 @@
 # xyOps Changelog
 
+## Version v1.1.1
+
+> September 23, 2026
+
+- [`233025b2`](https://github.com/pixlcore/xyops/commit/233025b269a442d848231be86800a5f505008f69): Version 1.1.1
+- [`6dc7dced`](https://github.com/pixlcore/xyops/commit/6dc7dced4264972a40fe96790144d852d2993722): Feature: Improve WebSocket handling, ensure readyState before sending, better error logging.
+- [`3b761529`](https://github.com/pixlcore/xyops/commit/3b76152982d482313398fefe87589377e94e7acb): Feature: Show different default server icons for macOS, Windows, and Docker servers (still honor custom and offline icons).
+- [`c6e5fa46`](https://github.com/pixlcore/xyops/commit/c6e5fa4646ca6f6602e8475e4fc00d08f296c1bb): Feature: Improve stat reset to allow a custom "Recount Day" mode, which zeroes then recounts all jobs for the current day.  Fixes #456.
+- [`e79cd723`](https://github.com/pixlcore/xyops/commit/e79cd7233af401ac22c6618ecd211ac33b018c24): Bug Fix: Correctly increment stats for test jobs with reduced action conditions, and misc other fixes.  Ref #456
+- [`387152eb`](https://github.com/pixlcore/xyops/commit/387152eb8c0540daa034be487e311d5f1ca6922c): Bug Fix: Remove problematic rollbackJobStats function, as it can cause negative counts after a stat reset.  Ref #456.
+- [`ad10b415`](https://github.com/pixlcore/xyops/commit/ad10b415d8b12b7724fcabc485c4b2bfcdf5e23a): Bug Fix: UI: Server Process List Details: Prevent stack overflow when clicking on Windows processes with no parent PID.
+- [`d03aebad`](https://github.com/pixlcore/xyops/commit/d03aebad503febc7f4537d7cd8c1c3374746fe00): Meta: Update GitHub Actions workflows to use latest action versions.
+- [`5bd9246d`](https://github.com/pixlcore/xyops/commit/5bd9246dc6c546f97335cd2f343e0d2c3b70a375): Bug Fix: Disallow multiple parallel master commands from running at once (i.e. stop, restart, upgrade).
+- [`6147b7c6`](https://github.com/pixlcore/xyops/commit/6147b7c653da6afb1ecd1bf866c5ffd60ee97015): Bug Fix: Prevent crash when a channel is created without users (via API).  Fixes #455.
+- [`38d69a01`](https://github.com/pixlcore/xyops/commit/38d69a01cf7d8139c8d8421d7b4fda6a7bd37626): Bug Fix: UI: Edit parameter dialog was not set to auto-scroll.  Fixes #454
+- [`96864050`](https://github.com/pixlcore/xyops/commit/9686405000458a88fd4029e0d25b264706460c47): Security: Require admin privilege to mutate user roles.
+
 ## Version v1.1.0
 
 > September 20, 2026
