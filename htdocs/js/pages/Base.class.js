@@ -589,8 +589,9 @@ Page.Base = class Base extends Page {
 		if (!item) return '(None)';
 		
 		var text = item.title || app.formatHostname(item.hostname);
+		var sicon = this.getNiceServerIcon(item);
 		var html = '<span class="nowrap" title="' + encode_attrib_entities(text) + '">';
-		var icon = '<i class="mdi mdi-' + (item.offline ? 'close-network-outline' : (item.icon || 'router-network')) + '"></i>';
+		var icon = '<i class="mdi mdi-' + (item.offline ? 'close-network-outline' : (sicon || 'router-network')) + '"></i>';
 		if (link) {
 			html += '<a href="#Servers?id=' + item.id + '">' + icon + '<span data-private>' + text + '</span></a>';
 		}
@@ -2129,6 +2130,7 @@ Page.Base = class Base extends Page {
 	buildServerOptGroup(title, default_icon, inc_versions) {
 		// build menu group specifically for servers
 		// sorted properly, with labels and icons
+		var self = this;
 		var servers = Object.values(app.servers).sort( 
 			function(a, b) {
 				return ( a.title || a.hostname ).localeCompare( b.title || b.hostname );
@@ -2136,12 +2138,33 @@ Page.Base = class Base extends Page {
 		).map( 
 			function(server) {
 				var title = server.title || app.formatHostname(server.hostname);
+				var icon = self.getNiceServerIcon(server);
 				if (inc_versions) title += ' (v' + server.info.satellite + ')';
-				return merge_objects( server, { title } );
+				return merge_objects( server, { title, icon } );
 			}
 		);
 		
 		return this.buildOptGroup( servers, title || "Servers:", default_icon || 'router-network' );
+	}
+	
+	getNiceServerIcon(server, default_icon = 'router-network') {
+		// get suitable icon for server, honor custom icon
+		if (server.icon) return server.icon;
+		if (server.info && server.info.virt && server.info.virt.vendor && (server.info.virt.vendor == 'Docker')) {
+			return 'docker';
+		}
+		
+		var icon = default_icon;
+		
+		if (server.info && server.info.platform) {
+			switch (server.info.platform) {
+				case 'win32': icon = 'microsoft-windows'; break;
+				case 'dawrin': icon = 'apple'; break;
+				// case 'linux': icon = 'penguin'; break;
+			}
+		}
+		
+		return icon;
 	}
 	
 	// Job Utilities
