@@ -2159,7 +2159,7 @@ Page.Base = class Base extends Page {
 		if (server.info && server.info.platform) {
 			switch (server.info.platform) {
 				case 'win32': icon = 'microsoft-windows'; break;
-				case 'dawrin': icon = 'apple'; break;
+				case 'darwin': icon = 'apple'; break;
 				// case 'linux': icon = 'penguin'; break;
 			}
 		}
