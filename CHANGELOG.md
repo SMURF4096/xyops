@@ -1,5 +1,17 @@
 # xyOps Changelog
 
+## Version v1.1.2
+
+> September 25, 2026
+
+- [`5e536049`](https://github.com/pixlcore/xyops/commit/5e536049ee7de69a865d032e3e9664df1923f2f7): Version 1.1.2
+- [`1bd75d3f`](https://github.com/pixlcore/xyops/commit/1bd75d3f8a87a572b071fa85abbb26ce4cffe60b): Cleanup: Remove unused plugin.cwd in action and scheduler plugin child process setup.
+- [`7406a960`](https://github.com/pixlcore/xyops/commit/7406a960fcd06e2a60b33ebbcf26cbc0a6933572): Feature: Add API: admin_multi_update_all, for performing bulk updates across a global list.
+- [`2595b1cf`](https://github.com/pixlcore/xyops/commit/2595b1cfbf623a1b7f6e26fecec02b16547caf0e): Feature: Bucket APIs: Include bucket metadata, and add new "replace" mode for bucket data.
+- [`356abd59`](https://github.com/pixlcore/xyops/commit/356abd5967c73a7a03c5a13995c9fdc5d5c7463b): Bug Fix: Some API Key actions were getting logged as the OWNER of the API Key, not the key itself.
+- [`25ef5b9f`](https://github.com/pixlcore/xyops/commit/25ef5b9f38b8845f71388b0641feabaf8e01a218): Bug Fix: Allow Plugin checkbox params to be numbers (1 or 0) in addition to booleans, for legacy Cronicle import compat.
+- [`faf57cdc`](https://github.com/pixlcore/xyops/commit/faf57cdc2e5015465ffd5b1bb89b454f6992d575): Bug Fix: Typo in getNiceServerIcon caused macOS icons to stay generic.
+
 ## Version v1.1.1
 
 > September 23, 2026
