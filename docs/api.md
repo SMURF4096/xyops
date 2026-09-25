@@ -447,6 +447,10 @@ And here is an example response:
 	"data": {
 		"foo": "Hello this is a bucket"
 	},
+	"meta": {
+		"mod": 1790227591,
+		"len": 11
+	},
 	"files": [
 		{
 			"id": "fme4wijr73h",
@@ -460,7 +464,7 @@ And here is an example response:
 }
 ```
 
-See [Bucket](data.md#bucket) for details on the properties in the `bucket` object.  The `data` object will be populated with the bucket data, which is all user-defined.  The `files` array is a list of all the files in the bucket, if any.  To download a file, use the `path` property, prepended with the app's base URL (and a slash).
+See [Bucket](data.md#bucket) for details on the properties in the `bucket` object.  The `data` object will be populated with the bucket data, which is all user-defined.  The `meta` object contains the byte length of the data record (`meta.len`) and the last modified date of the data record (`meta.mod`) as an Epoch timestamp.  The `files` array is a list of all the files in the bucket, if any.  To download a file, use the `path` property, prepended with the app's base URL (and a slash).
 
 ### create_bucket
 
@@ -568,6 +572,7 @@ This API allows you to write bucket data into a storage bucket.  The [edit_bucke
 | `id` | String | **(Required)** The alphanumeric ID of the bucket to write data to. |
 | `data` | Object | **(Required)** The data object to shallow-merge into the bucket data. |
 | `fetch` | Boolean | Optional flag requesting the entire data object be returned in the API response. |
+| `replace` | Boolean | Optional flag requesting the entire data record be replaced, not shallow merged. |
 
 Here is an example request:
 
@@ -588,7 +593,7 @@ And an example response:
 }
 ```
 
-Notably, data passed to this API is *shallow-merged* into the bucket data.  In this way multiple "clients" can read/write data to the same bucket without affecting each other (as long as they use unique property names).  Locking is used to ensure only one read/write operation occurs at a time.  If multiple clients write the same property names the latter prevails.
+By default, data passed to this API is *shallow-merged* into the bucket data.  In this way multiple "clients" can read/write data to the same bucket without affecting each other (as long as they use unique property names).  If the `replace` param is set, the entire data record is replaced.  Locking is used to ensure only one read/write operation occurs at a time.  If multiple clients write the same property names the latter prevails.
 
 This API is designed to be called from within jobs (i.e. Event Plugin scripts), so it does not update the bucket record itself, nor log a user transaction.
 
@@ -606,7 +611,7 @@ This API allows you to upload files into a storage bucket.  Unlike most of the o
 
 The file properties are automatically set based on the user files themselves, including the filename, file size, etc.  The `id` parameter is used to specify the target bucket for the upload.
 
-Note that bucket files are automatically added or replaced based on their normalized filenames.  Normalization involves converting anything other than alphanumerics, dashes and periods to underscores, and converting the filename to lowercase.
+Note that bucket files are automatically added or replaced based on their normalized filenames.  Normalization involves converting any unsafe characters to underscores.
 
 This API is designed to be called from within jobs (i.e. Event Plugin scripts), so it does not update the bucket record itself, nor log a user transaction.
 
