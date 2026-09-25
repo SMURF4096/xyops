@@ -6124,6 +6124,42 @@ Notes:
 - A detailed report is attached to the internal job and emailed to the user who issued the request.
 - After import, global lists are reloaded, monitors/alerts are recompiled, and the UI is refreshed for connected users.
 
+### admin_multi_update_all
+
+```
+POST /api/app/admin_multi_update_all/v1
+```
+
+Update or delete properties on **every item** in a global list. This is a dangerous, admin-only, low-level API for one-time data cleanup. Only use it if you know exactly which properties you are changing and understand the effects on every item in the list. The request must be sent as HTTP POST with a JSON body to the primary conductor, using an administrator session or API Key with the [admin](privileges.md#admin) privilege.
+
+Parameters:
+
+| Property Name | Type | Description |
+|---------------|------|-------------|
+| `list` | String | **(Required)** Global list name, such as `plugins` or `events`. The `users` and `secrets` lists are not supported. |
+| `update` | Object | Property paths and values to set on every item. Dot paths can address nested properties. |
+| `delete` | Object | Property paths to remove from every item. The values in this object are ignored. |
+
+At least one of `update` or `delete` is required. Updates are applied first, followed by deletions.
+
+For example, this removes the obsolete `cwd` property from every plugin and sets `modified` to the supplied value:
+
+```json
+{
+	"list": "plugins",
+	"delete": { "cwd": true },
+	"update": { "modified": 1790359320 }
+}
+```
+
+Example response:
+
+```json
+{ "code": 0 }
+```
+
+This API writes directly to the stored list without validating individual objects or updating their `modified` and `revision` fields automatically. It processes list pages in sequence, so a storage error can leave earlier pages changed. Review the list and property paths carefully before running it.
+
 ### admin_export_data
 
 ```
